@@ -5,7 +5,8 @@ const BUCKET = 'photos'
 // 写真をアップロードし、recordsテーブルに保存する「パス」を返す
 export async function uploadPhoto(file: File, userId: string): Promise<string> {
   const supabase = createClient()
-  const path = `${userId}/${crypto.randomUUID()}-${file.name}`
+  const ext = file.name.split('.').pop() ?? 'jpg'
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file)
   if (error) throw error
