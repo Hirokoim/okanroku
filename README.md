@@ -31,15 +31,6 @@ Day1「動く骨格」が完成しています。
 | スタイル | Tailwind CSS |
 | デプロイ | Vercel（予定） |
 | 言語 | TypeScript |
-
-## セットアップ
-
-```bash
-npm install
-cp .env.example .env.local  # Supabaseの Project URL・anon key を設定
-npm run dev
-```
-
 [http://localhost:3000](http://localhost:3000) を開いてください。
 
 Supabase側で `figures` / `records` テーブル・RLSポリシー・`photos` Storageバケットの作成が別途必要です。手順は `docs/requirements.md` を参照してください。
