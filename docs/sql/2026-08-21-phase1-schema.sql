@@ -84,14 +84,17 @@ alter table records alter column user_id set default auth.uid();
 -- 旧3値と新4値は一対一に対応しない（旧に「そもそも実景と違う」に当たる値が無く、
 -- 「変わった」が visible なのか not_visible なのか判別できない）。
 -- 実データが少ない前提で、判別できるものだけ移し、残りは unjudged にして再判定する。
+--
+-- 旧値のCHECK制約が付いたままだと、下のUPDATE文が新しい値を書き込んだ瞬間に
+-- 「旧3値以外は許さない」という古い制約に引っかかってエラーになる。
+-- そのため、UPDATEより先に古い制約を落とす。
+-- 制約名は環境によって異なる場合があるので、下記で確認して読み替えること。
+--   select conname from pg_constraint where conrelid = 'records'::regclass and contype = 'c';
+alter table records drop constraint if exists records_diff_type_check;
+
 update records set diff_type = 'visible'     where diff_type = 'unchanged';
 update records set diff_type = 'not_visible' where diff_type = 'lost';
 update records set diff_type = 'unjudged'    where diff_type = 'changed';
-
--- 旧値のCHECK制約が残っていると新しい値を弾くため、あれば落としてから張り直す。
--- 制約名は環境によって異なるので、下記で確認して読み替えること。
---   select conname from pg_constraint where conrelid = 'records'::regclass and contype = 'c';
-alter table records drop constraint if exists records_diff_type_check;
 
 alter table records add constraint records_diff_type_check
   check (diff_type is null or diff_type in ('visible', 'not_visible', 'imagined', 'unjudged'));
