@@ -2,15 +2,8 @@ export type RecordRow = {
   id: string
   location_name: string
   work_label: string | null
-  diff_type: string | null
   created_at: string
   figures: { name: string } | null
-}
-
-const diffLabel: { [key: string]: string } = {
-  unchanged: '変わらない',
-  changed: '変わった',
-  lost: '消失',
 }
 
 export function RecordList({ records }: { records: RecordRow[] }) {
@@ -28,7 +21,6 @@ export function RecordList({ records }: { records: RecordRow[] }) {
             <div className="text-gray-600">
               {r.figures?.name}
               {r.work_label ? ` ／ ${r.work_label}` : ''}
-              {r.diff_type ? ` ／ ${diffLabel[r.diff_type]}` : ''}
             </div>
             <div className="text-gray-400 text-xs">
               {new Date(r.created_at).toLocaleString('ja-JP')}

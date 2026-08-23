@@ -40,7 +40,6 @@ export function RecordForm({ userId, figures }: { userId: string; figures: Figur
         longitude: formData.get('longitude') ? Number(formData.get('longitude')) : null,
         // datetime-localはタイムゾーン情報を持たないため、端末のローカル時刻として解釈して保存する
         photographed_at: photographedAtRaw ? new Date(photographedAtRaw).toISOString() : null,
-        diff_type: formData.get('diff_type') || null,
         access_note: formData.get('access_note') || null,
         voice_transcript: formData.get('voice_transcript') || null,
         edit_intent: formData.get('edit_intent') || null,
@@ -95,16 +94,6 @@ export function RecordForm({ userId, figures }: { userId: string; figures: Figur
       <label className="block text-sm">
         撮影日時
         <input name="photographed_at" type="datetime-local" className="w-full border rounded p-2 mt-1" />
-      </label>
-
-      <label className="block text-sm">
-        当時と現在の差分
-        <select name="diff_type" className="w-full border rounded p-2 mt-1">
-          <option value="">未選択</option>
-          <option value="unchanged">変わらない</option>
-          <option value="changed">変わった</option>
-          <option value="lost">消失</option>
-        </select>
       </label>
 
       <label className="block text-sm">

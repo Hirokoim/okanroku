@@ -225,16 +225,101 @@ commit;
 
 
 -- ============================================================
+-- ステップ5：分類（見える富士／見えない富士／心の中の富士）を locations へ移設
+-- ============================================================
+-- 設計変更（2026-08-21）：5-E②は「diff_typeは記録ごとの主観的な観察」としていたが、
+-- 実際は「現地の状況について調べて決まる客観的な調査結果」だった。
+-- fugaku-36の実データ（data/fugaku-36/items/*.json）で全46件に
+-- fuji_visibility / visibility_confidence / visibility_reason が入っており、
+-- 訪問の有無に関わらず定まる静的な調査データであることが確認できたため、
+-- records.diff_type ではなく locations 側に持たせる。
+--
+-- 46番「諸人登山」のみ元データが「対象外（富士山頂が舞台のため）」で、
+-- visible/not_visible/imagined のどれにも当てはまらないため unjudged に寄せてある。
+-- 理由欄に原文をそのまま残しているので、必要なら見直すこと。
+
+begin;
+
+alter table locations add column if not exists accessibility_class text;
+alter table locations add column if not exists accessibility_confidence text;
+alter table locations add column if not exists accessibility_reason text;
+alter table locations add column if not exists inaccessible_reason text;  -- fugaku-36実データでは未使用。将来の詳細化用に列だけ用意
+
+alter table locations add constraint locations_accessibility_class_check
+  check (accessibility_class is null or accessibility_class in ('visible', 'not_visible', 'imagined', 'unjudged'));
+
+alter table locations add constraint locations_accessibility_confidence_check
+  check (accessibility_confidence is null or accessibility_confidence in ('confirmed', 'estimated', 'unconfirmed'));
+
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'confirmed', accessibility_reason = '海上の場面のため物理的に立てない' where figure_id = (select id from figures where slug = 'hokusai') and number = 1;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '河口湖側/富士市側で諸説、いずれも可視域' where figure_id = (select id from figures where slug = 'hokusai') and number = 2;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '地点諸説（御坂山塊/富士宮側）' where figure_id = (select id from figures where slug = 'hokusai') and number = 3;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'confirmed', accessibility_reason = '高層ビルで遮蔽（既出典）' where figure_id = (select id from figures where slug = 'hokusai') and number = 4;
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'estimated', accessibility_reason = '富士まで約180km、樽越しの誇張構図' where figure_id = (select id from figures where slug = 'hokusai') and number = 5;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '山中の峠、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 6;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '都市化により遮蔽の可能性' where figure_id = (select id from figures where slug = 'hokusai') and number = 7;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '松自体が現存せず、都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 8;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = 'お茶の水周辺、都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 9;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '河川敷、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 10;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'confirmed', accessibility_reason = '現在も絶景ポイントと紹介あり' where figure_id = (select id from figures where slug = 'hokusai') and number = 11;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '高層ビル群による遮蔽の可能性' where figure_id = (select id from figures where slug = 'hokusai') and number = 12;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'confirmed', accessibility_reason = '冬季晴天時に現在も見えると確認済み' where figure_id = (select id from figures where slug = 'hokusai') and number = 13;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '過去に参照済み、再確認要' where figure_id = (select id from figures where slug = 'hokusai') and number = 14;
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'estimated', accessibility_reason = '富士まで約140km、南アルプス越しの誇張' where figure_id = (select id from figures where slug = 'hokusai') and number = 15;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '過去に参照済み、再確認要' where figure_id = (select id from figures where slug = 'hokusai') and number = 16;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '山中の峠、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 17;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '港湾開発の影響を要確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 18;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'confirmed', accessibility_reason = '大屋根が現存すると確認済み' where figure_id = (select id from figures where slug = 'hokusai') and number = 19;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '沿岸部、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 20;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '過去に参照済み、再確認要' where figure_id = (select id from figures where slug = 'hokusai') and number = 21;
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'confirmed', accessibility_reason = '海上の場面のため物理的に立てない' where figure_id = (select id from figures where slug = 'hokusai') and number = 22;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'confirmed', accessibility_reason = '埋立・高層化で困難と確認済み' where figure_id = (select id from figures where slug = 'hokusai') and number = 23;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '豊橋周辺、都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 24;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '過去に参照済み、再確認要' where figure_id = (select id from figures where slug = 'hokusai') and number = 25;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '過去に参照済み、再確認要' where figure_id = (select id from figures where slug = 'hokusai') and number = 26;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '港湾・工業地帯化' where figure_id = (select id from figures where slug = 'hokusai') and number = 27;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'confirmed', accessibility_reason = '現在も絶景ポイント多数と確認済み' where figure_id = (select id from figures where slug = 'hokusai') and number = 28;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'confirmed', accessibility_reason = '首都高速による遮蔽は著名な事実' where figure_id = (select id from figures where slug = 'hokusai') and number = 29;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '建物は現存も周辺高層化で富士遮蔽' where figure_id = (select id from figures where slug = 'hokusai') and number = 30;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'confirmed', accessibility_reason = '現在も富士の名所として著名' where figure_id = (select id from figures where slug = 'hokusai') and number = 31;
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'confirmed', accessibility_reason = '物理的にありえない合成構図（実写と映り込みの季節矛盾）' where figure_id = (select id from figures where slug = 'hokusai') and number = 32;
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'estimated', accessibility_reason = '地点は路として残存も、水車・展望自体は消滅（Bとの境界要検討）' where figure_id = (select id from figures where slug = 'hokusai') and number = 33;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '横浜近郊、都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 34;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '足立区、都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 35;
+update locations set accessibility_class = 'imagined', accessibility_confidence = 'confirmed', accessibility_reason = '実在しえない高さ・角度からの幻視的構図' where figure_id = (select id from figures where slug = 'hokusai') and number = 36;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '山間部、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 37;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 38;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '茶園、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 39;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'confirmed', accessibility_reason = '御殿山切り崩しで景観消滅と確認済み' where figure_id = (select id from figures where slug = 'hokusai') and number = 40;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '山間部、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 41;
+update locations set accessibility_class = 'not_visible', accessibility_confidence = 'estimated', accessibility_reason = '材木問屋跡地、都市化' where figure_id = (select id from figures where slug = 'hokusai') and number = 42;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '山間部、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 43;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '農地帯、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 44;
+update locations set accessibility_class = 'visible', accessibility_confidence = 'estimated', accessibility_reason = '富士近郊農地、要現地確認' where figure_id = (select id from figures where slug = 'hokusai') and number = 45;
+update locations set accessibility_class = 'unjudged', accessibility_confidence = 'confirmed', accessibility_reason = '富士山頂そのものが舞台で、富士を「見る」構図ではない' where figure_id = (select id from figures where slug = 'hokusai') and number = 46;
+
+-- diff_type は静的な調査データだったため records から削除。
+-- ステップ2で新4値に移行済みだったが、置き場所自体が誤りだったので列ごと落とす。
+alter table records drop column if exists diff_type;
+
+commit;
+
+
+-- ============================================================
 -- 実行後の確認
 -- ============================================================
 -- 46件入っているか
 --   select count(*) from locations;
 -- 正景／裏富士の内訳
 --   select series, count(*) from locations group by series;
--- diff_type が新しい4値になっているか
---   select diff_type, count(*) from records group by diff_type;
+-- accessibility_class の内訳（visible 21 / not_visible 17 / imagined 7 / unjudged 1 になるはず）
+--   select accessibility_class, count(*) from locations group by accessibility_class;
+-- diff_type 列が消えているか
+--   select column_name from information_schema.columns where table_name = 'records' and column_name = 'diff_type';
 --
 -- 確認後、アプリ（npm run dev）でログインし、記録の表示・保存が壊れていないことを確かめること。
+-- record-form.tsx が diff_type を参照しているため、列を消すとフォームがエラーになる。
+-- アプリ側の対応（フォームからdiff_type欄を外し、locationsの分類を表示に回す）は別途実施が必要。
 
 
 -- ============================================================
@@ -245,3 +330,5 @@ commit;
 --   （requirements.md 5-E⑦。両方使うと同じ地点の名前が2か所に保存されて食い違う）
 -- ・アプリ側で写真の枚数上限（5枚程度）をバリデーションする
 -- ・既存 records.photo_urls から record_photos への移行（実データがあれば）
+-- ・record-form.tsx / record-list.tsx から diff_type の参照を削除し、
+--   locations.accessibility_class の表示に置き換える（アプリコード修正、別タスク）

@@ -12,7 +12,7 @@ export default async function Home() {
   const { data: records } = user
     ? await supabase
         .from('records')
-        .select('id, location_name, work_label, diff_type, created_at, figures(name)')
+        .select('id, location_name, work_label, created_at, figures(name)')
         .order('created_at', { ascending: false })
     : { data: null }
 
