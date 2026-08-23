@@ -306,6 +306,71 @@ commit;
 
 
 -- ============================================================
+-- ステップ6：location_source を「確定度」と「出典テキスト」に分割
+-- ============================================================
+-- location_source は「判明:」「不明:」というプレフィックスと、
+-- 説明・出典が同じテキスト列に混在していて読みにくかったため分割する。
+-- accessibility_confidence と同じ命名（confirmed/estimated）に揃える。
+-- 全46件で「判明:」「不明:」のどちらかで必ず始まることを確認済み。
+
+begin;
+
+alter table locations add column if not exists location_confidence text;
+
+alter table locations add constraint locations_location_confidence_check
+  check (location_confidence is null or location_confidence in ('confirmed', 'estimated', 'unconfirmed'));
+
+update locations set location_confidence = 'estimated', location_source = '神奈川宿沖/本牧沖/木更津方面から江戸湾説など複数あり単一点特定不可（Wikipedia「神奈川沖浪裏」、KIP神奈川産業振興センター）' where figure_id = (select id from figures where slug = 'hokusai') and number = 1;
+update locations set location_confidence = 'estimated', location_source = '甲斐国側/駿河国側で未決着（Wikipedia「凱風快晴」、東京富士美術館）' where figure_id = (select id from figures where slug = 'hokusai') and number = 2;
+update locations set location_confidence = 'estimated', location_source = '具体的視点未特定（Wikipedia「山下白雨」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 3;
+update locations set location_confidence = 'confirmed', location_source = '万年橋（江東区清澄2丁目）（Wikipedia、fugaku36.net）' where figure_id = (select id from figures where slug = 'hokusai') and number = 4;
+update locations set location_confidence = 'confirmed', location_source = '名古屋市中区富士見町（Wikipedia「尾州不二見原」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 5;
+update locations set location_confidence = 'estimated', location_source = '上野原市犬目宿〜下鳥沢宿間の峠、具体地点未確定（Wikipedia「甲州犬目峠」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 6;
+update locations set location_confidence = 'confirmed', location_source = '足立区千住桜木1-15（記念碑）（足立区立郷土博物館、Yahoo!マップ）' where figure_id = (select id from figures where slug = 'hokusai') and number = 7;
+update locations set location_confidence = 'confirmed', location_source = '龍巌寺（渋谷区神宮前2-3-8）（Wikipedia「青山円座松」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 8;
+update locations set location_confidence = 'confirmed', location_source = '神田駿河台（千代田区、御茶ノ水）（Wikipedia「東都駿台」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 9;
+update locations set location_confidence = 'estimated', location_source = '多摩川流域、具体地点判断し難い（江戸伝統木版画工芸協同組合、Wikipedia「武州玉川」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 10;
+update locations set location_confidence = 'confirmed', location_source = '稲村ヶ崎（鎌倉市）（Wikipedia「相州七里浜」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 11;
+update locations set location_confidence = 'confirmed', location_source = '佃島（中央区佃1丁目）（Wikipedia「武陽佃嶌」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 12;
+update locations set location_confidence = 'confirmed', location_source = '牛堀（茨城県潮来市）（文化遺産オンライン）' where figure_id = (select id from figures where slug = 'hokusai') and number = 13;
+update locations set location_confidence = 'confirmed', location_source = '鰍沢（山梨県南巨摩郡富士川町）（Wikipedia「甲州石班澤」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 14;
+update locations set location_confidence = 'confirmed', location_source = '下諏訪町（長野県諏訪郡）（fugaku36.net）' where figure_id = (select id from figures where slug = 'hokusai') and number = 15;
+update locations set location_confidence = 'estimated', location_source = '静岡県西部、場所特定要素なし（浜松市天竜区水窪など候補）（Wikipedia「遠江山中」、アダチ版画技術保存財団）' where figure_id = (select id from figures where slug = 'hokusai') and number = 16;
+update locations set location_confidence = 'confirmed', location_source = '籠坂峠（山中湖村〜御殿場市境）（東京富士美術館）' where figure_id = (select id from figures where slug = 'hokusai') and number = 17;
+update locations set location_confidence = 'confirmed', location_source = '姥ヶ池付近（静岡市清水区）（Wikipedia「駿州江尻」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 18;
+update locations set location_confidence = 'confirmed', location_source = '東本願寺（台東区西浅草1丁目）（文化遺産オンライン）' where figure_id = (select id from figures where slug = 'hokusai') and number = 19;
+update locations set location_confidence = 'confirmed', location_source = '梅沢（神奈川県中郡二宮町）（東京富士美術館）' where figure_id = (select id from figures where slug = 'hokusai') and number = 20;
+update locations set location_confidence = 'estimated', location_source = '目黒区下目黒一帯、具体地点不明（碑文谷方向説あり）（Wikipedia「下目黒 (葛飾北斎)」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 21;
+update locations set location_confidence = 'confirmed', location_source = '金谷浦（千葉県富津市）（Wikipedia「上總ノ海路」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 22;
+update locations set location_confidence = 'confirmed', location_source = '登渡神社（千葉市中央区登戸）（ジャパンサーチ）' where figure_id = (select id from figures where slug = 'hokusai') and number = 23;
+update locations set location_confidence = 'confirmed', location_source = '吉田宿（愛知県豊橋市）（日本製品遺産協会）' where figure_id = (select id from figures where slug = 'hokusai') and number = 24;
+update locations set location_confidence = 'confirmed', location_source = '伝通院付近（文京区小石川）（Wikipedia「礫川雪ノ且」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 25;
+update locations set location_confidence = 'confirmed', location_source = '厩橋付近（台東区蔵前〜墨田区本所1丁目）（Wikipedia、東京富士美術館）' where figure_id = (select id from figures where slug = 'hokusai') and number = 26;
+update locations set location_confidence = 'estimated', location_source = '清水湊沖合説と吉原宿・由比宿説など複数説あり（Wikipedia「東海道江尻田子の浦略図」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 27;
+update locations set location_confidence = 'confirmed', location_source = '江の島（神奈川県藤沢市）（日本製品遺産協会）' where figure_id = (select id from figures where slug = 'hokusai') and number = 28;
+update locations set location_confidence = 'confirmed', location_source = '日本橋（中央区日本橋）（一般に自明）' where figure_id = (select id from figures where slug = 'hokusai') and number = 29;
+update locations set location_confidence = 'confirmed', location_source = '日本橋室町・三越前（中央区）（東京富士美術館）' where figure_id = (select id from figures where slug = 'hokusai') and number = 30;
+update locations set location_confidence = 'confirmed', location_source = '芦ノ湖（神奈川県箱根町）（日本製品遺産協会）' where figure_id = (select id from figures where slug = 'hokusai') and number = 31;
+update locations set location_confidence = 'confirmed', location_source = '御坂峠（山梨県笛吹市御坂町）（日本製品遺産協会）' where figure_id = (select id from figures where slug = 'hokusai') and number = 32;
+update locations set location_confidence = 'confirmed', location_source = '表参道付近（渋谷区神宮前）（江戸伝統木版画工芸協同組合）' where figure_id = (select id from figures where slug = 'hokusai') and number = 33;
+update locations set location_confidence = 'confirmed', location_source = '保土ヶ谷宿（横浜市保土ケ谷区）（一般定説）' where figure_id = (select id from figures where slug = 'hokusai') and number = 34;
+update locations set location_confidence = 'confirmed', location_source = '関屋（足立区）（文化遺産オンライン）' where figure_id = (select id from figures where slug = 'hokusai') and number = 35;
+update locations set location_confidence = 'confirmed', location_source = '五百羅漢寺跡（江東区大島4丁目）（fugaku36.net、東京富士美術館）' where figure_id = (select id from figures where slug = 'hokusai') and number = 36;
+update locations set location_confidence = 'estimated', location_source = '南巨摩郡身延町付近、「身延川」が富士川か久遠寺周辺川か諸説あり（Wikipedia「身延川裏不二」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 37;
+update locations set location_confidence = 'confirmed', location_source = '千住宮元町（足立区）（fugaku36.net）' where figure_id = (select id from figures where slug = 'hokusai') and number = 38;
+update locations set location_confidence = 'estimated', location_source = '静岡県富士市一帯、「片倉」の具体地点未詳（文化遺産オンライン）' where figure_id = (select id from figures where slug = 'hokusai') and number = 39;
+update locations set location_confidence = 'confirmed', location_source = '御殿山（品川区北品川3丁目）（Wikipedia）' where figure_id = (select id from figures where slug = 'hokusai') and number = 40;
+update locations set location_confidence = 'confirmed', location_source = '石和宿（山梨県笛吹市石和町）（Wikipedia「甲州伊沢暁」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 41;
+update locations set location_confidence = 'confirmed', location_source = '立川（墨田区）（Wikipedia「本所立川」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 42;
+update locations set location_confidence = 'confirmed', location_source = '金谷宿（静岡県島田市東町）（fugaku36.net）' where figure_id = (select id from figures where slug = 'hokusai') and number = 43;
+update locations set location_confidence = 'confirmed', location_source = '中原（神奈川県平塚市）（Wikipedia「相州仲原」）' where figure_id = (select id from figures where slug = 'hokusai') and number = 44;
+update locations set location_confidence = 'confirmed', location_source = '大野新田（静岡県富士市）（日本製品遺産協会）' where figure_id = (select id from figures where slug = 'hokusai') and number = 45;
+update locations set location_confidence = 'confirmed', location_source = '富士山吉田口登山道（富士山頂）（一般に自明）' where figure_id = (select id from figures where slug = 'hokusai') and number = 46;
+
+commit;
+
+
+-- ============================================================
 -- 実行後の確認
 -- ============================================================
 -- 46件入っているか
@@ -314,12 +379,14 @@ commit;
 --   select series, count(*) from locations group by series;
 -- accessibility_class の内訳（visible 21 / not_visible 17 / imagined 7 / unjudged 1 になるはず）
 --   select accessibility_class, count(*) from locations group by accessibility_class;
+-- location_confidence の内訳と、location_source から「判明:」「不明:」が消えているか
+--   select location_confidence, count(*) from locations group by location_confidence;
+--   select number, location_confidence, location_source from locations order by number limit 5;
 -- diff_type 列が消えているか
 --   select column_name from information_schema.columns where table_name = 'records' and column_name = 'diff_type';
 --
 -- 確認後、アプリ（npm run dev）でログインし、記録の表示・保存が壊れていないことを確かめること。
--- record-form.tsx が diff_type を参照しているため、列を消すとフォームがエラーになる。
--- アプリ側の対応（フォームからdiff_type欄を外し、locationsの分類を表示に回す）は別途実施が必要。
+-- record-form.tsx / record-list.tsx / page.tsx から diff_type の参照は既に削除済み（コミット済み）。
 
 
 -- ============================================================
