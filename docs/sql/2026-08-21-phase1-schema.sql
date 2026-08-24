@@ -4,12 +4,21 @@
 --
 -- 【実行方法】
 --   Supabase ダッシュボード → SQL Editor に貼り付けて実行する。
---   ステップ1〜4に分かれている。上から順に、1つずつ実行して結果を確認すること。
+--   ステップ1〜7に分かれている。上から順に、1つずつ実行して結果を確認すること。
 --   各ステップは begin/commit で囲んであるため、途中で失敗しても元に戻る。
+--
+--   1. locations（地点マスタ）テーブルの作成
+--   2. records の更新（is_public / location_id / weather 追加、user_id を NOT NULL 化）
+--   3. record_photos（写真）テーブルの作成
+--   4. 北斎46図のシードデータ投入
+--   5. 富士の見え方の分類を locations へ移設し、records.diff_type を削除
+--   6. location_source を確定度と出典テキストに分割
+--   7. cluster と route_order を埋める
 --
 -- 【事前確認】
 --   ステップ2で既存データの diff_type を変換する。実行前に下記で件数を確認すること。
 --     select diff_type, count(*) from records group by diff_type;
+--     select count(*) from records where user_id is null;   -- 0件であること
 
 
 -- ============================================================
@@ -167,7 +176,7 @@ commit;
 -- ============================================================
 -- 出典：MulmoClaude の fugaku-36 コレクション
 --   ~/mulmoclaude/artifacts/spreadsheets/2026/08/fugaku36.csv（46行ちょうど）
--- cluster と route_order は CSV に無いため null。投入後に手動で埋める。
+-- cluster と route_order は CSV に無いため、ここでは null。ステップ7で埋める。
 
 begin;
 
@@ -371,6 +380,70 @@ commit;
 
 
 -- ============================================================
+-- ステップ7：cluster と route_order を埋める
+-- ============================================================
+-- cluster は地図のフィルタと進捗の内訳（機能①・機能③）に使う。
+-- 切り分けの基準は行政区画ではなく「一度の旅で回れる単位」。
+-- 46地点を14クラスタに分けた。
+--
+-- 江戸のものは「江戸・」で始まる名前にしてある。UIで区切り文字で分ければ、
+-- 列を増やさずに「江戸（17件）」という上位のまとまりとしても扱える。
+--
+-- route_order はクラスタ内での巡回順（1から連番）。おおむね街道の進行方向、
+-- 江戸の市中は南から北の順に並べてある。全体の通し番号ではない。
+
+begin;
+
+update locations set cluster = '江戸・日本橋神田', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 29;
+update locations set cluster = '江戸・日本橋神田', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 30;
+update locations set cluster = '江戸・日本橋神田', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 9;
+update locations set cluster = '江戸・日本橋神田', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 25;
+update locations set cluster = '江戸・浅草千住', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 26;
+update locations set cluster = '江戸・浅草千住', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 19;
+update locations set cluster = '江戸・浅草千住', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 35;
+update locations set cluster = '江戸・浅草千住', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 38;
+update locations set cluster = '江戸・浅草千住', route_order = 5 where figure_id = (select id from figures where slug = 'hokusai') and number = 7;
+update locations set cluster = '江戸・隅田川東岸', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 12;
+update locations set cluster = '江戸・隅田川東岸', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 4;
+update locations set cluster = '江戸・隅田川東岸', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 36;
+update locations set cluster = '江戸・隅田川東岸', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 42;
+update locations set cluster = '江戸・山手', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 40;
+update locations set cluster = '江戸・山手', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 21;
+update locations set cluster = '江戸・山手', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 33;
+update locations set cluster = '江戸・山手', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 8;
+update locations set cluster = '東海道・武蔵', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 10;
+update locations set cluster = '東海道・武蔵', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 1;
+update locations set cluster = '東海道・武蔵', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 34;
+update locations set cluster = '相模・箱根', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 11;
+update locations set cluster = '相模・箱根', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 28;
+update locations set cluster = '相模・箱根', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 44;
+update locations set cluster = '相模・箱根', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 20;
+update locations set cluster = '相模・箱根', route_order = 5 where figure_id = (select id from figures where slug = 'hokusai') and number = 31;
+update locations set cluster = '富士山', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 2;
+update locations set cluster = '富士山', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 3;
+update locations set cluster = '富士山', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 46;
+update locations set cluster = '富士北麓', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 32;
+update locations set cluster = '富士北麓', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 17;
+update locations set cluster = '甲州道中', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 6;
+update locations set cluster = '甲州道中', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 41;
+update locations set cluster = '富士川', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 14;
+update locations set cluster = '富士川', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 37;
+update locations set cluster = '駿河', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 27;
+update locations set cluster = '駿河', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 45;
+update locations set cluster = '駿河', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 18;
+update locations set cluster = '駿河', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 39;
+update locations set cluster = '遠江・三河・尾張', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 43;
+update locations set cluster = '遠江・三河・尾張', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 16;
+update locations set cluster = '遠江・三河・尾張', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 24;
+update locations set cluster = '遠江・三河・尾張', route_order = 4 where figure_id = (select id from figures where slug = 'hokusai') and number = 5;
+update locations set cluster = '房総・常陸', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 13;
+update locations set cluster = '房総・常陸', route_order = 2 where figure_id = (select id from figures where slug = 'hokusai') and number = 23;
+update locations set cluster = '房総・常陸', route_order = 3 where figure_id = (select id from figures where slug = 'hokusai') and number = 22;
+update locations set cluster = '信濃', route_order = 1 where figure_id = (select id from figures where slug = 'hokusai') and number = 15;
+
+commit;
+
+-- ============================================================
 -- 実行後の確認
 -- ============================================================
 -- 46件入っているか
@@ -384,6 +457,12 @@ commit;
 --   select number, location_confidence, location_source from locations order by number limit 5;
 -- diff_type 列が消えているか
 --   select column_name from information_schema.columns where table_name = 'records' and column_name = 'diff_type';
+-- cluster の内訳（14クラスタ・合計46件になるはず。null が残っていないこと）
+--   select cluster, count(*) from locations group by cluster order by count(*) desc;
+--   select count(*) from locations where cluster is null;   -- 0件であること
+-- クラスタ内の巡回順が通っているか（例：江戸・浅草千住）
+--   select route_order, number, title_jp, modern_location from locations
+--   where cluster = '江戸・浅草千住' order by route_order;
 --
 -- 確認後、アプリ（npm run dev）でログインし、記録の表示・保存が壊れていないことを確かめること。
 -- record-form.tsx / record-list.tsx / page.tsx から diff_type の参照は既に削除済み（コミット済み）。
@@ -392,10 +471,9 @@ commit;
 -- ============================================================
 -- 残タスク（このSQLの範囲外）
 -- ============================================================
--- ・locations.cluster を手動で埋める（地図フィルタ用。「江戸市中」「墨田区」など）
 -- ・records.location_name / work_label は location_id が未設定のときだけ使う
 --   （requirements.md 5-E⑦。両方使うと同じ地点の名前が2か所に保存されて食い違う）
 -- ・アプリ側で写真の枚数上限（5枚程度）をバリデーションする
 -- ・既存 records.photo_urls から record_photos への移行（実データがあれば）
--- ・record-form.tsx / record-list.tsx から diff_type の参照を削除し、
---   locations.accessibility_class の表示に置き換える（アプリコード修正、別タスク）
+-- ・記録フォームへの location_id 連携（地点選択と record_photos への保存）
+-- ・地図表示（Leaflet）と進捗ダッシュボード
