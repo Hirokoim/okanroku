@@ -6,20 +6,29 @@
 
 ここで生まれるデータは、単なる旅の記録ではなく、将来の教材・データ基盤（歴史資本MCPサーバー構想）の原料となる非公開の「原本」として設計されています。
 
-詳細な要件は [`docs/requirements.md`](docs/requirements.md) を参照してください。
+## ドキュメント
 
-## 現在のステータス（2026-07-25時点）
+| 資料 | 内容 |
+|---|---|
+| [`docs/requirements.md`](docs/requirements.md) | 要件定義書。機能要件・データモデルの設計判断（5-E）・開発フェーズ計画 |
+| [`docs/clusters.md`](docs/clusters.md) | 北斎46図のクラスタ一覧。1日で往還できる単位に分けた28クラスタと、国別の富士の見え方 |
+| [`docs/sql/`](docs/sql/) | Supabaseに適用するスキーマ変更SQL |
+| [`docs/supabase-schema-status.md`](docs/supabase-schema-status.md) | Supabase側のスキーマ・RLSの検証記録 |
 
-Day1「動く骨格」が完成しています。
+## 現在のステータス（2026-08-25時点）
+
+Phase1のデータモデルが揃い、複数ユーザー対応のRLS上で動く状態になっています。
 
 - [x] Google OAuth認証（ログイン・ログアウト）
-- [x] `figures`（人物マスタ・8名分シード済み）／`records`（記録本体）のテーブル設計・RLS
 - [x] 写真アップロード（Supabase Storage、非公開バケット・署名付きURL方式）
 - [x] 最小限の記録入力フォーム＋一覧表示
+- [x] 複数ユーザー前提のRLS（`records`は`auth.uid() = user_id`、Storageは本人のフォルダのみ）
+- [x] `figures`（人物マスタ・8名）／`locations`（北斎46図の地点マスタ）／`records`／`record_photos`
+- [x] 北斎46図のシードデータ投入と、28クラスタへの分類
+- [ ] 記録フォームへの地点連携（`location_id`・写真ごとのGPS）
+- [ ] 地図表示（Leaflet）と進捗ダッシュボード
 
 実地でのフィールドワークは、当面 [MulmoClaude](https://github.com/receptron/mulmoclaude) 上の `fugaku-36` コレクションを主力として進め、そこで固まった記録項目・使い勝手を本アプリに反映していく方針です（詳細は `docs/requirements.md` の「1-A. 実験レイヤーとの役割分担」を参照）。
-
-地点マスター管理・地図表示・進捗ダッシュボードは、上記の実地検証が進むまで保留としています。
 
 ## 技術スタック
 
@@ -31,6 +40,9 @@ Day1「動く骨格」が完成しています。
 | スタイル | Tailwind CSS |
 | デプロイ | Vercel（予定） |
 | 言語 | TypeScript |
-[http://localhost:3000](http://localhost:3000) を開いてください。
 
-Supabase側で `figures` / `records` テーブル・RLSポリシー・`photos` Storageバケットの作成が別途必要です。手順は `docs/requirements.md` を参照してください。
+## セットアップ
+
+`.env.example` を `.env.local` にコピーし、SupabaseのProject URLとanon keyを設定してから開発サーバーを起動します。
+
+Supabase側には `figures` / `locations` / `records` / `record_photos` テーブル、それぞれのRLSポリシー、`photos` Storageバケットが必要です。スキーマの適用手順は [`docs/sql/`](docs/sql/) を参照してください。
