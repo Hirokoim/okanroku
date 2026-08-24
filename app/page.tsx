@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { AuthButton } from './auth-button'
 import { RecordForm } from './record-form'
@@ -25,6 +26,9 @@ export default async function Home() {
 
       {user ? (
         <>
+          <Link href="/map" className="text-sm text-blue-600 underline">
+            地図を見る
+          </Link>
           <RecordForm userId={user.id} figures={figures ?? []} />
           {/* records(figure_id)はrecordsから見て多対1の関係なので、実際は配列ではなく単一オブジェクトで返る。
               supabase-jsは型生成なしではこの区別ができず配列型と推論するため、ここで明示的にキャストする */}
