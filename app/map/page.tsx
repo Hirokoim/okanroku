@@ -17,7 +17,7 @@ export default async function MapPage() {
     ? await supabase
         .from('locations')
         .select(
-          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, latitude, longitude, accessibility_class'
+          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, latitude, longitude, accessibility_class, image_url'
         )
         .order('number')
     : { data: null }

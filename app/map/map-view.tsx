@@ -28,6 +28,7 @@ export type LocationPin = {
   latitude: number | null
   longitude: number | null
   accessibility_class: string | null
+  image_url: string | null
 }
 
 export type VisitPoint = {
@@ -263,8 +264,16 @@ export function MapView({
               position={[Number(l.latitude), Number(l.longitude)]}
               icon={numberIcon(l.number, visited.has(l.id), size)}
             >
-              <Popup>
+              <Popup minWidth={200} maxWidth={220}>
                 <div className="text-sm" style={{ color: '#f5e8d0' }}>
+                  {l.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element -- 取得元ドメインが行ごとに異なりnext/imageに事前登録できない
+                    <img
+                      src={l.image_url}
+                      alt={l.title_jp}
+                      style={{ width: '100%', borderRadius: 6, marginBottom: 6, display: 'block' }}
+                    />
+                  )}
                   <div className="text-xs" style={{ color: '#8a6a30' }}>
                     第{l.number}景
                   </div>
