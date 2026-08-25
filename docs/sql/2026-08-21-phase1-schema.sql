@@ -526,6 +526,72 @@ commit;
 
 
 -- ============================================================
+-- ============================================================
+-- ステップ10：元絵の画像URL（残り43図、Met Museumで全件照合済み）
+-- ============================================================
+-- ステップ9と同じ手順（Collection APIを1件ずつ取得し、titleが日本語タイトルと
+-- 対応すること・isPublicDomain: trueであることを確認）で46図すべて完了。
+-- image_sourceのcreditLineは取得できたもの以外は省略し、object番号のみ記載
+-- （objectURL: https://www.metmuseum.org/art/collection/search/{番号} で追跡可能）。
+
+begin;
+
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141078.jpg', image_source = 'The Metropolitan Museum of Art (object 56387)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 4;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140982.jpg', image_source = 'The Metropolitan Museum of Art (object 36500)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 5;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141034.jpg', image_source = 'The Metropolitan Museum of Art (object 56994)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 6;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141001.jpg', image_source = 'The Metropolitan Museum of Art (object 55231)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 7;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140995.jpg', image_source = 'The Metropolitan Museum of Art (object 36509)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 8;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141094.jpg', image_source = 'The Metropolitan Museum of Art (object 56395)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 9;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140975.jpg', image_source = 'The Metropolitan Museum of Art (object 56686)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 10;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141074.jpg', image_source = 'The Metropolitan Museum of Art (object 55737)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 11;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141039.jpg', image_source = 'The Metropolitan Museum of Art (object 57004)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 12;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141044.jpg', image_source = 'The Metropolitan Museum of Art (object 56785)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 13;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141085.jpg', image_source = 'The Metropolitan Museum of Art (object 39800)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 14;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140970.jpg', image_source = 'The Metropolitan Museum of Art (object 39798)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 15;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140987.jpg', image_source = 'The Metropolitan Museum of Art (object 36505)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 16;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141065.jpg', image_source = 'The Metropolitan Museum of Art (object 56346)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 17;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141030.jpg', image_source = 'The Metropolitan Museum of Art (object 56988)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 18;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141095.jpg', image_source = 'The Metropolitan Museum of Art (object 56396)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 19;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141076.jpg', image_source = 'The Metropolitan Museum of Art (object 55738)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 20;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141086.jpg', image_source = 'The Metropolitan Museum of Art (object 56389)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 21;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140984.jpg', image_source = 'The Metropolitan Museum of Art (object 36502)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 22;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141051.jpg', image_source = 'The Metropolitan Museum of Art (object 56216)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 23;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141069.jpg', image_source = 'The Metropolitan Museum of Art (object 56360)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 24;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141032.jpg', image_source = 'The Metropolitan Museum of Art (object 56990)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 25;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141031.jpg', image_source = 'The Metropolitan Museum of Art (object 53845), The Howard Mansfield Collection, Purchase, Rogers Fund, 1936', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 26;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141071.jpg', image_source = 'The Metropolitan Museum of Art (object 57000)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 27;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141035.jpg', image_source = 'The Metropolitan Museum of Art (object 56996)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 28;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141092.jpg', image_source = 'The Metropolitan Museum of Art (object 56394)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 29;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141004.jpg', image_source = 'The Metropolitan Museum of Art (object 55238)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 30;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141075.jpg', image_source = 'The Metropolitan Museum of Art (object 56385)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 31;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141064.jpg', image_source = 'The Metropolitan Museum of Art (object 54868)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 32;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141060.jpg', image_source = 'The Metropolitan Museum of Art (object 56242)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 33;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141038.jpg', image_source = 'The Metropolitan Museum of Art (object 57003)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 34;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141023.jpg', image_source = 'The Metropolitan Museum of Art (object 55291)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 35;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141020.jpg', image_source = 'The Metropolitan Museum of Art (object 37321)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 36;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141052.jpg', image_source = 'The Metropolitan Museum of Art (object 56217)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 37;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141088.jpg', image_source = 'The Metropolitan Museum of Art (object 56391)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 38;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141048.jpg', image_source = 'The Metropolitan Museum of Art (object 56213)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 39;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140996.jpg', image_source = 'The Metropolitan Museum of Art (object 55223)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 40;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141014.jpg', image_source = 'The Metropolitan Museum of Art (object 55286)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 41;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140997.jpg', image_source = 'The Metropolitan Museum of Art (object 55225)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 42;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141070.jpg', image_source = 'The Metropolitan Museum of Art (object 56365)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 43;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141008.jpg', image_source = 'The Metropolitan Museum of Art (object 55284)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 44;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141047.jpg', image_source = 'The Metropolitan Museum of Art (object 56212)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 45;
+update locations set image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141055.jpg', image_source = 'The Metropolitan Museum of Art (object 56235)', image_license = 'CC0 (isPublicDomain: true)' where figure_id = (select id from figures where slug = 'hokusai') and number = 46;
+
+commit;
+
+
+-- ============================================================
+-- 実行後の確認（ステップ9・10）
+-- ============================================================
+-- 46件すべてimage_urlが埋まっているか
+--   select count(*) from locations where image_url is not null;  -- 46件になるはず
+--   select number, title_jp from locations where image_url is null order by number;  -- 0件になるはず
+
+
+-- ============================================================
 -- 残タスク（このSQLの範囲外）
 -- ============================================================
 -- ・records.location_name / work_label は location_id が未設定のときだけ使う
@@ -534,5 +600,3 @@ commit;
 -- ・既存 records.photo_urls から record_photos への移行（実データがあれば）
 -- ・記録フォームへの location_id 連携（地点選択と record_photos への保存）
 -- ・地図表示（Leaflet）と進捗ダッシュボード
--- ・元絵画像URLの残り43図ぶん（ステップ9は1〜3番のみ）。
---   Met Museum Collection APIまたはWikimedia Commonsで1点ずつ照合して投入する
