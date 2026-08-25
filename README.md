@@ -11,6 +11,7 @@
 | 資料 | 内容 |
 |---|---|
 | [`docs/requirements.md`](docs/requirements.md) | 要件定義書。機能要件・データモデルの設計判断（5-E）・開発フェーズ計画 |
+| [`docs/roadmap.md`](docs/roadmap.md) | Phase1〜3の残タスク一覧と、モックアップを作るタイミングの目安 |
 | [`docs/clusters.md`](docs/clusters.md) | 北斎46図のクラスタ一覧。1日で往還できる単位に分けた28クラスタと、国別の富士の見え方 |
 | [`docs/sql/`](docs/sql/) | Supabaseに適用するスキーマ変更SQL |
 | [`docs/supabase-schema-status.md`](docs/supabase-schema-status.md) | Supabase側のスキーマ・RLSの検証記録 |
