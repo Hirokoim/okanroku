@@ -7,7 +7,7 @@
 // そのため、この 'use client' を付けたファイルを1枚挟んでいる。
 
 import dynamic from 'next/dynamic'
-import type { LocationPin } from './map-view'
+import type { LocationPin, VisitPoint } from './map-view'
 
 const MapView = dynamic(() => import('./map-view').then((m) => m.MapView), {
   ssr: false,
@@ -18,6 +18,14 @@ const MapView = dynamic(() => import('./map-view').then((m) => m.MapView), {
   ),
 })
 
-export function MapPanel({ locations }: { locations: LocationPin[] }) {
-  return <MapView locations={locations} />
+export function MapPanel({
+  locations,
+  visitedLocationIds,
+  visitPoints,
+}: {
+  locations: LocationPin[]
+  visitedLocationIds: string[]
+  visitPoints: VisitPoint[]
+}) {
+  return <MapView locations={locations} visitedLocationIds={visitedLocationIds} visitPoints={visitPoints} />
 }
