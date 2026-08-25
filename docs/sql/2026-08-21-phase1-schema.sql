@@ -619,3 +619,64 @@ commit;
 -- ・既存 records.photo_urls から record_photos への移行（実データがあれば）
 -- ・記録フォームへの location_id 連携（地点選択と record_photos への保存）
 -- ・地図表示（Leaflet）と進捗ダッシュボード
+
+
+-- ============================================================
+-- ステップ12（Phase2で適用予定・未実行）：人物ごとのアクセス権
+-- ============================================================
+-- requirements.md 機能⑤-A参照。伊能忠敬・松尾芭蕉などの地点データを
+-- 投入するタイミング（Phase2）で適用する。
+--
+-- 【注意】これは破壊的変更。適用した瞬間、明示的にアクセス権を付与された
+-- ユーザー以外は locations が空になる（figures一覧自体は今まで通り見える）。
+-- 下の「自分に北斎へのアクセス権を付与」の <メールアドレス> を必ず実値に
+-- 置き換えてから実行すること。忘れると自分も含め誰も地図を見られなくなる。
+
+begin;
+
+-- アクセス権テーブル
+create table if not exists figure_entitlements (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id),
+  figure_id uuid not null references figures(id),
+  granted_at timestamptz not null default now(),
+  unique (user_id, figure_id)
+);
+
+alter table figure_entitlements enable row level security;
+
+-- 自分のアクセス権だけ見える（「自分はどの人物を持っているか」の表示用）
+create policy "figure_entitlements_select_own" on figure_entitlements
+  for select to authenticated using (auth.uid() = user_id);
+
+-- 付与・削除は管理者のみ（Phase1〜2は決済未実装のため手動付与）
+create policy "figure_entitlements_admin_write" on figure_entitlements
+  for all to authenticated
+  using (auth.jwt() ->> 'email' = '<メールアドレス>')
+  with check (auth.jwt() ->> 'email' = '<メールアドレス>');
+
+grant select, insert, update, delete on figure_entitlements to authenticated;
+
+-- locationsのSELECTポリシーを「全員閲覧可」から「アクセス権のある人物のみ」に変更
+drop policy if exists "locations_select_authenticated" on locations;
+
+create policy "locations_select_entitled" on locations
+  for select to authenticated
+  using (exists (
+    select 1 from figure_entitlements fe
+    where fe.user_id = auth.uid() and fe.figure_id = locations.figure_id
+  ));
+
+-- 自分に北斎へのアクセス権を付与（<メールアドレス>を置き換える。これが無いと地図が空になる）
+insert into figure_entitlements (user_id, figure_id)
+select u.id, f.id
+from auth.users u, figures f
+where u.email = '<メールアドレス>' and f.slug = 'hokusai'
+on conflict (user_id, figure_id) do nothing;
+
+commit;
+
+-- 【元に戻す場合】
+--   drop policy "locations_select_entitled" on locations;
+--   create policy "locations_select_authenticated" on locations
+--     for select to authenticated using (true);
