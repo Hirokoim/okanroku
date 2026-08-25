@@ -14,6 +14,7 @@
 | [`docs/clusters.md`](docs/clusters.md) | 北斎46図のクラスタ一覧。1日で往還できる単位に分けた28クラスタと、国別の富士の見え方 |
 | [`docs/sql/`](docs/sql/) | Supabaseに適用するスキーマ変更SQL |
 | [`docs/supabase-schema-status.md`](docs/supabase-schema-status.md) | Supabase側のスキーマ・RLSの検証記録 |
+| [`docs/mulmoclaude-reference-notes.md`](docs/mulmoclaude-reference-notes.md) | MulmoClaude（`fugaku-36`コレクション）を参照しながら開発する際の注意点 |
 
 ## 現在のステータス（2026-08-25時点）
 
