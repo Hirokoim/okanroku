@@ -11,6 +11,7 @@
 // データの出し入れはこのアプリのSupabaseクエリ（page.tsxで取得済み）に置き換えている。
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -311,6 +312,11 @@ export function MapView({
                   >
                     {visited.has(l.id) ? '訪問済み' : '未訪問'}
                   </span>
+                  <div className="mt-2">
+                    <Link href={`/locations/${l.id}`} className="text-xs underline" style={{ color: '#e8c87a' }}>
+                      詳細を見る ↗
+                    </Link>
+                  </div>
                 </div>
               </Popup>
             </Marker>
