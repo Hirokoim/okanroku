@@ -496,6 +496,36 @@ commit;
 
 
 -- ============================================================
+-- ステップ9：元絵の画像URL（1〜3番、Met Museum Open Accessで照合済み）
+-- ============================================================
+-- Met MuseumのCollection API（https://collectionapi.metmuseum.org/public/collection/v1/objects/{id}）
+-- を1件ずつ取得し、title・artistDisplayName・isPublicDomainを目視確認した上で投入。
+-- 46図中3図のみ。残りは同じ手順で追加していく（残タスク参照）。
+
+begin;
+
+update locations set
+  image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg',
+  image_source = 'The Metropolitan Museum of Art (object 45434), H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929',
+  image_license = 'CC0 (isPublicDomain: true)'
+where figure_id = (select id from figures where slug = 'hokusai') and number = 1;
+
+update locations set
+  image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141062.jpg',
+  image_source = 'The Metropolitan Museum of Art (object 36490), Rogers Fund, 1914',
+  image_license = 'CC0 (isPublicDomain: true)'
+where figure_id = (select id from figures where slug = 'hokusai') and number = 2;
+
+update locations set
+  image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP140976.jpg',
+  image_source = 'The Metropolitan Museum of Art (object 36492), Rogers Fund, 1914',
+  image_license = 'CC0 (isPublicDomain: true)'
+where figure_id = (select id from figures where slug = 'hokusai') and number = 3;
+
+commit;
+
+
+-- ============================================================
 -- 残タスク（このSQLの範囲外）
 -- ============================================================
 -- ・records.location_name / work_label は location_id が未設定のときだけ使う
@@ -504,5 +534,5 @@ commit;
 -- ・既存 records.photo_urls から record_photos への移行（実データがあれば）
 -- ・記録フォームへの location_id 連携（地点選択と record_photos への保存）
 -- ・地図表示（Leaflet）と進捗ダッシュボード
--- ・元絵画像URLを46図ぶん、Met Museum Open Access／Wikimedia Commonsから
---   1点ずつ照合して投入する（ステップ8で用意した列に入れる）
+-- ・元絵画像URLの残り43図ぶん（ステップ9は1〜3番のみ）。
+--   Met Museum Collection APIまたはWikimedia Commonsで1点ずつ照合して投入する
