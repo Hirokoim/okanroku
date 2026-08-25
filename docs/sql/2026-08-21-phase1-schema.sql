@@ -592,6 +592,25 @@ commit;
 
 
 -- ============================================================
+-- ステップ11：46番（諸人登山）の画像URLを修正
+-- ============================================================
+-- ステップ10で入れたobject 56235のprimaryImageは、Met側のAPIが返す値自体が
+-- 実在しない画像パスで、404だった（curlで確認済み）。他は正常。
+-- 同じ図の別の刷り（object 55281, isPublicDomain: true, Rogers Fund, 1922）に
+-- 差し替える。こちらは実際に画像が取得できることを確認済み。
+
+begin;
+
+update locations set
+  image_url = 'https://images.metmuseum.org/CRDImages/as/original/DP141005.jpg',
+  image_source = 'The Metropolitan Museum of Art (object 55281), Rogers Fund, 1922',
+  image_license = 'CC0 (isPublicDomain: true)'
+where figure_id = (select id from figures where slug = 'hokusai') and number = 46;
+
+commit;
+
+
+-- ============================================================
 -- 残タスク（このSQLの範囲外）
 -- ============================================================
 -- ・records.location_name / work_label は location_id が未設定のときだけ使う
