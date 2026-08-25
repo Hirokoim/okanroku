@@ -265,7 +265,7 @@ export function MapView({
               icon={numberIcon(l.number, visited.has(l.id), size)}
             >
               <Popup minWidth={200} maxWidth={220}>
-                <div className="text-sm" style={{ color: '#f5e8d0' }}>
+                <div className="text-sm" style={{ color: '#2a1a0a' }}>
                   {l.image_url && (
                     // eslint-disable-next-line @next/next/no-img-element -- 取得元ドメインが行ごとに異なりnext/imageに事前登録できない
                     <img
@@ -274,18 +274,18 @@ export function MapView({
                       style={{ width: '100%', borderRadius: 6, marginBottom: 6, display: 'block' }}
                     />
                   )}
-                  <div className="text-xs" style={{ color: '#8a6a30' }}>
+                  <div className="text-xs" style={{ color: '#6b4a28' }}>
                     第{l.number}景
                   </div>
-                  <div className="font-medium" style={{ color: '#e8c87a' }}>
+                  <div className="font-medium" style={{ color: '#2a1a0a' }}>
                     {l.title_jp}
                   </div>
                   {l.title_en && (
-                    <div className="text-xs" style={{ color: '#9a7a40' }}>
+                    <div className="text-xs" style={{ color: '#6b4a28' }}>
                       {l.title_en}
                     </div>
                   )}
-                  <div className="text-xs mt-1" style={{ color: '#c8a060' }}>
+                  <div className="text-xs mt-1" style={{ color: '#5a3d20' }}>
                     {l.prefecture}
                     {l.modern_location && <br />}
                     {l.modern_location}
@@ -322,7 +322,7 @@ export function MapView({
                     {visited.has(l.id) ? '訪問済み' : '未訪問'}
                   </span>
                   <div className="mt-2">
-                    <Link href={`/locations/${l.id}`} className="text-xs underline" style={{ color: '#e8c87a' }}>
+                    <Link href={`/locations/${l.id}`} className="text-xs underline" style={{ color: '#8a4a00' }}>
                       詳細を見る ↗
                     </Link>
                   </div>
@@ -338,11 +338,11 @@ export function MapView({
           {showFuji && (
             <Marker position={FUJI} icon={fujiIcon}>
               <Popup>
-                <div className="text-sm" style={{ color: '#f5e8d0' }}>
-                  <div className="font-medium" style={{ color: '#e8c87a' }}>
+                <div className="text-sm" style={{ color: '#2a1a0a' }}>
+                  <div className="font-medium" style={{ color: '#2a1a0a' }}>
                     富士山
                   </div>
-                  <div className="text-xs" style={{ color: '#c8a060' }}>
+                  <div className="text-xs" style={{ color: '#5a3d20' }}>
                     標高3,776m・静岡県／山梨県
                   </div>
                 </div>
@@ -354,18 +354,18 @@ export function MapView({
             visitPoints.map((v) => (
               <Marker key={v.id} position={[v.latitude, v.longitude]} icon={visitIcon}>
                 <Popup>
-                  <div className="text-sm" style={{ color: '#f5e8d0' }}>
-                    <div className="text-xs" style={{ color: '#8a6a30' }}>
+                  <div className="text-sm" style={{ color: '#2a1a0a' }}>
+                    <div className="text-xs" style={{ color: '#6b4a28' }}>
                       第{v.number}景・実際の訪問地点
                     </div>
-                    <div className="font-medium" style={{ color: '#e8c87a' }}>
+                    <div className="font-medium" style={{ color: '#2a1a0a' }}>
                       {v.title_jp}
                     </div>
-                    <div className="text-xs mt-1" style={{ color: '#c8a060' }}>
+                    <div className="text-xs mt-1" style={{ color: '#5a3d20' }}>
                       GPS: {v.latitude.toFixed(5)}, {v.longitude.toFixed(5)}
                     </div>
                     {v.taken_at && (
-                      <div className="text-xs" style={{ color: '#c8a060' }}>
+                      <div className="text-xs" style={{ color: '#5a3d20' }}>
                         {new Date(v.taken_at).toLocaleDateString('ja-JP')}
                       </div>
                     )}
