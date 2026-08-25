@@ -49,7 +49,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   const { data: location } = await supabase
     .from('locations')
     .select(
-      'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, accessibility_class, accessibility_confidence, accessibility_reason, location_confidence, location_source, figures(name)'
+      'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, accessibility_class, accessibility_confidence, accessibility_reason, location_confidence, location_source, image_url, image_source, image_license, figures(name)'
     )
     .eq('id', id)
     .maybeSingle()
@@ -81,6 +81,24 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
         <h1 className="text-2xl font-bold">{location.title_jp}</h1>
         {location.title_en && <p className="text-gray-500">{location.title_en}</p>}
       </div>
+
+      {location.image_url ? (
+        <figure>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 外部URL(Met/Wikimedia等)は
+              取得元が地点ごとに異なりドメインを事前登録できないため、next/imageではなくimgを使う */}
+          <img src={location.image_url} alt={location.title_jp} className="w-full rounded-lg border" />
+          {(location.image_source || location.image_license) && (
+            <figcaption className="text-xs text-gray-400 mt-1">
+              {location.image_source}
+              {location.image_license && ` （${location.image_license}）`}
+            </figcaption>
+          )}
+        </figure>
+      ) : (
+        <div className="border rounded-lg p-6 text-center text-gray-400 text-sm">
+          元絵の画像は未登録です
+        </div>
+      )}
 
       <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
         <Field label="都道府県" value={location.prefecture} />

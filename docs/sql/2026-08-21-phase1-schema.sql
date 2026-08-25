@@ -477,6 +477,25 @@ commit;
 
 
 -- ============================================================
+-- ステップ8：元絵の画像URLを持つ列を追加
+-- ============================================================
+-- MulmoClaude側にある画像ファイルは出典不明（EXIF/XMPなし、取得元URL不明）で、
+-- 著作権的に出所を説明できないため使わない（requirements.md 機能⑥-A）。
+-- ここでは列だけ用意する。データはMet Museum Open Access（CC0）や
+-- Wikimedia Commonsの該当図を1点ずつ照合して埋める、別タスク。
+-- 機械的な検索一致だけで済ませると、同じ図の異なる刷りや類似構図の
+-- 別作品を取り違えるおそれがあるため、慎重に手作業で確認すること。
+
+begin;
+
+alter table locations add column if not exists image_url text;      -- 画像そのもののURL
+alter table locations add column if not exists image_source text;   -- 取得元（例: "The Metropolitan Museum of Art, CC0"）
+alter table locations add column if not exists image_license text;  -- ライセンス表記（例: "CC0" "Public Domain"）
+
+commit;
+
+
+-- ============================================================
 -- 残タスク（このSQLの範囲外）
 -- ============================================================
 -- ・records.location_name / work_label は location_id が未設定のときだけ使う
@@ -485,3 +504,5 @@ commit;
 -- ・既存 records.photo_urls から record_photos への移行（実データがあれば）
 -- ・記録フォームへの location_id 連携（地点選択と record_photos への保存）
 -- ・地図表示（Leaflet）と進捗ダッシュボード
+-- ・元絵画像URLを46図ぶん、Met Museum Open Access／Wikimedia Commonsから
+--   1点ずつ照合して投入する（ステップ8で用意した列に入れる）
