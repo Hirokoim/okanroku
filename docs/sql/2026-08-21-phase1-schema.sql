@@ -680,3 +680,20 @@ commit;
 --   drop policy "locations_select_entitled" on locations;
 --   create policy "locations_select_authenticated" on locations
 --     for select to authenticated using (true);
+
+
+-- ============================================================
+-- ステップ13：23番「登戸浦」の modern_location を修正
+-- ============================================================
+-- fugaku-36のCSVから引き継いだ値が「市川市登戸付近」だったが、同じ行の
+-- location_source は「登渡神社（千葉市中央区登戸）」で、緯度経度
+-- (35.5983, 140.0994) も千葉市中央区を指している。modern_location だけが誤り。
+-- 別途作成した作品解説資料（~/okanroku-private/references/hokusai-works.md）とも
+-- 突き合わせて確認した。
+
+begin;
+
+update locations set modern_location = '千葉市中央区登戸'
+where figure_id = (select id from figures where slug = 'hokusai') and number = 23;
+
+commit;
