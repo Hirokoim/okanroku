@@ -43,6 +43,8 @@ next-env.d.ts
 
 # 著作物に基づく参考資料は ~/okanroku-private/ に置く（このリポジトリは公開のため）。
 # 万一コピーが紛れ込んだ場合の保険として除外しておく。
-hokusai-*analysis*.md
+# "hokusai-" で始まるファイル名は現状すべて参考資料側の命名規則なので、
+# 個別のファイル名を都度足すのではなく広いパターンで拾う。
+hokusai-*.md
 *-private.md
 /private/
