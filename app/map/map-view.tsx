@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
+import { useGeofence, GEOFENCE_RADIUS_METERS } from './use-geofence'
 
 export type LocationPin = {
   id: string
@@ -48,7 +49,7 @@ const CLUSTER_INDIGO = '#1e4d78'
 const CLUSTER_GOLD = '#e8c87a'
 
 // 2点間の距離をメートルで返す（球面近似のHaversine公式）
-function distanceMeters(a: [number, number], b: [number, number]) {
+export function distanceMeters(a: [number, number], b: [number, number]) {
   const R = 6371000
   const toRad = (d: number) => (d * Math.PI) / 180
   const dLat = toRad(b[0] - a[0])
@@ -202,6 +203,7 @@ export function MapView({
   const size = markerSizeFor(zoom)
 
   const clusterAreas = useMemo(() => buildClusterAreas(placed, visited), [placed, visited])
+  const geofence = useGeofence(placed)
 
   const searchResults = useMemo(() => {
     const q = query.trim()
@@ -284,6 +286,23 @@ export function MapView({
         >
           🗾 開拓マップ
         </button>
+        <button
+          onClick={geofence.toggle}
+          className="text-xs px-3 py-1 rounded-full border"
+          style={
+            geofence.watching
+              ? { background: '#a07040', color: '#fff', borderColor: '#a07040' }
+              : { background: 'transparent', color: '#c8a060', borderColor: '#5a3a10' }
+          }
+          title="実験機能：近くの比定地に接近すると知らせます（解説文は未実装）"
+        >
+          📍 現在地を監視{geofence.watching ? '中' : ''}
+        </button>
+        {geofence.error && (
+          <span className="text-xs" style={{ color: '#e06060' }}>
+            {geofence.error}
+          </span>
+        )}
         <span className="text-xs ml-auto" style={{ color: '#8a6a30' }}>
           表示 {filtered.length}景 ／ 訪問済み {visitedCount}景
         </span>
@@ -477,6 +496,34 @@ export function MapView({
               </Marker>
             ))}
         </MapContainer>
+
+        {/* ジオフェンス接近通知（機能⑥-Bの検知部分のみ。解説文は未実装のプレースホルダー） */}
+        {geofence.nearby && (
+          <div
+            className="absolute bottom-6 right-3 z-[1000] rounded-lg px-4 py-3 text-sm max-w-xs"
+            style={{ background: 'rgba(26,16,8,.95)', border: '1.5px solid #a07040', color: '#f5e8d0' }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs" style={{ color: '#e8c87a' }}>
+                  📍 第{geofence.nearby.number}景に接近中（半径{GEOFENCE_RADIUS_METERS}m以内）
+                </div>
+                <div className="font-medium mt-1">{geofence.nearby.title_jp}</div>
+                <div className="text-xs mt-1" style={{ color: '#c8a060' }}>
+                  解説はまだ準備中です（機能⑥で執筆予定）
+                </div>
+              </div>
+              <button
+                onClick={() => geofence.dismiss(geofence.nearby!.id)}
+                className="text-xs shrink-0"
+                style={{ color: '#8a6a30' }}
+                aria-label="閉じる"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 凡例 */}
         <div
