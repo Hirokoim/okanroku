@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -41,6 +41,70 @@ export type VisitPoint = {
 }
 
 const FUJI: [number, number] = [35.3606, 138.7274]
+
+// クラスタ開拓マップの配色（機能③-A）。北斎の「ベロ藍」を基調に、
+// クラスタを完全制覇（訪問率100%）すると縁取りが金に変わる。
+const CLUSTER_INDIGO = '#1e4d78'
+const CLUSTER_GOLD = '#e8c87a'
+
+// 2点間の距離をメートルで返す（球面近似のHaversine公式）
+function distanceMeters(a: [number, number], b: [number, number]) {
+  const R = 6371000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(b[0] - a[0])
+  const dLng = toRad(b[1] - a[1])
+  const s =
+    Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a[0])) * Math.cos(toRad(b[0])) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(s))
+}
+
+type ClusterArea = {
+  name: string
+  center: [number, number]
+  radiusMeters: number
+  visited: number
+  total: number
+  rate: number
+}
+
+// クラスタ名でグルーピングし、重心・半径・訪問率を算出する。
+// 半径はクラスタ内の最大地点間距離＋余白（単独クラスタは固定半径）。
+function buildClusterAreas(locations: LocationPin[], visited: Set<string>): ClusterArea[] {
+  const groups = new Map<string, LocationPin[]>()
+  for (const l of locations) {
+    if (!l.cluster || l.latitude === null || l.longitude === null) continue
+    const group = groups.get(l.cluster) ?? []
+    group.push(l)
+    groups.set(l.cluster, group)
+  }
+
+  return [...groups.entries()].map(([name, points]) => {
+    const center: [number, number] = [
+      points.reduce((sum, p) => sum + Number(p.latitude), 0) / points.length,
+      points.reduce((sum, p) => sum + Number(p.longitude), 0) / points.length,
+    ]
+    const maxDist = points.reduce(
+      (max, p) => Math.max(max, distanceMeters(center, [Number(p.latitude), Number(p.longitude)])),
+      0
+    )
+    const radiusMeters = points.length <= 1 ? 1200 : Math.max(maxDist + 600, 900)
+    const visitedCount = points.filter((p) => visited.has(p.id)).length
+    return {
+      name,
+      center,
+      radiusMeters,
+      visited: visitedCount,
+      total: points.length,
+      rate: visitedCount / points.length,
+    }
+  })
+}
+
+// 訪問率に応じた塗りの濃さ（未訪問は非表示、訪問が進むほど濃くなる）
+function clusterFillOpacity(rate: number) {
+  if (rate <= 0) return 0
+  return 0.12 + rate * 0.45
+}
 
 // 富士の見え方（保存値）→ 表示ラベルと色。requirements.md 5-E②の対応表と揃えてある。
 const ACCESSIBILITY_LABEL: Record<string, { label: string; color: string; bg: string }> = {
@@ -116,11 +180,12 @@ export function MapView({
   const [showLine, setShowLine] = useState(true)
   const [showFuji, setShowFuji] = useState(false)
   const [showVisit, setShowVisit] = useState(false)
+  const [showClusterMap, setShowClusterMap] = useState(false)
   const [zoom, setZoom] = useState(7)
   const [query, setQuery] = useState('')
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
 
-  const visited = new Set(visitedLocationIds)
+  const visited = useMemo(() => new Set(visitedLocationIds), [visitedLocationIds])
   const placed = locations.filter((l) => l.latitude !== null && l.longitude !== null)
 
   const filtered = useMemo(
@@ -135,6 +200,8 @@ export function MapView({
 
   const visitedCount = placed.filter((l) => visited.has(l.id)).length
   const size = markerSizeFor(zoom)
+
+  const clusterAreas = useMemo(() => buildClusterAreas(placed, visited), [placed, visited])
 
   const searchResults = useMemo(() => {
     const q = query.trim()
@@ -206,6 +273,17 @@ export function MapView({
         >
           📷 訪問地点を表示
         </button>
+        <button
+          onClick={() => setShowClusterMap((v) => !v)}
+          className="text-xs px-3 py-1 rounded-full border"
+          style={
+            showClusterMap
+              ? { background: '#a07040', color: '#fff', borderColor: '#a07040' }
+              : { background: 'transparent', color: '#c8a060', borderColor: '#5a3a10' }
+          }
+        >
+          🗾 開拓マップ
+        </button>
         <span className="text-xs ml-auto" style={{ color: '#8a6a30' }}>
           表示 {filtered.length}景 ／ 訪問済み {visitedCount}景
         </span>
@@ -257,6 +335,31 @@ export function MapView({
           />
           <ZoomWatcher onZoom={setZoom} />
           <FlyTo target={flyTarget} />
+
+          {showClusterMap &&
+            clusterAreas.map((c) => (
+              <Circle
+                key={c.name}
+                center={c.center}
+                radius={c.radiusMeters}
+                pathOptions={{
+                  color: c.rate >= 1 ? CLUSTER_GOLD : CLUSTER_INDIGO,
+                  weight: c.rate >= 1 ? 2.5 : 1.5,
+                  fillColor: CLUSTER_INDIGO,
+                  fillOpacity: clusterFillOpacity(c.rate),
+                }}
+              >
+                <Popup>
+                  <div className="text-sm" style={{ color: '#2a1a0a' }}>
+                    <div className="font-medium">{c.name}</div>
+                    <div className="text-xs mt-1" style={{ color: '#5a3d20' }}>
+                      開拓 {c.visited}/{c.total}
+                      {c.rate >= 1 && '（制覇！）'}
+                    </div>
+                  </div>
+                </Popup>
+              </Circle>
+            ))}
 
           {filtered.map((l) => (
             <Marker
@@ -394,12 +497,19 @@ export function MapView({
             />
             訪問済み
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-2">
             <span
               className="inline-block w-4 h-4 rounded-full"
               style={{ background: '#3a8ac8', border: '2px solid #1a4a70' }}
             />
             実際の訪問地点（📷）
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block w-4 h-4 rounded-full"
+              style={{ background: 'rgba(30,77,120,.5)', border: '2px solid #e8c87a' }}
+            />
+            開拓マップ（濃いほど訪問済み・金枠は制覇）
           </div>
         </div>
       </div>
