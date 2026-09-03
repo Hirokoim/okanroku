@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
 import { newId } from '@/lib/id'
+import { readExif } from '@/lib/exif'
 
 const MAX_PHOTOS = 5
 
@@ -14,10 +15,19 @@ type PhotoEntry = {
   previewUrl: string
   latitude: string
   longitude: string
+  takenAt: string // datetime-local入力用（ISOではなくローカル文字列）
+  loadingExif: boolean
+  fromExif: boolean
 }
 
-// EXIFからのGPS自動抽出（機能②・タスクC）は未実装。当面は撮影地点を手入力する。
-// 取得できない写真も珍しくない前提のため、この手入力欄自体が代替入力になる。
+function isoToLocalInput(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 function newPhotoEntry(file: File): PhotoEntry {
   return {
     key: newId(),
@@ -25,6 +35,9 @@ function newPhotoEntry(file: File): PhotoEntry {
     previewUrl: URL.createObjectURL(file),
     latitude: '',
     longitude: '',
+    takenAt: '',
+    loadingExif: true,
+    fromExif: false,
   }
 }
 
@@ -56,9 +69,51 @@ export function LocationRecordForm({
     try {
       const added = Array.from(files).slice(0, room).map(newPhotoEntry)
       setPhotos((prev) => [...prev, ...added])
+
+      // EXIF解析は1枚ごとに非同期で行い、終わったものから順にサムネイルの
+      // バッジ・座標欄を更新する（全枚数を待って一括表示しない。枚数が多いと
+      // 「何も起きていないように見える」時間が伸びるため）。
+      for (const entry of added) {
+        readExif(entry.file).then((result) => {
+          setPhotos((prev) =>
+            prev.map((p) =>
+              p.key === entry.key
+                ? {
+                    ...p,
+                    loadingExif: false,
+                    fromExif: result.latitude !== null && result.longitude !== null,
+                    latitude: result.latitude !== null ? String(result.latitude) : p.latitude,
+                    longitude: result.longitude !== null ? String(result.longitude) : p.longitude,
+                    takenAt: result.takenAt ? isoToLocalInput(result.takenAt) : p.takenAt,
+                  }
+                : p
+            )
+          )
+        })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '写真の読み込みに失敗しました')
     }
+  }
+
+  function applyCurrentLocation(key: string) {
+    if (!('geolocation' in navigator)) {
+      setError('この端末・ブラウザでは現在地を取得できません')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPhotos((prev) =>
+          prev.map((p) =>
+            p.key === key
+              ? { ...p, latitude: String(pos.coords.latitude), longitude: String(pos.coords.longitude) }
+              : p
+          )
+        )
+      },
+      () => setError('現在地の取得を許可されなかったか、取得に失敗しました。手入力してください。'),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
   }
 
   function removePhoto(key: string) {
@@ -113,6 +168,8 @@ export function LocationRecordForm({
           storage_path: storagePath,
           latitude: photo.latitude ? Number(photo.latitude) : null,
           longitude: photo.longitude ? Number(photo.longitude) : null,
+          // datetime-localはタイムゾーン情報を持たないため、端末のローカル時刻として解釈する
+          taken_at: photo.takenAt ? new Date(photo.takenAt).toISOString() : null,
           sort_order: i,
         })
         if (photoError) throw photoError
@@ -165,6 +222,19 @@ export function LocationRecordForm({
                 <li key={photo.key} className="border rounded-lg p-2 text-xs space-y-1">
                   {/* eslint-disable-next-line @next/next/no-img-element -- ローカルのobject URLのためnext/imageは使わない */}
                   <img src={photo.previewUrl} alt="" className="w-full aspect-[4/3] object-cover rounded" />
+
+                  {photo.loadingExif ? (
+                    <div className="text-gray-400">座標を確認中...</div>
+                  ) : photo.fromExif ? (
+                    <span className="inline-block bg-blue-50 text-blue-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                      EXIF自動取得
+                    </span>
+                  ) : (
+                    <span className="inline-block bg-amber-50 text-amber-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                      GPS情報なし
+                    </span>
+                  )}
+
                   <div className="grid grid-cols-2 gap-1">
                     <input
                       type="number"
@@ -183,6 +253,17 @@ export function LocationRecordForm({
                       className="border rounded p-1 w-full"
                     />
                   </div>
+
+                  {!photo.loadingExif && !photo.fromExif && (
+                    <button
+                      type="button"
+                      onClick={() => applyCurrentLocation(photo.key)}
+                      className="w-full border border-dashed rounded py-1 text-gray-500"
+                    >
+                      現在地を使う
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.key)}
@@ -208,7 +289,7 @@ export function LocationRecordForm({
             />
           )}
           <p className="text-xs text-gray-400 mt-1">
-            座標の自動取得（EXIF）は未対応です。分かる範囲で手入力してください。空欄のままでも保存できます。
+            写真にGPS情報があれば自動で座標を読み取ります。無ければ「現在地を使う」か手入力してください。空欄のままでも保存できます。
           </p>
         </div>
 
