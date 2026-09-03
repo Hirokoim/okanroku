@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import { newId } from '@/lib/id'
 
 const BUCKET = 'photos'
 
@@ -6,7 +7,7 @@ const BUCKET = 'photos'
 export async function uploadPhoto(file: File, userId: string): Promise<string> {
   const supabase = createClient()
   const ext = file.name.split('.').pop() ?? 'jpg'
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+  const path = `${userId}/${newId()}.${ext}`
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file)
   if (error) throw error

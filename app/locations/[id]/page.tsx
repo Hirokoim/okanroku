@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { LocationRecordForm } from './record-form'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
 // schema.jsonから自動生成している詳細モーダルの見せ方を参考にした
@@ -49,7 +50,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   const { data: location } = await supabase
     .from('locations')
     .select(
-      'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, accessibility_class, accessibility_confidence, accessibility_reason, location_confidence, location_source, image_url, image_source, image_license, figures(name)'
+      'id, figure_id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, accessibility_class, accessibility_confidence, accessibility_reason, location_confidence, location_source, image_url, image_source, image_license, figures(name)'
     )
     .eq('id', id)
     .maybeSingle()
@@ -137,9 +138,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       <div className="border-t pt-4">
         <h2 className="font-semibold mb-2">自分の記録（{records?.length ?? 0}件）</h2>
         {!records || records.length === 0 ? (
-          <p className="text-gray-500 text-sm">
-            まだこの地点の記録がありません。地点を選んでの記録入力は近日対応予定です。
-          </p>
+          <p className="text-gray-500 text-sm">まだこの地点の記録がありません。</p>
         ) : (
           <ul className="space-y-2">
             {records.map((r) => (
@@ -156,6 +155,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
             ))}
           </ul>
         )}
+
+        <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />
       </div>
     </main>
   )

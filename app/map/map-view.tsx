@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -113,7 +113,6 @@ export function MapView({
   visitPoints: VisitPoint[]
 }) {
   const [filter, setFilter] = useState<'all' | '正景' | '裏富士'>('all')
-  const [showLine, setShowLine] = useState(true)
   const [showFuji, setShowFuji] = useState(false)
   const [showVisit, setShowVisit] = useState(false)
   const [zoom, setZoom] = useState(7)
@@ -126,11 +125,6 @@ export function MapView({
   const filtered = useMemo(
     () => (filter === 'all' ? placed : placed.filter((l) => l.series === filter)),
     [placed, filter]
-  )
-
-  const routeLatLngs = useMemo(
-    () => filtered.map((l) => [Number(l.latitude), Number(l.longitude)] as [number, number]),
-    [filtered]
   )
 
   const visitedCount = placed.filter((l) => visited.has(l.id)).length
@@ -173,17 +167,6 @@ export function MapView({
           </button>
         ))}
         <div className="w-px h-5" style={{ background: '#3a2a10' }} />
-        <button
-          onClick={() => setShowLine((v) => !v)}
-          className="text-xs px-3 py-1 rounded-full border"
-          style={
-            showLine
-              ? { background: '#a07040', color: '#fff', borderColor: '#a07040' }
-              : { background: 'transparent', color: '#c8a060', borderColor: '#5a3a10' }
-          }
-        >
-          ● 経路線
-        </button>
         <button
           onClick={() => setShowFuji((v) => !v)}
           className="text-xs px-3 py-1 rounded-full border"
@@ -330,10 +313,6 @@ export function MapView({
               </Popup>
             </Marker>
           ))}
-
-          {showLine && routeLatLngs.length > 1 && (
-            <Polyline positions={routeLatLngs} pathOptions={{ color: '#c8a060', weight: 1.2, opacity: 0.45, dashArray: '4 5' }} />
-          )}
 
           {showFuji && (
             <Marker position={FUJI} icon={fujiIcon}>
