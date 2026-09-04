@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { asRow } from '@/lib/supabase/rows'
 import { accessibilityLabel, confidenceLabel } from '@/lib/labels'
-import { formatDate } from '@/lib/format'
+import { createPhotoUrls } from '@/lib/storage'
+import { LocationRecords, type LocationRecord, type RecordPhoto } from './location-records'
 import { LocationRecordForm } from './record-form'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
@@ -53,6 +54,38 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
     .select('id, photographed_at, edit_intent, voice_transcript, access_note, is_public, created_at')
     .eq('location_id', id)
     .order('photographed_at', { ascending: false })
+
+  // 記録に添付された写真。photosバケットは非公開なので、パスをそのまま
+  // <img src>に渡しても表示できない。ここで署名付きURLに変換してから渡す。
+  // record_photosはuser_idを持たず、records経由でRLSが効く（docs/requirements.md 5-B）。
+  const recordIds = (records ?? []).map((r) => r.id)
+  const { data: photoRows } = recordIds.length > 0
+    ? await supabase
+        .from('record_photos')
+        .select('id, record_id, storage_path, latitude, longitude, taken_at')
+        .in('record_id', recordIds)
+        .order('sort_order')
+    : { data: null }
+
+  const photoUrls = await createPhotoUrls(supabase, (photoRows ?? []).map((p) => p.storage_path))
+
+  const photosByRecordId = new Map<string, RecordPhoto[]>()
+  for (const row of photoRows ?? []) {
+    const photos = photosByRecordId.get(row.record_id) ?? []
+    photos.push({
+      id: row.id,
+      url: photoUrls.get(row.storage_path) ?? null,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      taken_at: row.taken_at,
+    })
+    photosByRecordId.set(row.record_id, photos)
+  }
+
+  const recordsWithPhotos: LocationRecord[] = (records ?? []).map((r) => ({
+    ...r,
+    photos: photosByRecordId.get(r.id) ?? [],
+  }))
 
   // figuresはlocationsから見て多対1の関係（詳しくは lib/supabase/rows.ts）
   const figureName = asRow<{ figures: { name: string } | null }>(location).figures?.name
@@ -120,23 +153,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       )}
 
       <div className="border-t pt-4">
-        <h2 className="font-semibold mb-2">自分の記録（{records?.length ?? 0}件）</h2>
-        {!records || records.length === 0 ? (
-          <p className="text-gray-500 text-sm">まだこの地点の記録がありません。</p>
-        ) : (
-          <ul className="space-y-2">
-            {records.map((r) => (
-              <li key={r.id} className="border rounded p-3 text-sm">
-                <div className="text-gray-400 text-xs">
-                  {formatDate(r.photographed_at ?? r.created_at)}
-                </div>
-                {r.edit_intent && <div className="font-medium">{r.edit_intent}</div>}
-                {r.voice_transcript && <div className="text-gray-600">{r.voice_transcript}</div>}
-                {r.access_note && <div className="text-gray-500 text-xs mt-1">{r.access_note}</div>}
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2 className="font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
+        <LocationRecords records={recordsWithPhotos} />
 
         <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />
       </div>
