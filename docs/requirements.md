@@ -241,12 +241,47 @@
 |---|---|
 | フレームワーク | Next.js（App Router） |
 | DB/認証 | Supabase（Google OAuth） |
-| 地図表示 | Leaflet.js（候補①・APIキー不要）／Google Maps Embed（候補②・見た目に馴染みがあるがAPIキー管理が発生） |
+| 地図表示 | Leaflet.js（採用。APIキー不要） |
+| 地名検索 | OpenStreetMap Nominatim（採用。APIキー不要。サーバー側`/api/geocode`経由） |
+| 位置情報 | ブラウザGeolocation API（現在地取得・ジオフェンス検知） |
 | 画像ストレージ | Supabase Storage（非公開バケット、`lib/storage.ts`に処理を一本化） |
 | 音声メモ | Phase1はテキスト入力のみ。Phase2で録音＋文字起こしを検討 |
 | スタイル | Tailwind CSS |
 | デプロイ | Vercel |
 | 言語 | TypeScript |
+
+### 5-A. 技術構成の全体像（外部データ参照・データモデル早見表）
+
+「何を外部から参照し、何をどう自前のデータとして持たせているか」を一目で追えるようにした一覧。個々の設計判断の理由は5-E章、RLSの詳細は5-B章を参照。
+
+#### 外部サービス・外部データ一覧
+
+| サービス／データ | 用途 | 呼び出し元 | 認証・キー | 備考 |
+|---|---|---|---|---|
+| Supabase (Postgres) | アプリ本体のデータベース | サーバー・クライアント両方（`lib/supabase/*`） | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`（RLSで行単位保護） | `figures`/`locations`/`records`/`record_photos`を格納 |
+| Supabase Auth（Google OAuth） | ログイン | `app/login/actions.ts`、`lib/supabase/proxy.ts` | Supabase側で仲介。アプリはGoogleの認証情報を直接扱わない | |
+| Supabase Storage | 写真の保存（非公開バケット） | `lib/storage.ts` | 署名付きURL方式 | バケット名`photos` |
+| OpenStreetMapタイル（`tile.openstreetmap.org`） | 地図の背景画像 | ブラウザから直接（`app/map/map-view.tsx`のLeaflet `TileLayer`） | 不要 | 無料。帰属表示を画面下部に表示済み |
+| Nominatim（`nominatim.openstreetmap.org`） | 地名→緯度経度の検索 | サーバー側`app/api/geocode/route.ts`を経由（ブラウザから直接は叩かない） | 不要（利用規約上、User-Agent明示が必須） | 記録フォームの「地点を検索」機能から利用 |
+| ブラウザGeolocation API | 現在地の取得、比定地への接近検知 | クライアント側（`app/record-form.tsx`の「現在地を使う」、`app/map/use-geofence.ts`） | ブラウザの位置情報許可のみ | 取得した値はDBの数値列として保存されるだけで、外部には送らない |
+| 元絵の画像ファイル本体 | 富嶽三十六景の元絵表示 | `locations.image_url`に個別URLを保存し`<img>`で表示 | 取得元ごとに異なる（メトロポリタン美術館等、パブリックドメイン提供元） | 出典は`locations.image_source`/`image_license`に保存（機能⑥-A参照） |
+| 天気API（Phase1残タスク・未実装） | 訪問時点の天気スナップショット | 未実装。保存先の`records.weather`列のみ用意済み | 未定 | 着手時は本スキル（`external-api-integration`）の4点セット（キー管理・呼び出し場所・失敗時挙動・コスト上限）に沿って選定する |
+
+#### データの持たせ方（テーブル早見表）
+
+| テーブル | 主な列 | 誰が読み書きできるか（RLS） | 役割 |
+|---|---|---|---|
+| `figures` | id, name, slug | 全員読み取り可／書き込みは管理者のみ | 人物マスタ（北斎など8名） |
+| `locations` | id, figure_id, number, title_jp/en, series, prefecture, modern_location, cluster, route_order, **latitude/longitude（比定地・不変）**, accessibility_class/confidence/reason, location_source/confidence, image_url/source/license | 全員読み取り可／書き込みは管理者のみ | 地点マスタ（北斎46図）。訪問しても値が変わらない「静的」なデータ |
+| `records` | id, user_id, figure_id, location_id（nullable）, location_name, work_label, **latitude/longitude（記録ごとの座標。現在地取得・地名検索・手入力のいずれかで埋まる）**, photographed_at, edit_intent, voice_transcript, access_note, is_public, weather（jsonb）, photo_urls（配列・レガシー） | 本人のみ（`auth.uid() = user_id`） | 現地記録の本体。1地点1レコード |
+| `record_photos` | id, record_id, storage_path, **latitude/longitude（撮影ごとの実測座標）**, taken_at, sort_order | `records`を辿って本人のみ | 写真1枚ごとのGPS・撮影日時。テーブルは用意済みだが、**記録フォームは現状ここへ書き込まず`records.photo_urls`に直接保存している**（roadmap.md Phase1タスク(C)(D)が未着手のため。移行手順は`docs/sql/2026-08-21-phase1-schema.sql`末尾に記載） |
+| `figure_entitlements`（Phase2・未適用） | user_id, figure_id | 設計のみ | 人物ごとのアクセス権（機能⑤-A） |
+
+**緯度経度が3か所に分かれて存在する**点は紛らわしいため明記する。
+
+- `locations.latitude/longitude`：絵が描かれたと推定される比定地（動かない・全員共有）
+- `records.latitude/longitude`：記録の代表座標。現在地取得・地名検索・手入力のいずれかで埋まる（本人のみ）
+- `record_photos.latitude/longitude`：写真1枚ごとの実測GPS（設計済みだが上記の通り現状未使用）
 
 ### 5-B. RLS設計（今回の方針転換の中核）
 
