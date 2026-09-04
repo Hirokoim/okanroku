@@ -6,11 +6,71 @@ import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
 
 type Figure = { id: string; name: string }
+type GeocodeResult = { name: string; latitude: number; longitude: number }
 
 export function RecordForm({ userId, figures }: { userId: string; figures: Figure[] }) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 緯度経度：手入力に加えて「現在地を使う」「地点名で検索」でも埋められるよう、
+  // このフィールドだけ制御コンポーネントにする（他の項目はFormDataのまま）。
+  const [latitude, setLatitude] = useState('')
+  const [longitude, setLongitude] = useState('')
+  const [locating, setLocating] = useState(false)
+  const [locateError, setLocateError] = useState<string | null>(null)
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [searchResults, setSearchResults] = useState<GeocodeResult[]>([])
+
+  function handleUseCurrentLocation() {
+    if (!('geolocation' in navigator)) {
+      setLocateError('この端末・ブラウザは位置情報に対応していません')
+      return
+    }
+    setLocating(true)
+    setLocateError(null)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(String(pos.coords.latitude))
+        setLongitude(String(pos.coords.longitude))
+        setLocating(false)
+      },
+      (err) => {
+        setLocateError(err.message || '現在地を取得できませんでした')
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    )
+  }
+
+  async function handleSearch() {
+    const q = searchQuery.trim()
+    if (!q) return
+    setSearching(true)
+    setSearchError(null)
+    setSearchResults([])
+    try {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '検索に失敗しました')
+      setSearchResults(data.results)
+      if (data.results.length === 0) setSearchError('見つかりませんでした。キーワードを変えてお試しください')
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : '検索に失敗しました')
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  function handlePickResult(result: GeocodeResult) {
+    setLatitude(String(result.latitude))
+    setLongitude(String(result.longitude))
+    setSearchResults([])
+    setSearchQuery(result.name)
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -36,8 +96,8 @@ export function RecordForm({ userId, figures }: { userId: string; figures: Figur
         figure_id: formData.get('figure_id'),
         location_name: formData.get('location_name'),
         work_label: formData.get('work_label') || null,
-        latitude: formData.get('latitude') ? Number(formData.get('latitude')) : null,
-        longitude: formData.get('longitude') ? Number(formData.get('longitude')) : null,
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
         // datetime-localはタイムゾーン情報を持たないため、端末のローカル時刻として解釈して保存する
         photographed_at: photographedAtRaw ? new Date(photographedAtRaw).toISOString() : null,
         access_note: formData.get('access_note') || null,
@@ -49,6 +109,9 @@ export function RecordForm({ userId, figures }: { userId: string; figures: Figur
       if (insertError) throw insertError
 
       form.reset()
+      setLatitude('')
+      setLongitude('')
+      setSearchQuery('')
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
@@ -80,15 +143,84 @@ export function RecordForm({ userId, figures }: { userId: string; figures: Figur
         <input name="work_label" className="w-full border rounded p-2 mt-1" />
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block text-sm">
-          緯度
-          <input name="latitude" type="number" step="any" className="w-full border rounded p-2 mt-1" />
-        </label>
-        <label className="block text-sm">
-          経度
-          <input name="longitude" type="number" step="any" className="w-full border rounded p-2 mt-1" />
-        </label>
+      <div className="space-y-2 border rounded p-3">
+        <div className="text-sm font-medium">緯度・経度</div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleUseCurrentLocation}
+            disabled={locating}
+            className="text-xs px-3 py-1.5 rounded-full border disabled:opacity-50"
+          >
+            📍 {locating ? '取得中...' : '現在地を使う'}
+          </button>
+        </div>
+        {locateError && <p className="text-xs text-red-600">{locateError}</p>}
+
+        <div className="flex gap-2">
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSearch()
+              }
+            }}
+            placeholder="地点名・住所で検索（例：富士市 田子の浦）"
+            className="flex-1 border rounded p-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={handleSearch}
+            disabled={searching || !searchQuery.trim()}
+            className="text-xs px-3 py-1.5 rounded-full border disabled:opacity-50 shrink-0"
+          >
+            🔍 {searching ? '検索中...' : '検索'}
+          </button>
+        </div>
+        {searchError && <p className="text-xs text-red-600">{searchError}</p>}
+        {searchResults.length > 0 && (
+          <ul className="border rounded divide-y">
+            {searchResults.map((r, i) => (
+              <li key={i}>
+                <button
+                  type="button"
+                  onClick={() => handlePickResult(r)}
+                  className="w-full text-left text-xs px-3 py-2 hover:bg-gray-50"
+                >
+                  {r.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm">
+            緯度
+            <input
+              name="latitude"
+              type="number"
+              step="any"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              className="w-full border rounded p-2 mt-1"
+            />
+          </label>
+          <label className="block text-sm">
+            経度
+            <input
+              name="longitude"
+              type="number"
+              step="any"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              className="w-full border rounded p-2 mt-1"
+            />
+          </label>
+        </div>
       </div>
 
       <label className="block text-sm">
