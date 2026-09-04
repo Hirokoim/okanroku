@@ -1,7 +1,19 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { asRows } from '@/lib/supabase/rows'
 import { MapPanel } from './map-panel'
-import type { LocationPin, VisitPoint } from './map-view'
+import type { LocationPin, VisitPoint } from './map-types'
+
+// record_photos を、地点名まで一緒に引いたときの行の形。
+// records・locations は多対1の関連なので実際は単一オブジェクトで返る
+// （詳しくは lib/supabase/rows.ts）。
+type PhotoRow = {
+  id: string
+  latitude: number | null
+  longitude: number | null
+  taken_at: string | null
+  records: { location_id: string | null; locations: { number: number; title_jp: string } | null } | null
+}
 
 export default async function MapPage() {
   const supabase = await createClient()
@@ -32,7 +44,7 @@ export default async function MapPage() {
   // 実際に撮影した座標（record_photos）。地点の比定地とは別に、
   // 「訪問地点を表示」トグルで重ねて出す。
   // record_photosはuser_idを持たないため、records経由でRLSが判定される
-  // （lib: docs/requirements.md 5-B）。ここでは records.location_id と
+  // （docs/requirements.md 5-B）。ここでは records.location_id と
   // locations.title_jp を一緒に引くため、supabaseのネスト取得を使う。
   const { data: photoRows } = user
     ? await supabase
@@ -42,15 +54,7 @@ export default async function MapPage() {
         .not('longitude', 'is', null)
     : { data: null }
 
-  type PhotoRow = {
-    id: string
-    latitude: number | null
-    longitude: number | null
-    taken_at: string | null
-    records: { location_id: string | null; locations: { number: number; title_jp: string } | null } | null
-  }
-
-  const visitPoints: VisitPoint[] = ((photoRows ?? []) as unknown as PhotoRow[])
+  const visitPoints: VisitPoint[] = asRows<PhotoRow>(photoRows)
     .filter((p) => p.latitude !== null && p.longitude !== null && p.records?.locations)
     .map((p) => ({
       id: p.id,
@@ -72,7 +76,7 @@ export default async function MapPage() {
 
       {user ? (
         <MapPanel
-          locations={(locations ?? []) as LocationPin[]}
+          locations={asRows<LocationPin>(locations)}
           visitedLocationIds={[...visitedLocationIds]}
           visitPoints={visitPoints}
         />

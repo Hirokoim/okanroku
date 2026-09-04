@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { asRow } from '@/lib/supabase/rows'
+import { accessibilityLabel, confidenceLabel } from '@/lib/labels'
+import { formatDate } from '@/lib/format'
 import { LocationRecordForm } from './record-form'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
@@ -8,19 +11,6 @@ import { LocationRecordForm } from './record-form'
 // （~/mulmoclaude/data/skills/fugaku-36/schema.json）。
 // あちらは汎用エンジンによる自動生成でコードの流用はできないため、
 // フィールドの並び・2カラム構成だけを踏襲している。
-
-const ACCESSIBILITY_LABEL: Record<string, string> = {
-  visible: '見える富士',
-  not_visible: '見えない富士',
-  imagined: '心の中の富士',
-  unjudged: '未判定',
-}
-
-const CONFIDENCE_LABEL: Record<string, string> = {
-  confirmed: '確定',
-  estimated: '推定',
-  unconfirmed: '未確認',
-}
 
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null
@@ -64,10 +54,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
     .eq('location_id', id)
     .order('photographed_at', { ascending: false })
 
-  // locations(figure_id)はlocationsから見て多対1の関係なので、実際は配列ではなく
-  // 単一オブジェクトで返る。supabase-jsは型生成なしではこの区別ができず配列型と
-  // 推論するため、ここで明示的にキャストする（page.tsxの records(figure_id) と同じ理由）
-  const figureName = (location as unknown as { figures: { name: string } | null }).figures?.name
+  // figuresはlocationsから見て多対1の関係（詳しくは lib/supabase/rows.ts）
+  const figureName = asRow<{ figures: { name: string } | null }>(location).figures?.name
 
   return (
     <main className="max-w-2xl mx-auto p-6 space-y-6 w-full">
@@ -106,14 +94,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
         <Field label="現代の地名" value={location.modern_location} />
         <Field label="シリーズ" value={location.series} />
         <Field label="クラスタ" value={location.cluster} />
-        <Field
-          label="富士の見え方"
-          value={location.accessibility_class ? ACCESSIBILITY_LABEL[location.accessibility_class] : null}
-        />
-        <Field
-          label="分類確度"
-          value={location.accessibility_confidence ? CONFIDENCE_LABEL[location.accessibility_confidence] : null}
-        />
+        <Field label="富士の見え方" value={accessibilityLabel(location.accessibility_class)} />
+        <Field label="分類確度" value={confidenceLabel(location.accessibility_confidence)} />
       </div>
 
       {location.accessibility_reason && (
@@ -128,7 +110,9 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
           <div className="text-xs text-gray-500 mb-1">
             比定地の出典
             {location.location_confidence && (
-              <span className="ml-2">（{CONFIDENCE_LABEL[location.location_confidence] ?? location.location_confidence}）</span>
+              <span className="ml-2">
+                （{confidenceLabel(location.location_confidence) ?? location.location_confidence}）
+              </span>
             )}
           </div>
           <p className="text-sm text-gray-700">{location.location_source}</p>
@@ -144,9 +128,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
             {records.map((r) => (
               <li key={r.id} className="border rounded p-3 text-sm">
                 <div className="text-gray-400 text-xs">
-                  {r.photographed_at
-                    ? new Date(r.photographed_at).toLocaleDateString('ja-JP')
-                    : new Date(r.created_at).toLocaleDateString('ja-JP')}
+                  {formatDate(r.photographed_at ?? r.created_at)}
                 </div>
                 {r.edit_intent && <div className="font-medium">{r.edit_intent}</div>}
                 {r.voice_transcript && <div className="text-gray-600">{r.voice_transcript}</div>}

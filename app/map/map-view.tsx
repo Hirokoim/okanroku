@@ -15,40 +15,11 @@ import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-
-export type LocationPin = {
-  id: string
-  number: number
-  title_jp: string
-  title_en: string | null
-  series: string | null
-  prefecture: string | null
-  modern_location: string | null
-  cluster: string | null
-  latitude: number | null
-  longitude: number | null
-  accessibility_class: string | null
-  image_url: string | null
-}
-
-export type VisitPoint = {
-  id: string
-  latitude: number
-  longitude: number
-  taken_at: string | null
-  number: number
-  title_jp: string
-}
+import type { LocationPin, VisitPoint } from './map-types'
+import { accessibilityStyle } from '@/lib/labels'
+import { formatDate } from '@/lib/format'
 
 const FUJI: [number, number] = [35.3606, 138.7274]
-
-// 富士の見え方（保存値）→ 表示ラベルと色。requirements.md 5-E②の対応表と揃えてある。
-const ACCESSIBILITY_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  visible: { label: '見える富士', color: '#60a0e0', bg: '#1a3a60' },
-  not_visible: { label: '見えない富士', color: '#e06060', bg: '#3a1a10' },
-  imagined: { label: '心の中の富士', color: '#c080e0', bg: '#2a1a3a' },
-  unjudged: { label: '未判定', color: '#909090', bg: '#2a2a2a' },
-}
 
 // 番号入りの丸バッジマーカー。訪問済みかどうかで色を変える。
 function numberIcon(number: number, visited: boolean, size: number) {
@@ -266,7 +237,9 @@ export function MapView({
           <ZoomWatcher onZoom={setZoom} />
           <FlyTo target={flyTarget} />
 
-          {filtered.map((l) => (
+          {filtered.map((l) => {
+            const accessibility = accessibilityStyle(l.accessibility_class)
+            return (
             <Marker
               key={l.id}
               position={[Number(l.latitude), Number(l.longitude)]}
@@ -307,15 +280,12 @@ export function MapView({
                         {l.series}
                       </span>
                     )}
-                    {l.accessibility_class && ACCESSIBILITY_LABEL[l.accessibility_class] && (
+                    {accessibility && (
                       <span
                         className="text-xs px-2 py-0.5 rounded-full"
-                        style={{
-                          background: ACCESSIBILITY_LABEL[l.accessibility_class].bg,
-                          color: ACCESSIBILITY_LABEL[l.accessibility_class].color,
-                        }}
+                        style={{ background: accessibility.bg, color: accessibility.color }}
                       >
-                        {ACCESSIBILITY_LABEL[l.accessibility_class].label}
+                        {accessibility.label}
                       </span>
                     )}
                   </div>
@@ -337,7 +307,8 @@ export function MapView({
                 </div>
               </Popup>
             </Marker>
-          ))}
+            )
+          })}
 
           {showFuji && (
             <Marker position={FUJI} icon={fujiIcon}>
@@ -370,7 +341,7 @@ export function MapView({
                     </div>
                     {v.taken_at && (
                       <div className="text-xs" style={{ color: '#5a3d20' }}>
-                        {new Date(v.taken_at).toLocaleDateString('ja-JP')}
+                        {formatDate(v.taken_at)}
                       </div>
                     )}
                   </div>

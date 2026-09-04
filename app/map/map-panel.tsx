@@ -7,7 +7,7 @@
 // そのため、この 'use client' を付けたファイルを1枚挟んでいる。
 
 import dynamic from 'next/dynamic'
-import type { LocationPin, VisitPoint } from './map-view'
+import type { LocationPin, VisitPoint } from './map-types'
 
 const MapView = dynamic(() => import('./map-view').then((m) => m.MapView), {
   ssr: false,
