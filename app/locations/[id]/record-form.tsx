@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
@@ -55,6 +55,20 @@ export function LocationRecordForm({
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // プレビュー用のobject URLは、明示的に解放しないとページを離れても残り続ける。
+  // 「削除」と「保存成功」のときは解放しているが、写真を選んだまま別ページへ
+  // 移動した場合が抜けていた。最新のphotosをrefに写しておき、片付けの時に読む
+  // （photosを依存に入れると、写真を1枚足すたびに解放が走ってしまうため）。
+  const photosRef = useRef(photos)
+  useEffect(() => {
+    photosRef.current = photos
+  }, [photos])
+  useEffect(() => {
+    return () => {
+      photosRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl))
+    }
+  }, [])
 
   function addPhotos(files: FileList | null) {
     if (!files || files.length === 0) return

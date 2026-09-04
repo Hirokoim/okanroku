@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
+/* 画面は明るい配色に固定する。
+   以前はOSのダークモードに追随して背景を黒・文字を白にしていたが、
+   各画面は bg-gray-50 / text-gray-500 など「明るい背景を前提とした指定」を
+   直接書いているため、ダーク時に「ほぼ白の背景に白い文字」が発生していた
+   （例：地点詳細の記録フォームの見出し）。
+   地図パネルだけは自前の和風パレットで暗い配色を持っている。
+   将来ダークモード対応する場合は、各画面にdark:指定を入れてから戻すこと。 */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -10,13 +18,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

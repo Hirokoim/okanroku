@@ -10,7 +10,7 @@
 // 部分があったため、配色・マーカー・ポップアップ・凡例の「見た目」だけを移植し、
 // データの出し入れはこのアプリのSupabaseクエリ（page.tsxで取得済み）に置き換えている。
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -89,10 +89,15 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
   return null
 }
 
-// 検索結果をクリックしたときに地図を移動させる
+// 検索結果をクリックしたときに地図を移動させる。
+// 地図の移動は「描画のついで」ではなく useEffect で行う。描画の途中で flyTo を
+// 呼ぶと、ズームやフィルタ切替など別の理由で再描画されるたびに再実行され、
+// 直前に検索した地点へ地図が引き戻されてしまう。
 function FlyTo({ target }: { target: [number, number] | null }) {
   const map = useMap()
-  if (target) map.flyTo(target, Math.max(map.getZoom(), 11), { duration: 0.6 })
+  useEffect(() => {
+    if (target) map.flyTo(target, Math.max(map.getZoom(), 11), { duration: 0.6 })
+  }, [target, map])
   return null
 }
 
@@ -119,16 +124,36 @@ export function MapView({
   const [query, setQuery] = useState('')
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
 
-  const visited = new Set(visitedLocationIds)
-  const placed = locations.filter((l) => l.latitude !== null && l.longitude !== null)
+  // useMemoで包まないと、検索ボックスに1文字打つたびにSetと配列が作り直され、
+  // それを依存に持つ下のuseMemoも道連れで無効になる（＝メモ化が効かない）。
+  const visited = useMemo(() => new Set(visitedLocationIds), [visitedLocationIds])
+  const placed = useMemo(
+    () => locations.filter((l) => l.latitude !== null && l.longitude !== null),
+    [locations]
+  )
 
   const filtered = useMemo(
     () => (filter === 'all' ? placed : placed.filter((l) => l.series === filter)),
     [placed, filter]
   )
 
-  const visitedCount = placed.filter((l) => visited.has(l.id)).length
+  const visitedCount = useMemo(
+    () => placed.filter((l) => visited.has(l.id)).length,
+    [placed, visited]
+  )
   const size = markerSizeFor(zoom)
+
+  // マーカーのアイコンは地点ごとに一度だけ作る。以前は描画のたびに46個分の
+  // divIconを作り直していたため、検索ボックスの1打鍵ごとに全マーカーが
+  // 作り直されていた。見た目は「訪問済みか」と「大きさ」だけで変わるので、
+  // それが変わったときだけ作り直せばよい。
+  const icons = useMemo(() => {
+    const byLocationId = new Map<string, L.DivIcon>()
+    for (const l of placed) {
+      byLocationId.set(l.id, numberIcon(l.number, visited.has(l.id), size))
+    }
+    return byLocationId
+  }, [placed, visited, size])
 
   const searchResults = useMemo(() => {
     const q = query.trim()
@@ -245,7 +270,7 @@ export function MapView({
             <Marker
               key={l.id}
               position={[Number(l.latitude), Number(l.longitude)]}
-              icon={numberIcon(l.number, visited.has(l.id), size)}
+              icon={icons.get(l.id)}
             >
               <Popup minWidth={200} maxWidth={220}>
                 <div className="text-sm" style={{ color: '#2a1a0a' }}>
