@@ -1,3 +1,5 @@
+import { formatDateTime } from '@/lib/format'
+
 export type RecordRow = {
   id: string
   location_id: string | null
@@ -27,7 +29,7 @@ export function RecordList({ records }: { records: RecordRow[] }) {
               {r.work_label ? ` ／ ${r.work_label}` : ''}
             </div>
             <div className="text-gray-400 text-xs">
-              {new Date(r.created_at).toLocaleString('ja-JP')}
+              {formatDateTime(r.created_at)}
             </div>
           </li>
         ))}

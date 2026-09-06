@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { asRows } from '@/lib/supabase/rows'
 import { AuthButton } from './auth-button'
 import { RecordList, type RecordRow } from './record-list'
 
@@ -27,10 +28,8 @@ export default async function Home() {
             地図を見る
           </Link>
           {/* 記録の作成は地点詳細（/locations/[id]）から行う（要件定義書 4-A・4-C）。
-              records(figure_id)・records(location_id)はrecordsから見て多対1の関係なので、実際は配列ではなく
-              単一オブジェクトで返る。supabase-jsは型生成なしではこの区別ができず配列型と推論するため、
-              ここで明示的にキャストする */}
-          <RecordList records={(records ?? []) as unknown as RecordRow[]} />
+              asRowsが何をしているかは lib/supabase/rows.ts を参照 */}
+          <RecordList records={asRows<RecordRow>(records)} />
         </>
       ) : (
         <p className="text-gray-600">記録を見るにはログインしてください。</p>
