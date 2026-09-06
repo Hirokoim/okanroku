@@ -115,6 +115,15 @@
 - 直近の記録一覧（新しい順、自分の記録のみ）
 - 定点観測地点として指定した地点は、季節・時期違いの記録を並べて比較表示する（同一`location_id`のレコードを日付順に並べる）
 
+### 機能③-A：クラスタ開拓マップ表示（Phase1）
+
+地図トップ画面で、クラスタ（江戸市中・東海道・甲州道中など）ごとに訪問済み地点の割合を色の濃淡で塗り分けて表示する。46地点のピンを1つずつ確認しなくても、「面」として開拓の進み具合が一目で分かるようにする（類似アプリ分析`docs/similar-apps-analysis.md`の「散歩で日本開拓」を参考にした採用）。
+
+- クラスタごとの訪問率（`location_id`が設定された記録が存在する地点数／クラスタ内の全地点数）を算出し、地図上のクラスタ範囲を塗りで表現する
+- 訪問率0%のクラスタは無色、100%のクラスタは最も濃い色とし、間は段階的に濃淡を変える
+- ピン表示（既存の地点別マーカー）とは併用する。ピンが「点」の情報、クラスタ塗りが「面」の情報を担う
+- `locations.cluster`が全地点で埋まっていることが前提（`docs/roadmap.md` Phase1タスク(A)と直結）
+
 ### 機能④：記録のエクスポート（Phase2）
 
 - 選択した地点の記録をMarkdown形式で書き出し、note下書きの土台にする
@@ -225,6 +234,8 @@
 - 他ユーザーとの競争・陣取り要素は採らない。「静かな観察・原本としての記録」というコンセプトと合わないため（同4章）
 - 到着判定を記録保存の**前提条件にはしない**。圏外や判定失敗で記録そのものが作れなくなるのを避ける。到着判定は解説を開示する引き金であって、記録の門番ではない
 
+**技術検証メモ**：接近検知（`watchPosition`＋半径判定）そのものの動作は`claude/app-architecture-analysis-pfqn60`ブランチで検証済み（半径初期値150m、フォアグラウンドでの位置監視のみで動作確認）。着手時はこの検証結果を土台にできる。
+
 ## 3-A. 継続利用設計
 
 - **入力の手間**：現地での1地点の記録入力は3分以内で完了できることを目標にする（写真アップロード＋差分カテゴリ選択＋気づきメモの短文入力のみで完結する設計）
@@ -318,7 +329,9 @@ Phase1の実装対象は 1・2・3・4・11・12・14。Phase2で 5〜10・13 �
 |---|---|
 | フレームワーク | Next.js（App Router） |
 | DB/認証 | Supabase（Google OAuth） |
-| 地図表示 | Leaflet.js（候補①・APIキー不要）／Google Maps Embed（候補②・見た目に馴染みがあるがAPIキー管理が発生） |
+| 地図表示 | Leaflet.js（採用。APIキー不要） |
+| 地名検索 | OpenStreetMap Nominatim（採用。APIキー不要。サーバー側`/api/geocode`経由） |
+| 位置情報 | ブラウザGeolocation API（現在地取得・ジオフェンス検知） |
 | 画像ストレージ | Supabase Storage（非公開バケット、`lib/storage.ts`に処理を一本化） |
 | 音声メモ | Phase1はテキスト入力のみ。Phase2で録音＋文字起こしを検討 |
 | スタイル | Tailwind CSS |
@@ -363,6 +376,39 @@ Phase1の実装対象は 1・2・3・4・11・12・14。Phase2で 5〜10・13 �
 
 - **地点詳細を地図に畳まない**。技術的には可能だが、`map-view.tsx`はすでに16KBあり、ここに解説・他ユーザー記録まで載せると本アプリで最も大きく変更しにくいファイルができる。ルートを減らしすぎると「小さい置き場所が複数」を「巨大な置き場所が1つ」に交換することになり、**壊れやすさの観点では逆効果**になる
 - **机上（`/journeys/[clusterId]`）と現地（`/live`）を1本にまとめない**。機能⑥が自ら引いている境界であり、オフライン耐性と読み込み量の要求が真逆である
+
+### 5-A-2. 技術構成の全体像（外部データ参照・データモデル早見表）
+
+「何を外部から参照し、何をどう自前のデータとして持たせているか」を一目で追えるようにした一覧。個々の設計判断の理由は5-E章、RLSの詳細は5-B章を参照。
+
+#### 外部サービス・外部データ一覧
+
+| サービス／データ | 用途 | 呼び出し元 | 認証・キー | 備考 |
+|---|---|---|---|---|
+| Supabase (Postgres) | アプリ本体のデータベース | サーバー・クライアント両方（`lib/supabase/*`） | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`（RLSで行単位保護） | `figures`/`locations`/`records`/`record_photos`を格納 |
+| Supabase Auth（Google OAuth） | ログイン | `app/login/actions.ts`、`lib/supabase/proxy.ts` | Supabase側で仲介。アプリはGoogleの認証情報を直接扱わない | |
+| Supabase Storage | 写真の保存（非公開バケット） | `lib/storage.ts` | 署名付きURL方式 | バケット名`photos` |
+| OpenStreetMapタイル（`tile.openstreetmap.org`） | 地図の背景画像 | ブラウザから直接（`app/map/map-view.tsx`のLeaflet `TileLayer`） | 不要 | 無料。帰属表示を画面下部に表示済み |
+| Nominatim（`nominatim.openstreetmap.org`） | 地名→緯度経度の検索 | サーバー側`app/api/geocode/route.ts`を経由（ブラウザから直接は叩かない） | 不要（利用規約上、User-Agent明示が必須） | 記録フォームの「地点を検索」機能から利用（**未実装。着手時に新設**） |
+| ブラウザGeolocation API | 現在地の取得、比定地への接近検知 | クライアント側（記録フォームの「現在地を使う」、機能⑦の到着判定） | ブラウザの位置情報許可のみ | 取得した値はDBの数値列として保存されるだけで、外部には送らない |
+| 元絵の画像ファイル本体 | 富嶽三十六景の元絵表示 | `locations.image_url`に個別URLを保存し`<img>`で表示 | 取得元ごとに異なる（メトロポリタン美術館等、パブリックドメイン提供元） | 出典は`locations.image_source`/`image_license`に保存（機能⑥-A参照） |
+| 天気API（Phase1残タスク・未実装） | 訪問時点の天気スナップショット | 未実装。保存先の`records.weather`列のみ用意済み | 未定 | 着手時は本スキル（`external-api-integration`）の4点セット（キー管理・呼び出し場所・失敗時挙動・コスト上限）に沿って選定する |
+
+#### データの持たせ方（テーブル早見表）
+
+| テーブル | 主な列 | 誰が読み書きできるか（RLS） | 役割 |
+|---|---|---|---|
+| `figures` | id, name, slug | 全員読み取り可／書き込みは管理者のみ | 人物マスタ（北斎など8名） |
+| `locations` | id, figure_id, number, title_jp/en, series, prefecture, modern_location, cluster, route_order, **latitude/longitude（比定地・不変）**, accessibility_class/confidence/reason, location_source/confidence, image_url/source/license | 全員読み取り可／書き込みは管理者のみ | 地点マスタ（北斎46図）。訪問しても値が変わらない「静的」なデータ |
+| `records` | id, user_id, figure_id, location_id（nullable）, location_name, work_label, **latitude/longitude（記録ごとの座標。現在地取得・地名検索・手入力のいずれかで埋まる）**, photographed_at, edit_intent, voice_transcript, access_note, is_public, weather（jsonb）, photo_urls（配列・レガシー） | 本人のみ（`auth.uid() = user_id`） | 現地記録の本体。1地点1レコード |
+| `record_photos` | id, record_id, storage_path, **latitude/longitude（撮影ごとの実測座標）**, taken_at, sort_order | `records`を辿って本人のみ | 写真1枚ごとのGPS・撮影日時。テーブルは用意済みだが、**記録フォームは現状ここへ書き込まず`records.photo_urls`に直接保存している**（roadmap.md Phase1タスク(C)(D)が未着手のため。移行手順は`docs/sql/2026-08-21-phase1-schema.sql`末尾に記載） |
+| `figure_entitlements`（Phase2・未適用） | user_id, figure_id | 設計のみ | 人物ごとのアクセス権（機能⑤-A） |
+
+**緯度経度が3か所に分かれて存在する**点は紛らわしいため明記する。
+
+- `locations.latitude/longitude`：絵が描かれたと推定される比定地（動かない・全員共有）
+- `records.latitude/longitude`：記録の代表座標。現在地取得・地名検索・手入力のいずれかで埋まる（本人のみ）
+- `record_photos.latitude/longitude`：写真1枚ごとの実測GPS（設計済みだが上記の通り現状未使用）
 
 ### 5-B. RLS設計（今回の方針転換の中核）
 
