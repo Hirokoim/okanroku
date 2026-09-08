@@ -78,6 +78,9 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       latitude: row.latitude,
       longitude: row.longitude,
       taken_at: row.taken_at,
+      // HEIC変換を入れる前（2026-09-08以前）に保存された写真はHEICのまま。
+      // 署名付きURLは問題なく発行できるが、ブラウザ側が表示できない。
+      unsupportedFormat: /\.hei[cf]$/i.test(row.storage_path),
     })
     photosByRecordId.set(row.record_id, photos)
   }

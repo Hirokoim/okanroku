@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { newId } from '@/lib/id'
 import { readExif } from '@/lib/exif'
+import { toDisplayableImage } from '@/lib/heic'
 
 export const MAX_PHOTOS = 5
 
@@ -22,6 +23,9 @@ export type PhotoEntry = {
   takenAt: string // datetime-local入力用（ISOではなくローカル文字列）
   loadingExif: boolean
   fromExif: boolean
+  // HEIC→JPEG変換の完了待ち。trueの間はfile/previewUrlがまだHEICのままで、
+  // ブラウザによってはプレビューが壊れた画像に見えるため、見た目側で隠す。
+  convertingHeic: boolean
 }
 
 function isoToLocalInput(iso: string | null): string {
@@ -42,6 +46,7 @@ function newPhotoEntry(file: File): PhotoEntry {
     takenAt: '',
     loadingExif: true,
     fromExif: false,
+    convertingHeic: true,
   }
 }
 
@@ -78,6 +83,8 @@ export function usePhotoEntries(onError: (message: string) => void) {
       // EXIF解析は1枚ごとに非同期で行い、終わったものから順にサムネイルの
       // バッジ・座標欄を更新する（全枚数を待って一括表示しない。枚数が多いと
       // 「何も起きていないように見える」時間が伸びるため）。
+      // EXIFは常に元のファイル（HEICならHEICのまま）に対して読む。変換後の
+      // JPEGはExif情報を保持しない場合があるため。
       for (const entry of added) {
         readExif(entry.file).then((result) => {
           setPhotos((prev) =>
@@ -93,6 +100,24 @@ export function usePhotoEntries(onError: (message: string) => void) {
                   }
                 : p
             )
+          )
+        })
+
+        // HEICならJPEGに変換してfile/previewUrlを差し替える（見た目もアップロード
+        // も、以後はこの変換後のファイルを使う）。HEICでなければ何もしない。
+        toDisplayableImage(entry.file).then((converted) => {
+          setPhotos((prev) =>
+            prev.map((p) => {
+              if (p.key !== entry.key) return p
+              if (converted === entry.file) return { ...p, convertingHeic: false }
+              URL.revokeObjectURL(p.previewUrl)
+              return {
+                ...p,
+                file: converted,
+                previewUrl: URL.createObjectURL(converted),
+                convertingHeic: false,
+              }
+            })
           )
         })
       }

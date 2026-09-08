@@ -54,8 +54,16 @@ export function PhotoPicker({
         <ul className="grid grid-cols-2 gap-3 mb-2">
           {photos.map((photo) => (
             <li key={photo.key} className="border rounded-lg p-2 text-xs space-y-1">
-              {/* eslint-disable-next-line @next/next/no-img-element -- ローカルのobject URLのためnext/imageは使わない */}
-              <img src={photo.previewUrl} alt="" className="w-full aspect-[4/3] object-cover rounded" />
+              {photo.convertingHeic ? (
+                // HEIC→JPEG変換の完了待ち。変換前のプレビューはブラウザによって
+                // 壊れた画像に見えるため、終わるまでこちらを出す。
+                <div className="w-full aspect-[4/3] rounded bg-gray-100 grid place-items-center text-gray-400 text-[11px]">
+                  写真を変換中...
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- ローカルのobject URLのためnext/imageは使わない
+                <img src={photo.previewUrl} alt="" className="w-full aspect-[4/3] object-cover rounded" />
+              )}
 
               <ExifBadge photo={photo} />
 

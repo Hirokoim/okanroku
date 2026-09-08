@@ -11,6 +11,12 @@ export type RecordPhoto = {
   latitude: number | null
   longitude: number | null
   taken_at: string | null
+  /**
+   * HEIC形式のまま保存されている古い写真。ChromeやFirefoxは
+   * HEICを<img>で表示できないため、黙って壊れて見えるより
+   * 理由を出す（2026-09-08以降の保存分はJPEGに変換済み）。
+   */
+  unsupportedFormat: boolean
 }
 
 export type LocationRecord = {
@@ -30,7 +36,13 @@ function RecordPhotos({ photos }: { photos: RecordPhoto[] }) {
     <ul className="grid grid-cols-3 gap-2 mt-2">
       {photos.map((photo) => (
         <li key={photo.id}>
-          {photo.url ? (
+          {photo.unsupportedFormat ? (
+            <div className="w-full aspect-[4/3] rounded border grid place-items-center text-gray-400 text-[10px] text-center px-1 leading-relaxed">
+              この写真はHEIC形式のため
+              <br />
+              表示できません
+            </div>
+          ) : photo.url ? (
             // eslint-disable-next-line @next/next/no-img-element -- 有効期限付きの署名URLのためnext/imageの最適化対象にしない
             <img
               src={photo.url}

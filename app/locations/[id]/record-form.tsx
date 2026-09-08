@@ -30,6 +30,10 @@ export function LocationRecordForm({
   const { photos, addPhotos, applyCurrentLocation, removePhoto, updateCoordinate, clearPhotos } =
     usePhotoEntries(setError)
 
+  // HEIC→JPEG変換が終わる前に保存されると、変換前のHEICのままアップロードされて
+  // しまう（use-photo-entries.tsがfileを差し替えるのは変換完了後のため）。
+  const convertingPhotos = photos.some((p) => p.convertingHeic)
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSubmitting(true)
@@ -147,14 +151,16 @@ export function LocationRecordForm({
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || convertingPhotos}
           className="bg-black text-white rounded px-4 py-2 text-sm disabled:opacity-50"
         >
           {submitting
             ? '保存中...'
-            : photos.length > 0
-              ? `記録を保存する（写真${photos.length}枚）`
-              : '記録を保存する'}
+            : convertingPhotos
+              ? '写真を変換中...'
+              : photos.length > 0
+                ? `記録を保存する（写真${photos.length}枚）`
+                : '記録を保存する'}
         </button>
       </form>
     </details>
