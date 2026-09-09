@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
+import { weatherCodeIcon } from '@/lib/weather'
 import { PhotoPicker } from './photo-picker'
 import { usePhotoEntries } from './use-photo-entries'
 
@@ -26,6 +27,9 @@ export function LocationRecordForm({
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 保存直後に「天気が実際に取れたか」をその場で確認できるようにするための表示専用の状態。
+  // records.weatherの値自体は既に保存されているが、一覧まで見に行かなくても確認できるように。
+  const [weatherStatus, setWeatherStatus] = useState<string | null>(null)
 
   const { photos, addPhotos, applyCurrentLocation, removePhoto, updateCoordinate, clearPhotos } =
     usePhotoEntries(setError)
@@ -38,6 +42,7 @@ export function LocationRecordForm({
     e.preventDefault()
     setSubmitting(true)
     setError(null)
+    setWeatherStatus(null)
 
     const form = e.currentTarget
     const formData = new FormData(form)
@@ -81,9 +86,40 @@ export function LocationRecordForm({
         if (photoError) throw photoError
       }
 
+      // 天気取得は付加情報であり、失敗しても記録の保存自体は成功しているため
+      // ここだけ独立したtry/catchにして無言でスキップする（5-E⑥・外部API統合スキル）。
+      try {
+        const weatherPhoto = photos.find((p) => p.latitude && p.longitude)
+        if (!weatherPhoto) {
+          setWeatherStatus('座標情報のある写真がなかったため、天気は取得していません')
+        } else {
+          const datetime = photographedAtRaw ? new Date(photographedAtRaw).toISOString() : new Date().toISOString()
+          const weatherRes = await fetch('/api/weather', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              latitude: Number(weatherPhoto.latitude),
+              longitude: Number(weatherPhoto.longitude),
+              datetime,
+            }),
+          })
+          if (weatherRes.ok) {
+            const weather = await weatherRes.json()
+            await supabase.from('records').update({ weather }).eq('id', record.id)
+            setWeatherStatus(
+              `${weatherCodeIcon(weather.weathercode)} 天気を取得しました：${weather.description}${weather.temperature !== null ? `　${weather.temperature}℃` : ''}`
+            )
+          } else {
+            setWeatherStatus('天気の取得に失敗しました（記録は保存されています）')
+          }
+        }
+      } catch {
+        // 圏外・API障害等。記録は既に保存済みのため何もしない。
+        setWeatherStatus('天気の取得に失敗しました（記録は保存されています）')
+      }
+
       form.reset()
       clearPhotos()
-      setOpen(false)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
@@ -148,6 +184,7 @@ export function LocationRecordForm({
         </p>
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
+        {weatherStatus && <p className="text-gray-600 text-sm">{weatherStatus}</p>}
 
         <button
           type="submit"

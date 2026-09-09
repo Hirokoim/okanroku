@@ -1,11 +1,18 @@
+'use client'
+
 // 地点詳細の「自分の記録」一覧。
 // 署名付きURLの発行はサーバー側（page.tsx）で済ませてあり、
-// ここは受け取った内容を並べるだけ。
+// ここは受け取った内容を並べるだけ。記録ごとの編集フォームの開閉だけ状態を持つ。
 
+import { useState } from 'react'
 import { formatDate } from '@/lib/format'
+import { weatherCodeIcon, type WeatherSnapshot } from '@/lib/weather'
+import { EditRecordForm } from './edit-record-form'
 
 export type RecordPhoto = {
   id: string
+  /** Storage上のパス。削除（record_photosの行削除にあわせてファイル本体も消す）に使う */
+  storage_path: string
   /** 署名付きURL。発行に失敗した場合はnull */
   url: string | null
   latitude: number | null
@@ -26,6 +33,8 @@ export type LocationRecord = {
   edit_intent: string | null
   voice_transcript: string | null
   access_note: string | null
+  is_public: boolean
+  weather: WeatherSnapshot | null
   photos: RecordPhoto[]
 }
 
@@ -66,7 +75,37 @@ function RecordPhotos({ photos }: { photos: RecordPhoto[] }) {
   )
 }
 
-export function LocationRecords({ records }: { records: LocationRecord[] }) {
+function RecordItem({ record: r, userId }: { record: LocationRecord; userId: string }) {
+  const [editing, setEditing] = useState(false)
+
+  return (
+    <li className="border rounded p-3 text-sm">
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-gray-400 text-xs flex items-center gap-2">
+          {formatDate(r.photographed_at ?? r.created_at)}
+          {r.weather && (
+            <span>
+              {weatherCodeIcon(r.weather.weathercode)} {r.weather.description}
+              {r.weather.temperature !== null && `　${r.weather.temperature}℃`}
+            </span>
+          )}
+        </div>
+        {!editing && (
+          <button onClick={() => setEditing(true)} className="text-xs text-blue-600 underline shrink-0">
+            編集
+          </button>
+        )}
+      </div>
+      {r.edit_intent && <div className="font-medium">{r.edit_intent}</div>}
+      {r.voice_transcript && <div className="text-gray-600">{r.voice_transcript}</div>}
+      {r.access_note && <div className="text-gray-500 text-xs mt-1">{r.access_note}</div>}
+      <RecordPhotos photos={r.photos} />
+      {editing && <EditRecordForm record={r} userId={userId} onClose={() => setEditing(false)} />}
+    </li>
+  )
+}
+
+export function LocationRecords({ records, userId }: { records: LocationRecord[]; userId: string }) {
   if (records.length === 0) {
     return <p className="text-gray-500 text-sm">まだこの地点の記録がありません。</p>
   }
@@ -74,13 +113,7 @@ export function LocationRecords({ records }: { records: LocationRecord[] }) {
   return (
     <ul className="space-y-2">
       {records.map((r) => (
-        <li key={r.id} className="border rounded p-3 text-sm">
-          <div className="text-gray-400 text-xs">{formatDate(r.photographed_at ?? r.created_at)}</div>
-          {r.edit_intent && <div className="font-medium">{r.edit_intent}</div>}
-          {r.voice_transcript && <div className="text-gray-600">{r.voice_transcript}</div>}
-          {r.access_note && <div className="text-gray-500 text-xs mt-1">{r.access_note}</div>}
-          <RecordPhotos photos={r.photos} />
-        </li>
+        <RecordItem key={r.id} record={r} userId={userId} />
       ))}
     </ul>
   )

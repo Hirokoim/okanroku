@@ -51,7 +51,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   // 自分の記録のみ（RLSにより自動的にそう絞られるが、location_idでも明示的に絞る）
   const { data: records } = await supabase
     .from('records')
-    .select('id, photographed_at, edit_intent, voice_transcript, access_note, is_public, created_at')
+    .select('id, photographed_at, edit_intent, voice_transcript, access_note, is_public, weather, created_at')
     .eq('location_id', id)
     .order('photographed_at', { ascending: false })
 
@@ -74,6 +74,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
     const photos = photosByRecordId.get(row.record_id) ?? []
     photos.push({
       id: row.id,
+      storage_path: row.storage_path,
       url: photoUrls.get(row.storage_path) ?? null,
       latitude: row.latitude,
       longitude: row.longitude,
@@ -157,7 +158,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 
       <div className="border-t pt-4">
         <h2 className="font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
-        <LocationRecords records={recordsWithPhotos} />
+        <LocationRecords records={recordsWithPhotos} userId={user.id} />
 
         <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />
       </div>
