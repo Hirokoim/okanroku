@@ -46,7 +46,7 @@ function RecordPhotos({ photos }: { photos: RecordPhoto[] }) {
       {photos.map((photo) => (
         <li key={photo.id}>
           {photo.unsupportedFormat ? (
-            <div className="w-full aspect-[4/3] rounded border grid place-items-center text-gray-400 text-[10px] text-center px-1 leading-relaxed">
+            <div className="w-full aspect-[4/3] rounded border border-line bg-sumi-2 grid place-items-center text-nami-dim text-[10px] text-center px-1 leading-relaxed">
               この写真はHEIC形式のため
               <br />
               表示できません
@@ -56,16 +56,16 @@ function RecordPhotos({ photos }: { photos: RecordPhoto[] }) {
             <img
               src={photo.url}
               alt=""
-              className="w-full aspect-[4/3] object-cover rounded border"
+              className="w-full aspect-[4/3] object-cover rounded border border-line"
               loading="lazy"
             />
           ) : (
-            <div className="w-full aspect-[4/3] rounded border grid place-items-center text-gray-400 text-[10px] text-center px-1">
+            <div className="w-full aspect-[4/3] rounded border border-line bg-sumi-2 grid place-items-center text-nami-dim text-[10px] text-center px-1">
               写真を読み込めませんでした
             </div>
           )}
           {photo.latitude !== null && photo.longitude !== null && (
-            <div className="text-gray-400 text-[10px] mt-0.5">
+            <div className="text-nami-dim text-[10px] mt-0.5">
               {photo.latitude.toFixed(5)}, {photo.longitude.toFixed(5)}
             </div>
           )}
@@ -79,9 +79,9 @@ function RecordItem({ record: r, userId }: { record: LocationRecord; userId: str
   const [editing, setEditing] = useState(false)
 
   return (
-    <li className="border rounded p-3 text-sm">
+    <li className="border border-line rounded p-3 text-sm bg-sumi-2">
       <div className="flex items-start justify-between gap-2">
-        <div className="text-gray-400 text-xs flex items-center gap-2">
+        <div className="text-nami-dim text-xs flex items-center gap-2">
           {formatDate(r.photographed_at ?? r.created_at)}
           {r.weather && (
             <span>
@@ -91,14 +91,14 @@ function RecordItem({ record: r, userId }: { record: LocationRecord; userId: str
           )}
         </div>
         {!editing && (
-          <button onClick={() => setEditing(true)} className="text-xs text-blue-600 underline shrink-0">
+          <button onClick={() => setEditing(true)} className="text-xs text-kin underline shrink-0">
             編集
           </button>
         )}
       </div>
       {r.edit_intent && <div className="font-medium">{r.edit_intent}</div>}
-      {r.voice_transcript && <div className="text-gray-600">{r.voice_transcript}</div>}
-      {r.access_note && <div className="text-gray-500 text-xs mt-1">{r.access_note}</div>}
+      {r.voice_transcript && <div className="text-nami-dim">{r.voice_transcript}</div>}
+      {r.access_note && <div className="text-nami-dim text-xs mt-1">{r.access_note}</div>}
       <RecordPhotos photos={r.photos} />
       {editing && <EditRecordForm record={r} userId={userId} onClose={() => setEditing(false)} />}
     </li>
@@ -107,7 +107,7 @@ function RecordItem({ record: r, userId }: { record: LocationRecord; userId: str
 
 export function LocationRecords({ records, userId }: { records: LocationRecord[]; userId: string }) {
   if (records.length === 0) {
-    return <p className="text-gray-500 text-sm">まだこの地点の記録がありません。</p>
+    return <p className="text-nami-dim text-sm">まだこの地点の記録がありません。</p>
   }
 
   return (

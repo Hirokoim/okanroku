@@ -16,15 +16,15 @@ export default async function Home() {
     : { data: null }
 
   return (
-    <main className="max-w-2xl mx-auto p-6 space-y-8 w-full">
+    <main className="max-w-[430px] mx-auto p-6 space-y-8 w-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">往還録</h1>
+        <h1 className="text-xl font-display font-semibold tracking-wide">往還録</h1>
         <AuthButton />
       </div>
 
       {user ? (
         <>
-          <Link href="/map" className="text-sm text-blue-600 underline">
+          <Link href="/map" className="text-sm text-kin underline">
             地図を見る
           </Link>
           {/* 記録の作成は地点詳細（/locations/[id]）から行う（要件定義書 4-A・4-C）。
@@ -32,7 +32,7 @@ export default async function Home() {
           <RecordList records={asRows<RecordRow>(records)} />
         </>
       ) : (
-        <p className="text-gray-600">記録を見るにはログインしてください。</p>
+        <p className="text-nami-dim">記録を見るにはログインしてください。</p>
       )}
     </main>
   )

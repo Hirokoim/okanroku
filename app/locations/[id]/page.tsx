@@ -17,7 +17,7 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   if (!value) return null
   return (
     <div>
-      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-xs text-nami-dim">{label}</div>
       <div className="text-sm">{value}</div>
     </div>
   )
@@ -32,8 +32,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 
   if (!user) {
     return (
-      <main className="max-w-2xl mx-auto p-6">
-        <p className="text-gray-600">この画面を見るにはログインしてください。</p>
+      <main className="max-w-[430px] mx-auto p-6">
+        <p className="text-nami-dim">この画面を見るにはログインしてください。</p>
       </main>
     )
   }
@@ -95,38 +95,38 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   const figureName = asRow<{ figures: { name: string } | null }>(location).figures?.name
 
   return (
-    <main className="max-w-2xl mx-auto p-6 space-y-6 w-full">
+    <main className="max-w-[430px] mx-auto p-6 space-y-6 w-full">
       <div className="flex items-center justify-between">
-        <Link href="/map" className="text-sm text-blue-600 underline">
+        <Link href="/map" className="text-sm text-kin underline">
           ← 地図に戻る
         </Link>
       </div>
 
       <div>
-        <div className="text-sm text-gray-500">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
-        <h1 className="text-2xl font-bold">{location.title_jp}</h1>
-        {location.title_en && <p className="text-gray-500">{location.title_en}</p>}
+        <div className="text-sm text-kin-dim font-display">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
+        <h1 className="text-2xl font-display font-semibold">{location.title_jp}</h1>
+        {location.title_en && <p className="text-nami-dim">{location.title_en}</p>}
       </div>
 
       {location.image_url ? (
         <figure>
           {/* eslint-disable-next-line @next/next/no-img-element -- 外部URL(Met/Wikimedia等)は
               取得元が地点ごとに異なりドメインを事前登録できないため、next/imageではなくimgを使う */}
-          <img src={location.image_url} alt={location.title_jp} className="w-full rounded-lg border" />
+          <img src={location.image_url} alt={location.title_jp} className="w-full rounded-lg border border-line" />
           {(location.image_source || location.image_license) && (
-            <figcaption className="text-xs text-gray-400 mt-1">
+            <figcaption className="text-xs text-nami-dim mt-1">
               {location.image_source}
               {location.image_license && ` （${location.image_license}）`}
             </figcaption>
           )}
         </figure>
       ) : (
-        <div className="border rounded-lg p-6 text-center text-gray-400 text-sm">
+        <div className="border border-line rounded-lg p-6 text-center text-nami-dim text-sm">
           元絵の画像は未登録です
         </div>
       )}
 
-      <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
+      <div className="border border-line rounded-lg p-4 grid grid-cols-2 gap-4 bg-sumi-2">
         <Field label="都道府県" value={location.prefecture} />
         <Field label="現代の地名" value={location.modern_location} />
         <Field label="シリーズ" value={location.series} />
@@ -137,14 +137,14 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 
       {location.accessibility_reason && (
         <div>
-          <div className="text-xs text-gray-500 mb-1">分類根拠</div>
-          <p className="text-sm text-gray-700">{location.accessibility_reason}</p>
+          <div className="text-xs text-nami-dim mb-1">分類根拠</div>
+          <p className="text-sm text-nami">{location.accessibility_reason}</p>
         </div>
       )}
 
       {location.location_source && (
         <div>
-          <div className="text-xs text-gray-500 mb-1">
+          <div className="text-xs text-nami-dim mb-1">
             比定地の出典
             {location.location_confidence && (
               <span className="ml-2">
@@ -152,12 +152,12 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-700">{location.location_source}</p>
+          <p className="text-sm text-nami">{location.location_source}</p>
         </div>
       )}
 
-      <div className="border-t pt-4">
-        <h2 className="font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
+      <div className="border-t border-line pt-4">
+        <h2 className="font-display font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
         <LocationRecords records={recordsWithPhotos} userId={user.id} />
 
         <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />

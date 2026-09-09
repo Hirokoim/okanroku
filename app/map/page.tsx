@@ -66,10 +66,10 @@ export default async function MapPage() {
     }))
 
   return (
-    <main className="max-w-5xl mx-auto p-6 space-y-4 w-full">
+    <main className="max-w-[430px] mx-auto p-6 space-y-4 w-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">地図</h1>
-        <Link href="/" className="text-sm text-blue-600 underline">
+        <h1 className="text-xl font-display font-semibold">地図</h1>
+        <Link href="/" className="text-sm text-kin underline">
           記録に戻る
         </Link>
       </div>
@@ -81,7 +81,7 @@ export default async function MapPage() {
           visitPoints={visitPoints}
         />
       ) : (
-        <p className="text-gray-600">地図を見るにはログインしてください。</p>
+        <p className="text-nami-dim">地図を見るにはログインしてください。</p>
       )}
     </main>
   )

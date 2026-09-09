@@ -130,19 +130,23 @@ export function LocationRecordForm({
 
   return (
     <details
-      className="border rounded-lg overflow-hidden mt-3"
+      className="border border-line rounded-lg overflow-hidden mt-3"
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
-      <summary className="cursor-pointer select-none px-4 py-3 bg-gray-50 font-semibold text-sm flex items-center justify-between">
+      <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-display font-semibold text-sm flex items-center justify-between">
         ここで記録する
-        <span className="text-xs text-gray-400 font-normal">この地点に紐づけて保存されます</span>
+        <span className="text-xs text-nami-dim font-normal">この地点に紐づけて保存されます</span>
       </summary>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4 border-t">
+      <form onSubmit={handleSubmit} className="p-4 space-y-4 border-t border-line bg-sumi-2">
         <label className="block text-sm">
           訪問日時
-          <input name="photographed_at" type="datetime-local" className="w-full border rounded p-2 mt-1" />
+          <input
+            name="photographed_at"
+            type="datetime-local"
+            className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+          />
         </label>
 
         <PhotoPicker
@@ -158,38 +162,38 @@ export function LocationRecordForm({
           <textarea
             name="voice_transcript"
             placeholder="なぜここをこう切ったか、現地で感じた仮説を書く"
-            className="w-full border rounded p-2 mt-1"
+            className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami placeholder:text-nami-dim"
           />
         </label>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-sm">
             編集意図（1行）
-            <input name="edit_intent" className="w-full border rounded p-2 mt-1" />
+            <input name="edit_intent" className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami" />
           </label>
           <label className="block text-sm">
             アクセス情報
-            <input name="access_note" className="w-full border rounded p-2 mt-1" />
+            <input name="access_note" className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami" />
           </label>
         </div>
 
         <label className="flex items-center gap-2 text-sm">
           <input name="is_public" type="checkbox" />
           この記録を公開する
-          <span className="text-gray-400 text-xs">（既定は非公開。公開時の他ユーザー閲覧はPhase2から）</span>
+          <span className="text-nami-dim text-xs">（既定は非公開。公開時の他ユーザー閲覧はPhase2から）</span>
         </label>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-nami-dim">
           天気は保存後に自動で取得されます。取得できなくても保存は失敗しません。
         </p>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        {weatherStatus && <p className="text-gray-600 text-sm">{weatherStatus}</p>}
+        {error && <p className="text-hi-bright text-sm">{error}</p>}
+        {weatherStatus && <p className="text-nami-dim text-sm">{weatherStatus}</p>}
 
         <button
           type="submit"
           disabled={submitting || convertingPhotos}
-          className="bg-black text-white rounded px-4 py-2 text-sm disabled:opacity-50"
+          className="bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-2 text-sm font-display disabled:opacity-50 transition-colors"
         >
           {submitting
             ? '保存中...'

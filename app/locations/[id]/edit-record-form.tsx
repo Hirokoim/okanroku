@@ -203,14 +203,14 @@ export function EditRecordForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 p-3 border rounded bg-gray-50 space-y-3">
+    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded bg-sumi-3 space-y-3">
       <label className="block text-sm">
         訪問日時
         <input
           name="photographed_at"
           type="datetime-local"
           defaultValue={isoToLocalInput(record.photographed_at)}
-          className="w-full border rounded p-2 mt-1"
+          className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
         />
       </label>
 
@@ -219,18 +219,26 @@ export function EditRecordForm({
         <textarea
           name="voice_transcript"
           defaultValue={record.voice_transcript ?? ''}
-          className="w-full border rounded p-2 mt-1"
+          className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
         />
       </label>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="block text-sm">
           編集意図（1行）
-          <input name="edit_intent" defaultValue={record.edit_intent ?? ''} className="w-full border rounded p-2 mt-1" />
+          <input
+            name="edit_intent"
+            defaultValue={record.edit_intent ?? ''}
+            className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
+          />
         </label>
         <label className="block text-sm">
           アクセス情報
-          <input name="access_note" defaultValue={record.access_note ?? ''} className="w-full border rounded p-2 mt-1" />
+          <input
+            name="access_note"
+            defaultValue={record.access_note ?? ''}
+            className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
+          />
         </label>
       </div>
 
@@ -239,8 +247,8 @@ export function EditRecordForm({
         この記録を公開する
       </label>
 
-      <div className="border-t pt-3 space-y-2">
-        <div className="text-xs text-gray-500">
+      <div className="border-t border-line pt-3 space-y-2">
+        <div className="text-xs text-nami-dim">
           天気：
           {record.weather
             ? `${weatherCodeIcon(record.weather.weathercode)} ${record.weather.description}${record.weather.temperature !== null ? `　${record.weather.temperature}℃` : ''}`
@@ -252,19 +260,23 @@ export function EditRecordForm({
             type="button"
             onClick={handleRetryWeather}
             disabled={retryingWeather}
-            className="text-xs text-blue-600 underline disabled:opacity-50"
+            className="text-xs text-kin underline disabled:opacity-50"
           >
             {retryingWeather ? '取得中...' : '天気を再取得する'}
           </button>
         ) : (
-          <p className="text-xs text-gray-400">座標情報のある写真がないため、天気は再取得できません</p>
+          <p className="text-xs text-nami-dim">座標情報のある写真がないため、天気は再取得できません</p>
         )}
-        {weatherStatus && <p className="text-xs text-gray-600">{weatherStatus}</p>}
+        {weatherStatus && <p className="text-xs text-nami-dim">{weatherStatus}</p>}
 
-        <label className="block text-xs text-gray-500">
+        <label className="block text-xs text-nami-dim">
           天気を手動で選ぶ（自動取得が外れていた場合の修正用）
           <div className="flex gap-2 mt-1">
-            <select name="weather_override" defaultValue="" className="border rounded p-1.5 text-sm flex-1">
+            <select
+              name="weather_override"
+              defaultValue=""
+              className="border border-line rounded p-1.5 text-sm flex-1 bg-sumi-2 text-nami"
+            >
               <option value="">変更しない（自動取得のまま）</option>
               {WEATHER_LABELS.map((label) => (
                 <option key={label} value={label}>
@@ -278,34 +290,34 @@ export function EditRecordForm({
               step="0.1"
               placeholder="気温（℃・任意）"
               defaultValue={record.weather?.temperature ?? ''}
-              className="border rounded p-1.5 text-sm w-32"
+              className="border border-line rounded p-1.5 text-sm w-32 bg-sumi-2 text-nami placeholder:text-nami-dim"
             />
           </div>
         </label>
       </div>
 
-      <div className="border-t pt-3 space-y-2">
-        <div className="text-xs text-gray-500">写真（{record.photos.length}/{MAX_PHOTOS}枚）</div>
+      <div className="border-t border-line pt-3 space-y-2">
+        <div className="text-xs text-nami-dim">写真（{record.photos.length}/{MAX_PHOTOS}枚）</div>
         {record.photos.length > 0 && (
           <ul className="grid grid-cols-3 gap-2">
             {record.photos.map((photo) => (
               <li key={photo.id} className="relative">
                 {photo.unsupportedFormat ? (
-                  <div className="w-full aspect-[4/3] rounded border grid place-items-center text-gray-400 text-[10px] text-center px-1">
+                  <div className="w-full aspect-[4/3] rounded border border-line bg-sumi-2 grid place-items-center text-nami-dim text-[10px] text-center px-1">
                     HEIC形式のため表示不可
                   </div>
                 ) : photo.url ? (
                   // eslint-disable-next-line @next/next/no-img-element -- 署名URLのためnext/imageは使わない
-                  <img src={photo.url} alt="" className="w-full aspect-[4/3] object-cover rounded border" />
+                  <img src={photo.url} alt="" className="w-full aspect-[4/3] object-cover rounded border border-line" />
                 ) : (
-                  <div className="w-full aspect-[4/3] rounded border grid place-items-center text-gray-400 text-[10px]">
+                  <div className="w-full aspect-[4/3] rounded border border-line bg-sumi-2 grid place-items-center text-nami-dim text-[10px]">
                     読み込めません
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => handleRemovePhoto(photo.id, photo.storage_path)}
-                  className="absolute top-1 right-1 bg-white/90 border rounded px-1.5 text-[10px] text-red-600"
+                  className="absolute top-1 right-1 bg-sumi/90 border border-line rounded px-1.5 text-[10px] text-hi-bright"
                 >
                   削除
                 </button>
@@ -314,7 +326,7 @@ export function EditRecordForm({
           </ul>
         )}
         {record.photos.length < MAX_PHOTOS && (
-          <label className="block text-xs text-blue-600 underline cursor-pointer w-fit">
+          <label className="block text-xs text-kin underline cursor-pointer w-fit">
             {addingPhotos ? '追加中...' : '＋ 写真を追加する'}
             <input
               type="file"
@@ -329,21 +341,21 @@ export function EditRecordForm({
             />
           </label>
         )}
-        {photoError && <p className="text-red-600 text-xs">{photoError}</p>}
+        {photoError && <p className="text-hi-bright text-xs">{photoError}</p>}
       </div>
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="text-hi-bright text-sm">{error}</p>}
 
       <div className="flex items-center justify-between pt-1">
         <div className="flex gap-2">
           <button
             type="submit"
             disabled={submitting}
-            className="bg-black text-white rounded px-3 py-1.5 text-sm disabled:opacity-50"
+            className="bg-hi hover:bg-hi-bright text-nami rounded-full px-3 py-1.5 text-sm font-display disabled:opacity-50 transition-colors"
           >
             {submitting ? '保存中...' : '保存する'}
           </button>
-          <button type="button" onClick={onClose} className="text-sm text-gray-500 underline">
+          <button type="button" onClick={onClose} className="text-sm text-nami-dim underline">
             キャンセル
           </button>
         </div>
@@ -351,7 +363,7 @@ export function EditRecordForm({
           type="button"
           onClick={handleDeleteRecord}
           disabled={deleting}
-          className="text-xs text-red-600 underline disabled:opacity-50"
+          className="text-xs text-hi-bright underline disabled:opacity-50"
         >
           {deleting ? '削除中...' : 'この記録を削除する'}
         </button>
