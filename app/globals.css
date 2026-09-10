@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
+/* 全画面をダークテーマに固定する（2026-09-09、UXプロトタイプの配色に合わせて変更）。
+   以前は「画面は明るい配色に固定する」としていたが、今回はその逆で
+   「ダークな和風パレットに統一する」方針に変えたため、bg-white / text-gray-*
+   など明るい背景を前提にした指定は書かないこと。
+   地図パネル（app/map/map-theme.ts）だけは別の由来（茶＋金の和風パレット）を
+   持つ既存のダークテーマのため、今回はあえて揃えず現状のまま残している。 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  --sumi: #10161d; /* 墨・背景 */
+  --sumi-2: #161f29; /* 墨・カード背景 */
+  --sumi-3: #1c2733; /* 墨・カード背景（強調） */
+  --ai: #1d3a5f; /* 藍 */
+  --ai-deep: #0d2033;
+  --ai-bright: #2c5580;
+  --nami: #eee3cf; /* 生成り・本文文字 */
+  --nami-dim: #a99a80; /* 生成り・控えめな文字 */
+  --hi: #c1432c; /* 緋・主要ボタン */
+  --hi-bright: #e2643f;
+  --kin: #c9a24b; /* 金・リンク／アクセント */
+  --kin-dim: #8a723c;
+  --matsu: #41604f; /* 松・緑系アクセント */
+  --line: rgba(238, 227, 207, 0.16); /* 枠線 */
+
+  --background: var(--sumi);
+  --foreground: var(--nami);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-sumi: var(--sumi);
+  --color-sumi-2: var(--sumi-2);
+  --color-sumi-3: var(--sumi-3);
+  --color-ai: var(--ai);
+  --color-ai-deep: var(--ai-deep);
+  --color-ai-bright: var(--ai-bright);
+  --color-nami: var(--nami);
+  --color-nami-dim: var(--nami-dim);
+  --color-hi: var(--hi);
+  --color-hi-bright: var(--hi-bright);
+  --color-kin: var(--kin);
+  --color-kin-dim: var(--kin-dim);
+  --color-matsu: var(--matsu);
+  --color-line: var(--line);
+
+  --font-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-body: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
 }

@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { asRow } from '@/lib/supabase/rows'
+import { accessibilityLabel, confidenceLabel } from '@/lib/labels'
+import { createPhotoUrls } from '@/lib/storage'
+import { LocationRecords, type LocationRecord, type RecordPhoto } from './location-records'
 import { LocationRecordForm } from './record-form'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
@@ -9,24 +13,11 @@ import { LocationRecordForm } from './record-form'
 // あちらは汎用エンジンによる自動生成でコードの流用はできないため、
 // フィールドの並び・2カラム構成だけを踏襲している。
 
-const ACCESSIBILITY_LABEL: Record<string, string> = {
-  visible: '見える富士',
-  not_visible: '見えない富士',
-  imagined: '心の中の富士',
-  unjudged: '未判定',
-}
-
-const CONFIDENCE_LABEL: Record<string, string> = {
-  confirmed: '確定',
-  estimated: '推定',
-  unconfirmed: '未確認',
-}
-
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null
   return (
     <div>
-      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-xs text-nami-dim">{label}</div>
       <div className="text-sm">{value}</div>
     </div>
   )
@@ -41,8 +32,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 
   if (!user) {
     return (
-      <main className="max-w-2xl mx-auto p-6">
-        <p className="text-gray-600">この画面を見るにはログインしてください。</p>
+      <main className="max-w-[430px] mx-auto p-6">
+        <p className="text-nami-dim">この画面を見るにはログインしてください。</p>
       </main>
     )
   }
@@ -60,28 +51,62 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   // 自分の記録のみ（RLSにより自動的にそう絞られるが、location_idでも明示的に絞る）
   const { data: records } = await supabase
     .from('records')
-    .select('id, photographed_at, edit_intent, voice_transcript, access_note, is_public, created_at')
+    .select('id, photographed_at, edit_intent, voice_transcript, access_note, is_public, weather, created_at')
     .eq('location_id', id)
     .order('photographed_at', { ascending: false })
 
-  // locations(figure_id)はlocationsから見て多対1の関係なので、実際は配列ではなく
-  // 単一オブジェクトで返る。supabase-jsは型生成なしではこの区別ができず配列型と
-  // 推論するため、ここで明示的にキャストする（page.tsxの records(figure_id) と同じ理由）
-  const figureName = (location as unknown as { figures: { name: string } | null }).figures?.name
+  // 記録に添付された写真。photosバケットは非公開なので、パスをそのまま
+  // <img src>に渡しても表示できない。ここで署名付きURLに変換してから渡す。
+  // record_photosはuser_idを持たず、records経由でRLSが効く（docs/requirements.md 5-B）。
+  const recordIds = (records ?? []).map((r) => r.id)
+  const { data: photoRows } = recordIds.length > 0
+    ? await supabase
+        .from('record_photos')
+        .select('id, record_id, storage_path, latitude, longitude, taken_at')
+        .in('record_id', recordIds)
+        .order('sort_order')
+    : { data: null }
+
+  const photoUrls = await createPhotoUrls(supabase, (photoRows ?? []).map((p) => p.storage_path))
+
+  const photosByRecordId = new Map<string, RecordPhoto[]>()
+  for (const row of photoRows ?? []) {
+    const photos = photosByRecordId.get(row.record_id) ?? []
+    photos.push({
+      id: row.id,
+      storage_path: row.storage_path,
+      url: photoUrls.get(row.storage_path) ?? null,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      taken_at: row.taken_at,
+      // HEIC変換を入れる前（2026-09-08以前）に保存された写真はHEICのまま。
+      // 署名付きURLは問題なく発行できるが、ブラウザ側が表示できない。
+      unsupportedFormat: /\.hei[cf]$/i.test(row.storage_path),
+    })
+    photosByRecordId.set(row.record_id, photos)
+  }
+
+  const recordsWithPhotos: LocationRecord[] = (records ?? []).map((r) => ({
+    ...r,
+    photos: photosByRecordId.get(r.id) ?? [],
+  }))
+
+  // figuresはlocationsから見て多対1の関係（詳しくは lib/supabase/rows.ts）
+  const figureName = asRow<{ figures: { name: string } | null }>(location).figures?.name
 
   return (
-    <main className="max-w-2xl mx-auto p-6 space-y-6 w-full">
+    <main className="max-w-[430px] mx-auto p-6 space-y-6 w-full">
       <div className="flex items-center justify-between">
-        <Link href="/map" className="text-sm text-blue-600 underline">
+        <Link href="/map" className="text-sm text-kin underline">
           ← 地図に戻る
         </Link>
       </div>
 
       <div>
-        <div className="text-sm text-gray-500">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
-        <h1 className="text-2xl font-bold">{location.title_jp}</h1>
-        {location.title_en && <p className="text-gray-500">{location.title_en}</p>}
-        <p className="text-sm leading-relaxed text-gray-700 mt-3">
+        <div className="text-sm text-kin-dim font-display">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
+        <h1 className="text-2xl font-display font-semibold">{location.title_jp}</h1>
+        {location.title_en && <p className="text-nami-dim">{location.title_en}</p>}
+        <p className="text-sm leading-relaxed text-nami mt-3">
           {location.modern_location ? `${location.modern_location}。` : ''}
           北斎はこの地に立ち、ひとつの景を選び取りました。何を見たかは、あなたが着いてから。
         </p>
@@ -91,74 +116,53 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
         <figure>
           {/* eslint-disable-next-line @next/next/no-img-element -- 外部URL(Met/Wikimedia等)は
               取得元が地点ごとに異なりドメインを事前登録できないため、next/imageではなくimgを使う */}
-          <img src={location.image_url} alt={location.title_jp} className="w-full rounded-lg border" />
+          <img src={location.image_url} alt={location.title_jp} className="w-full rounded-lg border border-line" />
           {(location.image_source || location.image_license) && (
-            <figcaption className="text-xs text-gray-400 mt-1">
+            <figcaption className="text-xs text-nami-dim mt-1">
               {location.image_source}
               {location.image_license && ` （${location.image_license}）`}
             </figcaption>
           )}
         </figure>
       ) : (
-        <div className="border rounded-lg p-6 text-center text-gray-400 text-sm">
+        <div className="border border-line rounded-lg p-6 text-center text-nami-dim text-sm">
           元絵の画像は未登録です
         </div>
       )}
 
-      <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
+      <div className="border border-line rounded-lg p-4 grid grid-cols-2 gap-4 bg-sumi-2">
         <Field label="都道府県" value={location.prefecture} />
         <Field label="現代の地名" value={location.modern_location} />
         <Field label="シリーズ" value={location.series} />
         <Field label="クラスタ" value={location.cluster} />
-        <Field
-          label="富士の見え方"
-          value={location.accessibility_class ? ACCESSIBILITY_LABEL[location.accessibility_class] : null}
-        />
-        <Field
-          label="分類確度"
-          value={location.accessibility_confidence ? CONFIDENCE_LABEL[location.accessibility_confidence] : null}
-        />
+        <Field label="富士の見え方" value={accessibilityLabel(location.accessibility_class)} />
+        <Field label="分類確度" value={confidenceLabel(location.accessibility_confidence)} />
       </div>
 
       {location.accessibility_reason && (
         <div>
-          <div className="text-xs text-gray-500 mb-1">分類根拠</div>
-          <p className="text-sm text-gray-700">{location.accessibility_reason}</p>
+          <div className="text-xs text-nami-dim mb-1">分類根拠</div>
+          <p className="text-sm text-nami">{location.accessibility_reason}</p>
         </div>
       )}
 
       {location.location_source && (
         <div>
-          <div className="text-xs text-gray-500 mb-1">
+          <div className="text-xs text-nami-dim mb-1">
             比定地の出典
             {location.location_confidence && (
-              <span className="ml-2">（{CONFIDENCE_LABEL[location.location_confidence] ?? location.location_confidence}）</span>
+              <span className="ml-2">
+                （{confidenceLabel(location.location_confidence) ?? location.location_confidence}）
+              </span>
             )}
           </div>
-          <p className="text-sm text-gray-700">{location.location_source}</p>
+          <p className="text-sm text-nami">{location.location_source}</p>
         </div>
       )}
 
-      <div className="border-t pt-4">
-        <h2 className="font-semibold mb-2">自分の記録（{records?.length ?? 0}件）</h2>
-        {!records || records.length === 0 ? (
-          <p className="text-gray-500 text-sm">まだこの地点の記録がありません。</p>
-        ) : (
-          <ul className="space-y-2">
-            {records.map((r) => (
-              <li key={r.id} className="border rounded p-3 text-sm">
-                <div className="text-gray-400 text-xs">
-                  {r.photographed_at
-                    ? new Date(r.photographed_at).toLocaleDateString('ja-JP')
-                    : new Date(r.created_at).toLocaleDateString('ja-JP')}
-                </div>
-                {r.edit_intent && <div className="font-medium">{r.edit_intent}</div>}
-                {r.voice_transcript && <div className="text-gray-600">{r.voice_transcript}</div>}
-                {r.access_note && <div className="text-gray-500 text-xs mt-1">{r.access_note}</div>}
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="border-t border-line pt-4">
+        <h2 className="font-display font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
+        <LocationRecords records={recordsWithPhotos} userId={user.id} />
 
         <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />
       </div>

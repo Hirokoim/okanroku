@@ -8,15 +8,15 @@ export async function AuthButton() {
   if (user) {
     return (
       <form action={signOut} className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">{user.email}</span>
-        <button type="submit" className="text-sm underline">ログアウト</button>
+        <span className="text-sm text-nami-dim">{user.email}</span>
+        <button type="submit" className="text-sm text-kin underline">ログアウト</button>
       </form>
     )
   }
 
   return (
     <form action={signInWithGoogle}>
-      <button type="submit" className="text-sm underline">Googleでログイン</button>
+      <button type="submit" className="text-sm text-kin underline">Googleでログイン</button>
     </form>
   )
 }
