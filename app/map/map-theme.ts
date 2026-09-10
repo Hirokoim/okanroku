@@ -42,6 +42,15 @@ export const MAP_THEME = {
     unvisitedText: '#8a6a30',
   },
 
+  // 開拓マップ（クラスタ単位の進捗を円で重ねるモード）。
+  // マーカーの茶＋金とは別に、進捗の濃淡が読めるよう藍色を1色だけ足している。
+  // 制覇したクラスタだけ縁を金にして「特別感」を出す。
+  cluster: {
+    indigo: '#1e4d78',
+    gold: '#e8c87a',
+    route: '#c8a060',
+  },
+
   // マーカー
   marker: {
     visited: { bg: '#6aaa40', border: '#2a5a10', text: '#fff' },

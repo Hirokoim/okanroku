@@ -5,6 +5,7 @@
 import Link from 'next/link'
 import { accessibilityStyle } from '@/lib/labels'
 import { formatDate } from '@/lib/format'
+import type { ClusterSummary } from '@/lib/clusters'
 import { MAP_THEME } from './map-theme'
 import type { LocationPin, VisitPoint } from './map-types'
 
@@ -93,10 +94,66 @@ export function FujiPopupBody() {
   )
 }
 
+/** 開拓マップのクラスタ円用 */
+export function ClusterPopupBody({ cluster }: { cluster: ClusterSummary }) {
+  const complete = cluster.total > 0 && cluster.visited >= cluster.total
+
+  return (
+    <div className="text-sm" style={{ color: MAP_THEME.popup.text }}>
+      <div className="font-medium">{cluster.name}</div>
+      <div className="text-xs mt-1" style={{ color: MAP_THEME.popup.sub }}>
+        開拓 {cluster.visited}/{cluster.total}景
+        {complete && (
+          <span className="ml-1 font-semibold" style={{ color: MAP_THEME.popup.link }}>
+            （制覇！）
+          </span>
+        )}
+      </div>
+      {cluster.maxKm !== null && (
+        <div className="text-xs" style={{ color: MAP_THEME.popup.meta }}>
+          最大 {cluster.maxKm.toFixed(1)}km
+        </div>
+      )}
+
+      {/* このクラスタの地点への入口。記録は地点詳細からしか作れない（4-C）ため、
+          ここに導線が無いと開拓マップが行き止まりになる */}
+      <ul className="mt-2 pt-2" style={{ borderTop: `1px solid ${MAP_THEME.popup.seriesBg}22` }}>
+        {cluster.locations.map((l) => (
+          <li key={l.id} className="text-xs leading-relaxed">
+            <Link href={`/locations/${l.id}`} style={{ color: MAP_THEME.popup.link }}>
+              <span style={{ color: MAP_THEME.popup.meta }}>第{l.number}景</span> {l.title_jp}
+              {l.visited && <span style={{ color: MAP_THEME.popup.sub }}>（記録あり）</span>}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 /** 実際に撮影した地点（record_photos）のマーカー用 */
 export function VisitPopupBody({ point }: { point: VisitPoint }) {
   return (
     <div className="text-sm" style={{ color: MAP_THEME.popup.text }}>
+      {/* その場所で実際に撮った写真。比定地の元絵ではなく現地の記録なので、
+          この吹き出しの主役はこちら */}
+      {point.unsupportedFormat ? (
+        <div
+          className="text-xs text-center px-2 py-4 rounded"
+          style={{ background: MAP_THEME.popup.unvisitedBg, color: MAP_THEME.popup.sub, marginBottom: 6 }}
+        >
+          この写真はHEIC形式のため表示できません
+        </div>
+      ) : point.url ? (
+        // eslint-disable-next-line @next/next/no-img-element -- 有効期限付きの署名URLのためnext/imageの最適化対象にしない
+        <img
+          src={point.url}
+          alt=""
+          style={{ width: '100%', borderRadius: 6, marginBottom: 6, display: 'block' }}
+          loading="lazy"
+        />
+      ) : null}
+
       <div className="text-xs" style={{ color: MAP_THEME.popup.sub }}>
         第{point.number}景・実際の訪問地点
       </div>

@@ -1,19 +1,19 @@
 'use client'
 
-// ダッシュボードの2つの見せ方（クラスタ選び／記録・地図）を切り替えるタブ。
-// データ取得はサーバー側（page.tsx）で済ませ、ここは組み立て済みのJSXを
-// 受け取って出し分けるだけ（5-Aの「呼び出される側は自分ではデータを取りに行かない」）。
+// 「次はどこを目指しますか」に対する2つの答え方（クラスタの一覧／開拓マップ）を
+// 切り替えるタブ。データ取得はサーバー側（page.tsx）で済ませ、ここは組み立て済みの
+// JSXを受け取って出し分けるだけ（5-Aの「呼び出される側は自分ではデータを取りに行かない」）。
 
 import { useState } from 'react'
 
 export function DashboardTabs({
   clusterView,
-  recordsView,
+  mapView,
 }: {
   clusterView: React.ReactNode
-  recordsView: React.ReactNode
+  mapView: React.ReactNode
 }) {
-  const [tab, setTab] = useState<'cluster' | 'records'>('cluster')
+  const [tab, setTab] = useState<'cluster' | 'map'>('cluster')
 
   return (
     <div className="space-y-4">
@@ -29,16 +29,16 @@ export function DashboardTabs({
         </button>
         <button
           type="button"
-          onClick={() => setTab('records')}
+          onClick={() => setTab('map')}
           className={`text-sm rounded-full px-4 py-2 font-display transition-colors ${
-            tab === 'records' ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
+            tab === 'map' ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
           }`}
         >
-          記録・地図
+          開拓マップ
         </button>
       </div>
 
-      {tab === 'cluster' ? clusterView : recordsView}
+      {tab === 'cluster' ? clusterView : mapView}
     </div>
   )
 }

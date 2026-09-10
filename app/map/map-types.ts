@@ -26,6 +26,13 @@ export type VisitPoint = {
   taken_at: string | null
   number: number
   title_jp: string
+  /** その場所で撮った写真の署名付きURL。発行に失敗した場合はnull */
+  url: string | null
+  /**
+   * HEIC形式のまま保存されている古い写真。ブラウザが<img>で表示できないため、
+   * 黙って壊れて見えるより理由を出す（app/locations/[id]/location-records.tsxと同じ扱い）
+   */
+  unsupportedFormat: boolean
 }
 
 /** ツールバーのシリーズ絞り込み。'all'は絞り込みなし */
