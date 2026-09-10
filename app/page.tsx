@@ -5,7 +5,7 @@ import { buildClusterSummaries, type ClusterLocation } from '@/lib/clusters'
 import { AuthButton } from './auth-button'
 import { RecordList, type RecordRow } from './record-list'
 import { ClusterList } from './cluster-list'
-import { DashboardTabs } from './dashboard-tabs'
+import { DashboardHome } from './dashboard-home'
 
 type LocationForCluster = ClusterLocation & { id: string }
 
@@ -45,24 +45,22 @@ export default async function Home() {
       </div>
 
       {user ? (
-        <>
-          <h2 className="font-display font-semibold">次はどこを目指しますか</h2>
-          <DashboardTabs
-            clusterView={<ClusterList summaries={clusterSummaries} />}
-            recordsView={
-              <>
-                <Link href="/map" className="text-sm text-kin underline">
-                  地図を見る
-                </Link>
-                {/* 記録の作成は地点詳細（/locations/[id]）から行う（要件定義書 4-A・4-C）。
-                    asRowsが何をしているかは lib/supabase/rows.ts を参照 */}
-                <div className="mt-4">
-                  <RecordList records={asRows<RecordRow>(records)} />
-                </div>
-              </>
-            }
-          />
-        </>
+        <DashboardHome
+          hasRecords={(records ?? []).length > 0}
+          clusterView={<ClusterList summaries={clusterSummaries} />}
+          recordsView={
+            <>
+              <Link href="/map" className="text-sm text-kin underline">
+                地図を見る
+              </Link>
+              {/* 記録の作成は地点詳細（/locations/[id]）から行う（要件定義書 4-A・4-C）。
+                  asRowsが何をしているかは lib/supabase/rows.ts を参照 */}
+              <div className="mt-4">
+                <RecordList records={asRows<RecordRow>(records)} />
+              </div>
+            </>
+          }
+        />
       ) : (
         <p className="text-nami-dim">記録を見るにはログインしてください。</p>
       )}

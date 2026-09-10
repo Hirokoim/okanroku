@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { formatDateTime } from '@/lib/format'
 
 export type RecordRow = {
@@ -13,18 +12,7 @@ export type RecordRow = {
 
 export function RecordList({ records }: { records: RecordRow[] }) {
   if (records.length === 0) {
-    return (
-      <div className="border border-line rounded-lg p-6 text-center space-y-3 bg-sumi-2">
-        <p className="font-display font-semibold">北斎はどこに立っていたのか</p>
-        <p className="text-nami-dim text-sm">46図ぶんの答え合わせが、まるごと残っています。</p>
-        <Link
-          href="/map"
-          className="inline-block bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-2 text-sm font-display transition-colors"
-        >
-          地図をひらく
-        </Link>
-      </div>
-    )
+    return <p className="text-nami-dim text-sm">まだ記録がありません。地点を選んで書きとめてみましょう。</p>
   }
 
   return (
