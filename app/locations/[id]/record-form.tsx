@@ -7,6 +7,7 @@
 //   photo-picker.tsx     … 添付写真の見た目
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
@@ -27,6 +28,7 @@ export function LocationRecordForm({
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
   // 保存直後に「天気が実際に取れたか」をその場で確認できるようにするための表示専用の状態。
   // records.weatherの値自体は既に保存されているが、一覧まで見に行かなくても確認できるように。
   const [weatherStatus, setWeatherStatus] = useState<string | null>(null)
@@ -120,6 +122,7 @@ export function LocationRecordForm({
 
       form.reset()
       clearPhotos()
+      setSaved(true)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
@@ -135,10 +138,29 @@ export function LocationRecordForm({
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
       <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-display font-semibold text-sm flex items-center justify-between">
-        ここで記録する
+        見えたものを、そのまま
         <span className="text-xs text-nami-dim font-normal">この地点に紐づけて保存されます</span>
       </summary>
 
+      {saved ? (
+        <div className="p-4 space-y-3 border-t border-line bg-sumi-2">
+          <p className="font-display font-semibold">記録しました</p>
+          <p className="text-sm text-nami-dim">今日のここでの一日が、原本に一行増えました。</p>
+          {weatherStatus && <p className="text-nami-dim text-sm">{weatherStatus}</p>}
+          <div className="flex gap-3 items-center">
+            <button
+              type="button"
+              onClick={() => setSaved(false)}
+              className="border border-line rounded-full px-4 py-2 text-sm text-nami"
+            >
+              続けて記録する
+            </button>
+            <Link href="/map" className="text-sm text-kin underline">
+              地図に戻る
+            </Link>
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="p-4 space-y-4 border-t border-line bg-sumi-2">
         <label className="block text-sm">
           訪問日時
@@ -161,9 +183,10 @@ export function LocationRecordForm({
           気づきメモ
           <textarea
             name="voice_transcript"
-            placeholder="なぜここをこう切ったか、現地で感じた仮説を書く"
+            placeholder="絵と違ったところ、同じだったところ"
             className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami placeholder:text-nami-dim"
           />
+          <p className="text-xs text-nami-dim mt-1">あとから直せます。いまは一行で十分です。</p>
         </label>
 
         <div className="grid grid-cols-2 gap-3">
@@ -188,7 +211,6 @@ export function LocationRecordForm({
         </p>
 
         {error && <p className="text-hi-bright text-sm">{error}</p>}
-        {weatherStatus && <p className="text-nami-dim text-sm">{weatherStatus}</p>}
 
         <button
           type="submit"
@@ -196,14 +218,15 @@ export function LocationRecordForm({
           className="bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-2 text-sm font-display disabled:opacity-50 transition-colors"
         >
           {submitting
-            ? '保存中...'
+            ? '書きとめています...'
             : convertingPhotos
               ? '写真を変換中...'
               : photos.length > 0
-                ? `記録を保存する（写真${photos.length}枚）`
-                : '記録を保存する'}
+                ? `書きとめる（写真${photos.length}枚）`
+                : '書きとめる'}
         </button>
       </form>
+      )}
     </details>
   )
 }

@@ -12,7 +12,7 @@ export type RecordRow = {
 
 export function RecordList({ records }: { records: RecordRow[] }) {
   if (records.length === 0) {
-    return <p className="text-nami-dim text-sm">まだ記録がありません。</p>
+    return <p className="text-nami-dim text-sm">まだ記録がありません。地点を選んで書きとめてみましょう。</p>
   }
 
   return (

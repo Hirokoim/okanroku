@@ -106,6 +106,10 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
         <div className="text-sm text-kin-dim font-display">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
         <h1 className="text-2xl font-display font-semibold">{location.title_jp}</h1>
         {location.title_en && <p className="text-nami-dim">{location.title_en}</p>}
+        <p className="text-sm leading-relaxed text-nami mt-3">
+          {location.modern_location ? `${location.modern_location}。` : ''}
+          北斎はこの地に立ち、ひとつの景を選び取りました。何を見たかは、あなたが着いてから。
+        </p>
       </div>
 
       {location.image_url ? (
