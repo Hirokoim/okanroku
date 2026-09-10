@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export type RecordRow = {
   id: string
   location_id: string | null
@@ -10,7 +12,15 @@ export type RecordRow = {
 
 export function RecordList({ records }: { records: RecordRow[] }) {
   if (records.length === 0) {
-    return <p className="text-gray-500 text-sm">まだ記録がありません。</p>
+    return (
+      <div className="border rounded-lg p-6 text-center space-y-3">
+        <p className="font-semibold">北斎はどこに立っていたのか</p>
+        <p className="text-gray-600 text-sm">46図ぶんの答え合わせが、まるごと残っています。</p>
+        <Link href="/map" className="inline-block bg-black text-white rounded px-4 py-2 text-sm">
+          地図をひらく
+        </Link>
+      </div>
+    )
   }
 
   return (

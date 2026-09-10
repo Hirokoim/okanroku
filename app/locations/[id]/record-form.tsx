@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
@@ -55,6 +56,7 @@ export function LocationRecordForm({
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
 
   function addPhotos(files: FileList | null) {
     if (!files || files.length === 0) return
@@ -178,7 +180,7 @@ export function LocationRecordForm({
       form.reset()
       photos.forEach((p) => URL.revokeObjectURL(p.previewUrl))
       setPhotos([])
-      setOpen(false)
+      setSaved(true)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
@@ -194,10 +196,28 @@ export function LocationRecordForm({
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
       <summary className="cursor-pointer select-none px-4 py-3 bg-gray-50 font-semibold text-sm flex items-center justify-between">
-        ここで記録する
+        見えたものを、そのまま
         <span className="text-xs text-gray-400 font-normal">この地点に紐づけて保存されます</span>
       </summary>
 
+      {saved ? (
+        <div className="p-4 space-y-3 border-t">
+          <p className="font-semibold">記録しました</p>
+          <p className="text-sm text-gray-600">今日のここでの一日が、原本に一行増えました。</p>
+          <div className="flex gap-2 items-center">
+            <button
+              type="button"
+              onClick={() => setSaved(false)}
+              className="border rounded px-4 py-2 text-sm"
+            >
+              続けて記録する
+            </button>
+            <Link href="/map" className="text-sm text-blue-600 underline">
+              地図に戻る
+            </Link>
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="p-4 space-y-4 border-t">
         <label className="block text-sm">
           訪問日時
@@ -297,9 +317,10 @@ export function LocationRecordForm({
           気づきメモ
           <textarea
             name="voice_transcript"
-            placeholder="なぜここをこう切ったか、現地で感じた仮説を書く"
+            placeholder="絵と違ったところ、同じだったところ"
             className="w-full border rounded p-2 mt-1"
           />
+          <p className="text-xs text-gray-400 mt-1">あとから直せます。いまは一行で十分です。</p>
         </label>
 
         <div className="grid grid-cols-2 gap-3">
@@ -331,12 +352,13 @@ export function LocationRecordForm({
           className="bg-black text-white rounded px-4 py-2 text-sm disabled:opacity-50"
         >
           {submitting
-            ? '保存中...'
+            ? '書きとめています...'
             : photos.length > 0
-              ? `記録を保存する（写真${photos.length}枚）`
-              : '記録を保存する'}
+              ? `書きとめる（写真${photos.length}枚）`
+              : '書きとめる'}
         </button>
       </form>
+      )}
     </details>
   )
 }
