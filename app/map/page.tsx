@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
+import { createPhotoUrls } from '@/lib/storage'
 import { MapPanel } from './map-panel'
 import type { LocationPin, VisitPoint } from './map-types'
 
@@ -9,6 +10,7 @@ import type { LocationPin, VisitPoint } from './map-types'
 // （詳しくは lib/supabase/rows.ts）。
 type PhotoRow = {
   id: string
+  storage_path: string
   latitude: number | null
   longitude: number | null
   taken_at: string | null
@@ -49,21 +51,33 @@ export default async function MapPage() {
   const { data: photoRows } = user
     ? await supabase
         .from('record_photos')
-        .select('id, latitude, longitude, taken_at, records!inner(location_id, locations(number, title_jp))')
+        .select(
+          'id, storage_path, latitude, longitude, taken_at, records!inner(location_id, locations(number, title_jp))'
+        )
         .not('latitude', 'is', null)
         .not('longitude', 'is', null)
     : { data: null }
 
-  const visitPoints: VisitPoint[] = asRows<PhotoRow>(photoRows)
-    .filter((p) => p.latitude !== null && p.longitude !== null && p.records?.locations)
-    .map((p) => ({
-      id: p.id,
-      latitude: Number(p.latitude),
-      longitude: Number(p.longitude),
-      taken_at: p.taken_at,
-      number: p.records!.locations!.number,
-      title_jp: p.records!.locations!.title_jp,
-    }))
+  const placedPhotos = asRows<PhotoRow>(photoRows).filter(
+    (p) => p.latitude !== null && p.longitude !== null && p.records?.locations
+  )
+
+  // photosバケットは非公開なので、パスをそのまま<img src>に渡しても表示できない。
+  // 吹き出しでその場の写真を出すため、ここで署名付きURLに変換しておく
+  // （地点詳細 app/locations/[id]/page.tsx と同じ手順）。
+  const photoUrls = await createPhotoUrls(supabase, placedPhotos.map((p) => p.storage_path))
+
+  const visitPoints: VisitPoint[] = placedPhotos.map((p) => ({
+    id: p.id,
+    latitude: Number(p.latitude),
+    longitude: Number(p.longitude),
+    taken_at: p.taken_at,
+    number: p.records!.locations!.number,
+    title_jp: p.records!.locations!.title_jp,
+    url: photoUrls.get(p.storage_path) ?? null,
+    // HEIC変換を入れる前（2026-09-08以前）に保存された写真はHEICのまま
+    unsupportedFormat: /\.hei[cf]$/i.test(p.storage_path),
+  }))
 
   return (
     <main className="max-w-[430px] mx-auto p-6 space-y-4 w-full">

@@ -173,7 +173,7 @@ export function MapView({
           {showVisit &&
             visitPoints.map((v) => (
               <Marker key={v.id} position={[v.latitude, v.longitude]} icon={visitIcon}>
-                <Popup>
+                <Popup minWidth={200} maxWidth={220}>
                   <VisitPopupBody point={v} />
                 </Popup>
               </Marker>

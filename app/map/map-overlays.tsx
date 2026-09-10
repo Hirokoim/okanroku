@@ -69,6 +69,31 @@ function LegendRow({ bg, border, children }: { bg: string; border: string; child
   )
 }
 
+/** 開拓マップ（クラスタ円）を出しているときの凡例。円の濃さと金枠の意味を示す */
+export function ClusterLegend() {
+  const { indigo, gold } = MAP_THEME.cluster
+  return (
+    <div
+      className="absolute bottom-6 left-3 z-[1000] rounded-lg px-4 py-3 text-sm space-y-2"
+      style={{
+        background: MAP_THEME.overlay.bgLegend,
+        border: MAP_THEME.overlay.border,
+        color: MAP_THEME.panel.text,
+      }}
+    >
+      <LegendRow bg="rgba(30,77,120,.1)" border={indigo}>
+        未踏
+      </LegendRow>
+      <LegendRow bg="rgba(30,77,120,.48)" border={indigo}>
+        開拓中
+      </LegendRow>
+      <LegendRow bg="rgba(30,77,120,.7)" border={gold}>
+        制覇（金枠）
+      </LegendRow>
+    </div>
+  )
+}
+
 export function MapLegend() {
   const { visited, unvisited, visit } = MAP_THEME.marker
   return (

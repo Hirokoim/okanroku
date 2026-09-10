@@ -8,7 +8,8 @@ const FILTERS: SeriesFilter[] = ['all', '正景', '裏富士']
 
 // 選択中／未選択で色が入れ替わる丸ボタン。同じ配色の指定が3か所に
 // コピーされていたのでここに1つだけ置く。
-function PillButton({
+// 開拓マップの絞り込み（cluster-map.tsx）でも同じ見た目を使う。
+export function PillButton({
   active,
   onClick,
   children,

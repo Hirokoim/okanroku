@@ -5,9 +5,8 @@ import { buildClusterSummaries, type ClusterLocation } from '@/lib/clusters'
 import { AuthButton } from './auth-button'
 import { RecordList, type RecordRow } from './record-list'
 import { ClusterList } from './cluster-list'
+import { ClusterMapPanel } from './map/cluster-map-panel'
 import { DashboardHome } from './dashboard-home'
-
-type LocationForCluster = ClusterLocation & { id: string }
 
 export default async function Home() {
   const supabase = await createClient()
@@ -23,7 +22,7 @@ export default async function Home() {
   // クラスタ別の進捗（機能③「クラスタ別の進捗内訳」）に使う最小限の列だけを引く。
   // /map と同様、訪問済みは「その地点(location_id)に自分の記録があるか」で判定する。
   const { data: locations } = user
-    ? await supabase.from('locations').select('id, cluster, latitude, longitude')
+    ? await supabase.from('locations').select('id, number, title_jp, cluster, latitude, longitude')
     : { data: null }
 
   const { data: myRecords } = user
@@ -31,11 +30,7 @@ export default async function Home() {
     : { data: null }
   const visitedLocationIds = new Set((myRecords ?? []).map((r) => r.location_id as string))
 
-  const clusterSummaries = buildClusterSummaries(
-    asRows<LocationForCluster>(locations),
-    visitedLocationIds,
-    (loc) => loc.id
-  )
+  const clusterSummaries = buildClusterSummaries(asRows<ClusterLocation>(locations), visitedLocationIds)
 
   return (
     <main className="max-w-[430px] mx-auto p-6 space-y-8 w-full">
@@ -48,17 +43,16 @@ export default async function Home() {
         <DashboardHome
           hasRecords={(records ?? []).length > 0}
           clusterView={<ClusterList summaries={clusterSummaries} />}
+          mapView={<ClusterMapPanel clusters={clusterSummaries} />}
           recordsView={
-            <>
+            <div className="space-y-3">
               <Link href="/map" className="text-sm text-kin underline">
-                地図を見る
+                訪問地図を見る
               </Link>
               {/* 記録の作成は地点詳細（/locations/[id]）から行う（要件定義書 4-A・4-C）。
                   asRowsが何をしているかは lib/supabase/rows.ts を参照 */}
-              <div className="mt-4">
-                <RecordList records={asRows<RecordRow>(records)} />
-              </div>
-            </>
+              <RecordList records={asRows<RecordRow>(records)} />
+            </div>
           }
         />
       ) : (
