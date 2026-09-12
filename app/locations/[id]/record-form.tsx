@@ -1,19 +1,21 @@
 'use client'
 
 // 地点詳細から開く「ここで記録する」フォーム。
-// 入力欄の並びと保存処理だけを持ち、写真まわりは2つのファイルに分けてある。
+// 入力欄の並びと保存処理だけを持ち、写真まわりとテキストの下書きは別ファイルに分けてある。
 //
-//   use-photo-entries.ts … 添付写真の状態（追加・EXIF読み取り・現在地・削除）
-//   photo-picker.tsx     … 添付写真の見た目
+//   app/photos/use-photo-entries.ts … 添付写真の状態（追加・EXIF読み取り・現在地・削除）
+//   app/photos/photo-picker.tsx     … 添付写真の見た目
+//   record-draft.ts                 … 文字欄の一時保持（localStorage）
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { uploadPhoto } from '@/lib/storage'
-import { weatherCodeIcon } from '@/lib/weather'
-import { PhotoPicker } from './photo-picker'
-import { usePhotoEntries } from './use-photo-entries'
+import { fetchAndApplyWeather } from '@/lib/weather'
+import { PhotoPicker } from '../../photos/photo-picker'
+import { MAX_PHOTOS, usePhotoEntries } from '../../photos/use-photo-entries'
+import { clearDraft, emptyDraft, loadDraft, saveDraft, type RecordDraft } from './record-draft'
 
 export function LocationRecordForm({
   locationId,
@@ -36,6 +38,32 @@ export function LocationRecordForm({
   const { photos, addPhotos, applyCurrentLocation, removePhoto, updateCoordinate, clearPhotos } =
     usePhotoEntries(setError)
 
+  // 入力途中のテキスト欄をlocalStorageへ一時保持する（roadmap.md Phase1タスク(G)）。
+  // 写真ファイルは対象外（EXIF再読み込みで足りるため、持たせるとかえって複雑になる）。
+  // useStateの初期値は必ず空にする：ここでlocalStorageを読むとサーバー側の描画
+  // （常に空）とクライアント側の初回描画が食い違い、hydrationのズレが起きるため。
+  // 実際の下書きはマウント後（＝hydration後）にeffectで読み込む。
+  const [draft, setDraft] = useState<RecordDraft>(emptyDraft)
+  const [draftReady, setDraftReady] = useState(false)
+
+  useEffect(() => {
+    const restored = loadDraft(locationId)
+    // マウント後に一度だけ外部（localStorage）から読み込む、想定通りの使い方だが、
+    // react-hooks/set-state-in-effectはeffect内の直接setStateを一律に警告するため抑止する。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDraft(restored)
+    setDraftReady(true)
+    // 下書きが残っていたことに気づけるよう、その場合だけ開いておく
+    if (Object.values(restored).some((v) => (typeof v === 'boolean' ? v : v !== ''))) {
+      setOpen(true)
+    }
+  }, [locationId])
+
+  useEffect(() => {
+    if (!draftReady) return
+    saveDraft(locationId, draft)
+  }, [draft, draftReady, locationId])
+
   // HEIC→JPEG変換が終わる前に保存されると、変換前のHEICのままアップロードされて
   // しまう（use-photo-entries.tsがfileを差し替えるのは変換完了後のため）。
   const convertingPhotos = photos.some((p) => p.convertingHeic)
@@ -47,8 +75,7 @@ export function LocationRecordForm({
     setWeatherStatus(null)
 
     const form = e.currentTarget
-    const formData = new FormData(form)
-    const photographedAtRaw = formData.get('photographed_at') as string
+    const photographedAtRaw = draft.photographed_at
     const supabase = createClient()
 
     try {
@@ -62,10 +89,10 @@ export function LocationRecordForm({
           location_name: '',
           // datetime-localはタイムゾーン情報を持たないため、端末のローカル時刻として解釈して保存する
           photographed_at: photographedAtRaw ? new Date(photographedAtRaw).toISOString() : null,
-          access_note: formData.get('access_note') || null,
-          voice_transcript: formData.get('voice_transcript') || null,
-          edit_intent: formData.get('edit_intent') || null,
-          is_public: formData.get('is_public') === 'on',
+          access_note: draft.access_note || null,
+          voice_transcript: draft.voice_transcript || null,
+          edit_intent: draft.edit_intent || null,
+          is_public: draft.is_public,
           photo_urls: [],
         })
         .select('id')
@@ -88,40 +115,21 @@ export function LocationRecordForm({
         if (photoError) throw photoError
       }
 
-      // 天気取得は付加情報であり、失敗しても記録の保存自体は成功しているため
-      // ここだけ独立したtry/catchにして無言でスキップする（5-E⑥・外部API統合スキル）。
-      try {
-        const weatherPhoto = photos.find((p) => p.latitude && p.longitude)
-        if (!weatherPhoto) {
-          setWeatherStatus('座標情報のある写真がなかったため、天気は取得していません')
-        } else {
-          const datetime = photographedAtRaw ? new Date(photographedAtRaw).toISOString() : new Date().toISOString()
-          const weatherRes = await fetch('/api/weather', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              latitude: Number(weatherPhoto.latitude),
-              longitude: Number(weatherPhoto.longitude),
-              datetime,
-            }),
-          })
-          if (weatherRes.ok) {
-            const weather = await weatherRes.json()
-            await supabase.from('records').update({ weather }).eq('id', record.id)
-            setWeatherStatus(
-              `${weatherCodeIcon(weather.weathercode)} 天気を取得しました：${weather.description}${weather.temperature !== null ? `　${weather.temperature}℃` : ''}`
-            )
-          } else {
-            setWeatherStatus('天気の取得に失敗しました（記録は保存されています）')
-          }
-        }
-      } catch {
-        // 圏外・API障害等。記録は既に保存済みのため何もしない。
-        setWeatherStatus('天気の取得に失敗しました（記録は保存されています）')
-      }
+      const weatherPhoto = photos.find((p) => p.latitude && p.longitude)
+      const datetime = photographedAtRaw ? new Date(photographedAtRaw).toISOString() : new Date().toISOString()
+      setWeatherStatus(
+        await fetchAndApplyWeather(
+          supabase,
+          record.id,
+          weatherPhoto ? { latitude: Number(weatherPhoto.latitude), longitude: Number(weatherPhoto.longitude) } : null,
+          datetime
+        )
+      )
 
       form.reset()
       clearPhotos()
+      clearDraft(locationId)
+      setDraft(emptyDraft)
       setSaved(true)
       router.refresh()
     } catch (err) {
@@ -167,12 +175,15 @@ export function LocationRecordForm({
           <input
             name="photographed_at"
             type="datetime-local"
+            value={draft.photographed_at}
+            onChange={(e) => setDraft((d) => ({ ...d, photographed_at: e.target.value }))}
             className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
           />
         </label>
 
         <PhotoPicker
           photos={photos}
+          maxPhotos={MAX_PHOTOS}
           onAdd={addPhotos}
           onRemove={removePhoto}
           onCoordinateChange={updateCoordinate}
@@ -184,6 +195,8 @@ export function LocationRecordForm({
           <textarea
             name="voice_transcript"
             placeholder="絵と違ったところ、同じだったところ"
+            value={draft.voice_transcript}
+            onChange={(e) => setDraft((d) => ({ ...d, voice_transcript: e.target.value }))}
             className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami placeholder:text-nami-dim"
           />
           <p className="text-xs text-nami-dim mt-1">あとから直せます。いまは一行で十分です。</p>
@@ -192,16 +205,31 @@ export function LocationRecordForm({
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-sm">
             編集意図（1行）
-            <input name="edit_intent" className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami" />
+            <input
+              name="edit_intent"
+              value={draft.edit_intent}
+              onChange={(e) => setDraft((d) => ({ ...d, edit_intent: e.target.value }))}
+              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+            />
           </label>
           <label className="block text-sm">
             アクセス情報
-            <input name="access_note" className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami" />
+            <input
+              name="access_note"
+              value={draft.access_note}
+              onChange={(e) => setDraft((d) => ({ ...d, access_note: e.target.value }))}
+              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+            />
           </label>
         </div>
 
         <label className="flex items-center gap-2 text-sm">
-          <input name="is_public" type="checkbox" />
+          <input
+            name="is_public"
+            type="checkbox"
+            checked={draft.is_public}
+            onChange={(e) => setDraft((d) => ({ ...d, is_public: e.target.checked }))}
+          />
           この記録を公開する
           <span className="text-nami-dim text-xs">（既定は非公開。公開時の他ユーザー閲覧はPhase2から）</span>
         </label>
