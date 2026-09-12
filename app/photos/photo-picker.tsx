@@ -4,7 +4,7 @@
 // 状態は use-photo-entries.ts が持ち、ここは受け取って表示し、
 // 操作されたら親へ伝えるだけ。
 
-import { MAX_PHOTOS, type PhotoEntry } from './use-photo-entries'
+import type { PhotoEntry } from './use-photo-entries'
 
 function ExifBadge({ photo }: { photo: PhotoEntry }) {
   if (photo.loadingExif) {
@@ -26,12 +26,14 @@ function ExifBadge({ photo }: { photo: PhotoEntry }) {
 
 export function PhotoPicker({
   photos,
+  maxPhotos,
   onAdd,
   onRemove,
   onCoordinateChange,
   onUseCurrentLocation,
 }: {
   photos: PhotoEntry[]
+  maxPhotos: number
   onAdd: (files: FileList | null) => void
   onRemove: (key: string) => void
   onCoordinateChange: (key: string, field: 'latitude' | 'longitude', value: string) => void
@@ -46,7 +48,7 @@ export function PhotoPicker({
             {photos.length}枚を添付中（保存はまだです）
           </span>
         ) : (
-          <span className="text-nami-dim text-xs">最大{MAX_PHOTOS}枚</span>
+          <span className="text-nami-dim text-xs">最大{maxPhotos}枚</span>
         )}
       </label>
 
@@ -104,7 +106,7 @@ export function PhotoPicker({
         </ul>
       )}
 
-      {photos.length < MAX_PHOTOS && (
+      {photos.length < maxPhotos && (
         <input
           type="file"
           accept="image/*"

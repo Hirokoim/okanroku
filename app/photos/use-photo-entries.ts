@@ -1,7 +1,9 @@
 'use client'
 
 // 記録フォームに添付する写真の「状態」だけを受け持つ。
-// 画面の見た目は photo-picker.tsx、保存処理は record-form.tsx が担当する。
+// 画面の見た目は photo-picker.tsx、保存処理は呼び出し元（地点詳細の記録フォーム・
+// 一括取り込み画面）が担当する。1地点1レコードの記録フォームと、複数地点にまたがる
+// 一括取り込みの両方から使うため、app/locations/[id] の外（app/photos）に置いている。
 //
 // 写真1枚につき、ファイル本体・プレビュー・座標・撮影日時を1組で持ち回る必要が
 // あり、追加／EXIF読み取り／現在地の反映／削除／後片付けと出入りが多いため、
@@ -12,7 +14,11 @@ import { newId } from '@/lib/id'
 import { readExif } from '@/lib/exif'
 import { toDisplayableImage } from '@/lib/heic'
 
+// 地点詳細の記録フォーム（1地点ぶん）での上限。
 export const MAX_PHOTOS = 5
+// 一括取り込み（複数地点ぶんをまとめて選ぶ）での上限。1地点あたりの目安(5枚)の
+// 数倍を1回で選べるようにする。
+export const MAX_IMPORT_PHOTOS = 20
 
 export type PhotoEntry = {
   key: string
@@ -50,7 +56,7 @@ function newPhotoEntry(file: File): PhotoEntry {
   }
 }
 
-export function usePhotoEntries(onError: (message: string) => void) {
+export function usePhotoEntries(onError: (message: string) => void, maxPhotos: number = MAX_PHOTOS) {
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
 
   // プレビュー用のobject URLは、明示的に解放しないとページを離れても残り続ける。
@@ -69,7 +75,7 @@ export function usePhotoEntries(onError: (message: string) => void) {
   function addPhotos(files: FileList | null) {
     if (!files || files.length === 0) return
 
-    const room = MAX_PHOTOS - photos.length
+    const room = maxPhotos - photos.length
     if (room <= 0) return
 
     try {

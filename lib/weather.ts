@@ -1,6 +1,8 @@
 // 天気関連の共通処理。取得（app/api/weather/route.ts）と表示（location-records.tsx）の
 // 両方から使うため、コード→日本語ラベルの変換をここに集約する。
 
+import type { SupabaseClient } from '@supabase/supabase-js'
+
 /** records.weather (jsonb) に保存する形。訪問時点のスナップショットであり、再取得はしない（5-E⑥） */
 export type WeatherSnapshot = {
   temperature: number | null
@@ -74,4 +76,35 @@ export const WEATHER_LABELS: string[] = [...new Set(Object.values(WEATHER_CODE_L
 export function weatherLabelToCode(label: string): number | null {
   const entry = Object.entries(WEATHER_CODE_LABELS).find(([, l]) => l === label)
   return entry ? Number(entry[0]) : null
+}
+
+// 記録の保存直後に天気を取得してrecords.weatherへ書き込む。
+// 記録フォーム（1地点）と一括取り込み（複数地点）の両方から呼ぶため共通化した。
+// 失敗しても記録の保存自体は成功しているため、例外を投げずメッセージ文字列を返すだけにする
+// （呼び出し側は保存済みメッセージとしてそのまま表示できる。5-E⑥・外部API統合スキル）。
+export async function fetchAndApplyWeather(
+  supabase: SupabaseClient,
+  recordId: string,
+  coords: { latitude: number; longitude: number } | null,
+  datetime: string
+): Promise<string> {
+  if (!coords) {
+    return '座標情報のある写真がなかったため、天気は取得していません'
+  }
+  try {
+    const res = await fetch('/api/weather', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ latitude: coords.latitude, longitude: coords.longitude, datetime }),
+    })
+    if (!res.ok) {
+      return '天気の取得に失敗しました（記録は保存されています）'
+    }
+    const weather = await res.json()
+    await supabase.from('records').update({ weather }).eq('id', recordId)
+    return `${weatherCodeIcon(weather.weathercode)} 天気を取得しました：${weather.description}${weather.temperature !== null ? `　${weather.temperature}℃` : ''}`
+  } catch {
+    // 圏外・API障害等。記録は既に保存済みのため何もしない。
+    return '天気の取得に失敗しました（記録は保存されています）'
+  }
 }

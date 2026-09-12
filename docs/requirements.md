@@ -400,10 +400,10 @@ Phase1の実装対象は 1・2・3・4・11・12・14。Phase2で 5〜10・13 �
 | Supabase Auth（Google OAuth） | ログイン | `app/login/actions.ts`、`lib/supabase/proxy.ts` | Supabase側で仲介。アプリはGoogleの認証情報を直接扱わない | |
 | Supabase Storage | 写真の保存（非公開バケット） | `lib/storage.ts` | 署名付きURL方式 | バケット名`photos` |
 | OpenStreetMapタイル（`tile.openstreetmap.org`） | 地図の背景画像 | ブラウザから直接（`app/map/map-view.tsx`のLeaflet `TileLayer`） | 不要 | 無料。帰属表示を画面下部に表示済み |
-| Nominatim（`nominatim.openstreetmap.org`） | 地名→緯度経度の検索 | サーバー側`app/api/geocode/route.ts`を経由（ブラウザから直接は叩かない） | 不要（利用規約上、User-Agent明示が必須） | 記録フォームの「地点を検索」機能から利用（**未実装。着手時に新設**） |
+| Nominatim（`nominatim.openstreetmap.org`）**※未実装** | 地名→緯度経度の検索 | 着手時にサーバー側`app/api/geocode/route.ts`を新設して経由させる（ブラウザから直接は叩かない）。**このファイルはまだ存在しない** | 不要（利用規約上、User-Agent明示が必須） | 記録フォームの「地点を検索」機能から利用する想定。現状の座標はすべて写真のEXIFとGeolocationで足りているため、着手していない |
 | ブラウザGeolocation API | 現在地の取得、比定地への接近検知 | クライアント側（記録フォームの「現在地を使う」、機能⑦の到着判定） | ブラウザの位置情報許可のみ | 取得した値はDBの数値列として保存されるだけで、外部には送らない |
 | 元絵の画像ファイル本体 | 富嶽三十六景の元絵表示 | `locations.image_url`に個別URLを保存し`<img>`で表示 | 取得元ごとに異なる（メトロポリタン美術館等、パブリックドメイン提供元） | 出典は`locations.image_source`/`image_license`に保存（機能⑥-A参照） |
-| 天気API（Phase1残タスク・未実装） | 訪問時点の天気スナップショット | 未実装。保存先の`records.weather`列のみ用意済み | 未定 | 着手時は本スキル（`external-api-integration`）の4点セット（キー管理・呼び出し場所・失敗時挙動・コスト上限）に沿って選定する |
+| Open-Meteo（`api.open-meteo.com`） | 訪問時点の天気スナップショット（`records.weather`） | サーバー側`app/api/weather/route.ts`を経由（ブラウザから直接は叩かない） | **不要**（APIキーのいらない提供元を選んだため、秘密の管理が発生しない） | 記録の保存・更新後に非同期で取得し、失敗しても保存は成功させる（5-E⑥）。訪問日時が1時間以内なら`current_weather`、過去なら`hourly`、92日より前は`archive` APIへ切り替える |
 
 #### データの持たせ方（テーブル早見表）
 
@@ -411,19 +411,19 @@ Phase1の実装対象は 1・2・3・4・11・12・14。Phase2で 5〜10・13 �
 |---|---|---|---|
 | `figures` | id, name, slug | 全員読み取り可／書き込みは管理者のみ | 人物マスタ（北斎など8名） |
 | `locations` | id, figure_id, number, title_jp/en, series, prefecture, modern_location, cluster, route_order, **latitude/longitude（比定地・不変）**, accessibility_class/confidence/reason, location_source/confidence, image_url/source/license | 全員読み取り可／書き込みは管理者のみ | 地点マスタ（北斎46図）。訪問しても値が変わらない「静的」なデータ |
-| `records` | id, user_id, figure_id, location_id（nullable）, location_name, work_label, **latitude/longitude（記録ごとの座標。現在地取得・地名検索・手入力のいずれかで埋まる）**, photographed_at, edit_intent, voice_transcript, access_note, is_public, weather（jsonb）, photo_urls（配列・レガシー） | 本人のみ（`auth.uid() = user_id`） | 現地記録の本体。1地点1レコード |
-| `record_photos` | id, record_id, storage_path, **latitude/longitude（撮影ごとの実測座標）**, taken_at, sort_order | `records`を辿って本人のみ | 写真1枚ごとのGPS・撮影日時。テーブルは用意済みだが、**記録フォームは現状ここへ書き込まず`records.photo_urls`に直接保存している**（roadmap.md Phase1タスク(C)(D)が未着手のため。移行手順は`docs/sql/2026-08-21-phase1-schema.sql`末尾に記載） |
+| `records` | id, user_id, figure_id, location_id（nullable）, location_name, work_label, photographed_at, edit_intent, voice_transcript, access_note, is_public, weather（jsonb）, latitude/longitude（**レガシー・未使用**）, photo_urls（配列・**レガシー・未使用**） | 本人のみ（`auth.uid() = user_id`） | 現地記録の本体。1地点1レコード |
+| `record_photos` | id, record_id, storage_path, **latitude/longitude（撮影ごとの実測座標）**, taken_at, sort_order | `records`を辿って本人のみ | 写真1枚ごとのGPS・撮影日時。記録フォームはここへ書き込む（2026-09実装済み）。記録の座標はすべてこのテーブルが持つ |
 | `figure_entitlements`（Phase2・未適用） | user_id, figure_id | 設計のみ | 人物ごとのアクセス権（機能⑤-A） |
 
-**緯度経度が3か所に分かれて存在する**点は紛らわしいため明記する。
+**緯度経度の列が3つのテーブルに存在する**点は紛らわしいため明記する。実際に使っているのは上2つだけである。
 
-- `locations.latitude/longitude`：絵が描かれたと推定される比定地（動かない・全員共有）
-- `records.latitude/longitude`：記録の代表座標。現在地取得・地名検索・手入力のいずれかで埋まる（本人のみ）
-- `record_photos.latitude/longitude`：写真1枚ごとの実測GPS（設計済みだが上記の通り現状未使用）
+- `locations.latitude/longitude`：絵が描かれたと推定される比定地（動かない・全員共有）— **使用中**
+- `record_photos.latitude/longitude`：写真1枚ごとの実測GPS（EXIF、取れなければブラウザGeolocation）— **使用中**。天気の取得にもこの座標を使う
+- `records.latitude/longitude`：記録の代表座標として設けたが、**現在は読み書きとも行っていない**。座標は写真1枚ごとに持たせる設計（5-E④）に寄せたため役割が無くなった。列の削除可否は`docs/supabase-schema-status.md`の残タスク参照
 
 ### 5-B. RLS設計（今回の方針転換の中核）
 
-検証結果の実データは`docs/supabase-schema-status.md`に記録している（2026-08-21検証済み）。
+検証結果の実データは`docs/supabase-schema-status.md`に記録している（2026-09-12棚卸し）。同ファイルは**実測した内容と、SQL・コードから逆算した内容を区別して**書いてある。次にRLSを触る前に、同ファイルの確認SQLを流して逆算部分を実測に格上げすること。
 
 - `figures`（**人物マスタ**。8名分。46図は含まない）：全authenticatedユーザーがSELECT可能。INSERT/UPDATE/DELETEは管理者のみ（Phase1では実質ユーザーAのみ運用で管理し、ロール管理は作らない）
 - `locations`（地点マスタ・新規）：`figures`と同じ扱い。全authenticatedユーザーがSELECT可能、書き込みは管理者のみ
@@ -551,9 +551,9 @@ UXプロトタイプは、全画面を1つの配列に並べ、現在位置を�
 - [x] `locations.cluster`を手動で埋める（地図フィルタ用。地図表示の前提）
 - [x] 記録フォームへの`location_id`連携（地点選択と`record_photos`への保存）
 - [x] 写真EXIFからのGPS・撮影日時の自動抽出と、取得できない場合の代替入力（ブラウザGeolocationまで。地図ピン指定は未実装）。HEIC(HDR)での既知の制限あり（機能②参照）
-- [ ] 複数写真の一括取り込み動線（地点ごとに複数レコードへ振り分け）
-- [ ] 天気の自動取得（保存処理をブロックしない形で、5-E⑥）
-- [ ] 入力中データの一時保持（7章から前倒し）
+- [x] 複数写真の一括取り込み動線（地点ごとに複数レコードへ振り分け）。地点詳細を経由しない2つめの入口として実装（要件定義書4-C）。5-Aの「ルートは5つに収める」方針に従い新規ルートは作らず、`/`に畳んで置く
+- [x] 天気の自動取得（保存処理をブロックしない形で、5-E⑥）。Open-Meteo（キー不要）を`app/api/weather/route.ts`経由で呼ぶ。記録の編集でも再取得する
+- [x] 入力中データの一時保持（7章から前倒し）。地点詳細の記録フォームの文字欄を`localStorage`に地点ごとに保持し、保存成功時に消す（写真ファイルは対象外）
 - [x] 地図表示画面（Leaflet。ピン表示・正景/裏富士フィルタ・検索・訪問地点表示・富士山ピン・経路線・元絵サムネイル）
 - [x] 地点詳細画面（元絵・分類根拠・出典・自分の記録一覧）
 - [x] 簡易進捗ダッシュボード（クラスタ別の進捗一覧と開拓マップ。ダッシュボードのタブで切り替える）

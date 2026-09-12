@@ -36,7 +36,7 @@ export type ClusterSummary = {
 // （行政区画ではなく実際の地点間距離）をそのままlatitude/longitudeから計算する。
 // シードSQLの46地点で検証したところ、28クラスタすべてドキュメントの数値と
 // 小数第1位まで一致した。
-function haversineKm(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }) {
+export function haversineKm(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }) {
   const R = 6371
   const dLat = ((b.latitude - a.latitude) * Math.PI) / 180
   const dLon = ((b.longitude - a.longitude) * Math.PI) / 180
