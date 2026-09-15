@@ -79,7 +79,7 @@ function RecordItem({ record: r, userId }: { record: LocationRecord; userId: str
   const [editing, setEditing] = useState(false)
 
   return (
-    <li className="border border-line rounded p-3 text-sm bg-sumi-2">
+    <li className="border-y border-r border-line border-l-4 border-l-kin-dim rounded-lg p-3 text-sm bg-sumi-3 shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
       <div className="flex items-start justify-between gap-2">
         <div className="text-nami-dim text-xs flex items-center gap-2">
           {formatDate(r.photographed_at ?? r.created_at)}
@@ -111,7 +111,7 @@ export function LocationRecords({ records, userId }: { records: LocationRecord[]
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-3">
       {records.map((r) => (
         <RecordItem key={r.id} record={r} userId={userId} />
       ))}

@@ -248,8 +248,8 @@ export function EditRecordForm({
       </label>
 
       <div className="border-t border-line pt-3 space-y-2">
+        <div className="text-[11px] font-semibold tracking-wide text-kin-dim uppercase">天気</div>
         <div className="text-xs text-nami-dim">
-          天気：
           {record.weather
             ? `${weatherCodeIcon(record.weather.weathercode)} ${record.weather.description}${record.weather.temperature !== null ? `　${record.weather.temperature}℃` : ''}`
             : '未取得'}
@@ -297,7 +297,9 @@ export function EditRecordForm({
       </div>
 
       <div className="border-t border-line pt-3 space-y-2">
-        <div className="text-xs text-nami-dim">写真（{record.photos.length}/{MAX_PHOTOS}枚）</div>
+        <div className="text-[11px] font-semibold tracking-wide text-kin-dim uppercase">
+          写真（{record.photos.length}/{MAX_PHOTOS}枚）
+        </div>
         {record.photos.length > 0 && (
           <ul className="grid grid-cols-3 gap-2">
             {record.photos.map((photo) => (
@@ -326,8 +328,11 @@ export function EditRecordForm({
           </ul>
         )}
         {record.photos.length < MAX_PHOTOS && (
-          <label className="block text-xs text-kin underline cursor-pointer w-fit">
-            {addingPhotos ? '追加中...' : '＋ 写真を追加する'}
+          <label className="flex items-center justify-center gap-2 border-2 border-dashed border-kin-dim rounded-lg py-3 text-center bg-sumi-2 hover:bg-sumi active:bg-sumi hover:border-kin transition-colors cursor-pointer">
+            <span className="text-lg leading-none text-kin" aria-hidden="true">
+              ＋
+            </span>
+            <span className="text-sm font-medium text-kin">{addingPhotos ? '追加中...' : '写真を追加する'}</span>
             <input
               type="file"
               accept="image/*"
@@ -346,27 +351,33 @@ export function EditRecordForm({
 
       {error && <p className="text-hi-bright text-sm">{error}</p>}
 
-      <div className="flex items-center justify-between pt-1">
+      <div className="pt-1 space-y-3">
         <div className="flex gap-2">
           <button
             type="submit"
             disabled={submitting}
-            className="bg-hi hover:bg-hi-bright text-nami rounded-full px-3 py-1.5 text-sm font-display disabled:opacity-50 transition-colors"
+            className="flex-1 bg-hi hover:bg-hi-bright text-nami rounded-full px-3 py-2.5 text-sm font-display font-semibold disabled:opacity-50 transition-colors"
           >
             {submitting ? '保存中...' : '保存する'}
           </button>
-          <button type="button" onClick={onClose} className="text-sm text-nami-dim underline">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 text-sm text-nami-dim border border-line rounded-full"
+          >
             キャンセル
           </button>
         </div>
-        <button
-          type="button"
-          onClick={handleDeleteRecord}
-          disabled={deleting}
-          className="text-xs text-hi-bright underline disabled:opacity-50"
-        >
-          {deleting ? '削除中...' : 'この記録を削除する'}
-        </button>
+        <div className="text-center border-t border-line/60 pt-2">
+          <button
+            type="button"
+            onClick={handleDeleteRecord}
+            disabled={deleting}
+            className="text-xs text-hi-bright/80 underline disabled:opacity-50"
+          >
+            {deleting ? '削除中...' : 'この記録を削除する'}
+          </button>
+        </div>
       </div>
     </form>
   )

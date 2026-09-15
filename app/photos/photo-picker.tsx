@@ -107,16 +107,25 @@ export function PhotoPicker({
       )}
 
       {photos.length < maxPhotos && (
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => {
-            onAdd(e.target.files)
-            e.target.value = ''
-          }}
-          className="w-full text-sm text-nami-dim"
-        />
+        <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-kin-dim rounded-lg py-6 text-center bg-sumi-3 hover:bg-sumi-2 hover:border-kin active:bg-sumi transition-colors cursor-pointer">
+          <span className="text-2xl leading-none text-kin" aria-hidden="true">
+            ＋
+          </span>
+          <span className="text-sm font-medium text-kin">
+            {photos.length > 0 ? '写真を追加する' : '写真を選ぶ・撮る'}
+          </span>
+          <span className="text-xs text-nami-dim">タップしてカメラロールを開く</span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              onAdd(e.target.files)
+              e.target.value = ''
+            }}
+            className="hidden"
+          />
+        </label>
       )}
 
       <p className="text-xs text-nami-dim mt-1">
