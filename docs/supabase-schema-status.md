@@ -1,7 +1,8 @@
 # Supabase スキーマ・RLS状態記録
 
-- **最終棚卸し日**：2026年9月12日
+- **最終棚卸し日**：2026年9月17日
 - **最後にSupabaseで実測した日**：2026年8月21日（`figures`・`records`・Storageのみ）
+- **2026年9月17日、ご本人が`docs/sql/`ステップ16・17（27番の比定地・クラスタ変更、accessibility_class訂正）をSupabaseで実行済み**。実行結果そのものは未確認（逆算）。下の確認SQL④で実測に格上げできる
 
 ## このファイルの読み方
 
@@ -105,9 +106,15 @@ select relname, relrowsecurity, relforcerowsecurity
 from pg_class
 where relname in ('figures', 'locations', 'records', 'record_photos');
 
--- ④ ステップ14・15（39番の座標修正とクラスタ組み替え）が反映されているか
---    期待値：cluster = '駿河・田子の浦' / route_order = 3 / 緯度経度が富士市大淵地区
-select number, title_jp, cluster, route_order, latitude, longitude
+-- ④ ステップ14〜17（39番の座標修正・27番の比定地とaccessibility_classの変更）が反映されているか
+--    期待値：
+--      39番 … cluster = '駿河・田子の浦' / route_order = 2 / 緯度経度が富士市大淵地区
+--      27番 … cluster = '駿河・清水' / route_order = 2 / 緯度経度が (35.0050, 138.5300) 付近
+--             accessibility_class = 'visible'
+--      45番 … cluster = '駿河・田子の浦' / route_order = 1
+--      18番 … cluster = '駿河・清水' / route_order = 1（変更なし）
+select number, title_jp, cluster, route_order, latitude, longitude,
+       accessibility_class, accessibility_reason
 from locations where number in (18, 27, 39, 45) order by number;
 
 -- ⑤ レガシー列に実データが残っていないか（残タスクの判断材料）
