@@ -12,6 +12,7 @@
   --sumi: #10161d; /* 墨・背景 */
   --sumi-2: #161f29; /* 墨・カード背景 */
   --sumi-3: #1c2733; /* 墨・カード背景（強調） */
+  --sumi-4: #263344; /* 墨・編集中など、カードよりさらに手前に浮かせたい面 */
   --ai: #1d3a5f; /* 藍 */
   --ai-deep: #0d2033;
   --ai-bright: #2c5580;
@@ -35,6 +36,7 @@
   --color-sumi: var(--sumi);
   --color-sumi-2: var(--sumi-2);
   --color-sumi-3: var(--sumi-3);
+  --color-sumi-4: var(--sumi-4);
   --color-ai: var(--ai);
   --color-ai-deep: var(--ai-deep);
   --color-ai-bright: var(--ai-bright);

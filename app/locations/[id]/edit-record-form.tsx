@@ -203,7 +203,7 @@ export function EditRecordForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded bg-sumi-3 space-y-3">
+    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded bg-sumi-4 shadow-[0_2px_8px_rgba(0,0,0,0.4)] space-y-3">
       <label className="block text-sm">
         訪問日時
         <input
