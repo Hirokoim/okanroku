@@ -25,7 +25,7 @@ export default async function Home() {
   // 機能ごとに取り直さない。figure_idは一括取り込みが記録を作るときに使う
   // （Phase1はlocationsが北斎の46図のみのため、代表して1件目から拾えば足りる）。
   const { data: locations } = user
-    ? await supabase.from('locations').select('id, figure_id, number, title_jp, cluster, latitude, longitude')
+    ? await supabase.from('locations').select('id, figure_id, number, title_jp, cluster, route_order, latitude, longitude')
     : { data: null }
 
   const { data: myRecords } = user

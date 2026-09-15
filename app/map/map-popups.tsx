@@ -116,8 +116,12 @@ export function ClusterPopupBody({ cluster }: { cluster: ClusterSummary }) {
       )}
 
       {/* このクラスタの地点への入口。記録は地点詳細からしか作れない（4-C）ため、
-          ここに導線が無いと開拓マップが行き止まりになる */}
-      <ul className="mt-2 pt-2" style={{ borderTop: `1px solid ${MAP_THEME.popup.seriesBg}22` }}>
+          ここに導線が無いと開拓マップが行き止まりになる。
+          一覧の並び順はlib/clusters.tsでroute_order（おすすめの巡回順）に揃えてある。 */}
+      <div className="text-[10px] mt-2 pt-2" style={{ borderTop: `1px solid ${MAP_THEME.popup.seriesBg}22`, color: MAP_THEME.popup.meta }}>
+        おすすめの回り方
+      </div>
+      <ul className="mt-1">
         {cluster.locations.map((l) => (
           <li key={l.id} className="text-xs leading-relaxed">
             <Link href={`/locations/${l.id}`} style={{ color: MAP_THEME.popup.link }}>
