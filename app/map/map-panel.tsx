@@ -12,7 +12,7 @@ import type { LocationPin, VisitPoint } from './map-types'
 const MapView = dynamic(() => import('./map-view').then((m) => m.MapView), {
   ssr: false,
   loading: () => (
-    <div className="h-[70vh] w-full border rounded flex items-center justify-center text-gray-500 text-sm">
+    <div className="h-[70dvh] w-full border rounded flex items-center justify-center text-gray-500 text-sm">
       地図を読み込み中...
     </div>
   ),
@@ -22,10 +22,19 @@ export function MapPanel({
   locations,
   visitedLocationIds,
   visitPoints,
+  initialCluster,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
   visitPoints: VisitPoint[]
+  initialCluster: string | null
 }) {
-  return <MapView locations={locations} visitedLocationIds={visitedLocationIds} visitPoints={visitPoints} />
+  return (
+    <MapView
+      locations={locations}
+      visitedLocationIds={visitedLocationIds}
+      visitPoints={visitPoints}
+      initialCluster={initialCluster}
+    />
+  )
 }

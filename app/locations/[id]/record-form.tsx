@@ -141,7 +141,7 @@ export function LocationRecordForm({
 
   return (
     <details
-      className="border border-line rounded-lg overflow-hidden mt-3"
+      className="border border-line rounded-lg overflow-hidden mt-6"
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
@@ -243,7 +243,7 @@ export function LocationRecordForm({
         <button
           type="submit"
           disabled={submitting || convertingPhotos}
-          className="bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-2 text-sm font-display disabled:opacity-50 transition-colors"
+          className="w-full bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-3 text-base font-display font-semibold disabled:opacity-50 transition-colors"
         >
           {submitting
             ? '書きとめています...'

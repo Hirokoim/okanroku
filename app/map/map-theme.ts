@@ -57,5 +57,9 @@ export const MAP_THEME = {
     unvisited: { bg: '#e8c87a', border: '#8a4a00', text: '#3a1a00' },
     visit: { bg: '#3a8ac8', border: '#1a4a70' },
     fuji: { body: '#2a1a06', snow: '#e8c87a' },
+    // 現在地。地図アプリ共通の「白縁の青い点」に寄せてある。茶＋金の
+    // パレットからは外れるが、歩きながら一瞬見て「自分だ」と分かることを
+    // 優先した。📷の訪問地点（過去の記録）とは、形と明るさで区別する。
+    here: { dot: '#2f7fed', ring: '#ffffff' },
   },
 } as const

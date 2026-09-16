@@ -36,6 +36,31 @@ export const fujiIcon = L.divIcon({
   popupAnchor: [0, -34],
 })
 
+/**
+ * 現在地マーカー。丸の中に進行方向の矢印を描く、地図アプリでおなじみの形。
+ * headingはGeolocation APIが返す「進行方向」（北を0度とした時計回り）で、
+ * 静止している間はブラウザ側でnullになる（動いていないと進行方向が定義できない
+ * ため）。矢印は「動いている時だけ」出し、静止中は丸だけにする
+ * （情報が無いのに矢印を描くと、向きを捏造することになるため）。
+ */
+export function hereIcon(headingDeg: number | null) {
+  const { dot, ring } = MAP_THEME.marker.here
+  const size = 30
+  const arrow =
+    headingDeg === null
+      ? ''
+      : `<g transform="rotate(${headingDeg} 15 15)"><path d="M15 6 L20 19 L15 16 L10 19 Z" fill="${ring}"/></g>`
+  return L.divIcon({
+    className: '',
+    html: `<svg width="${size}" height="${size}" viewBox="0 0 30 30" style="filter:drop-shadow(0 1px 4px rgba(0,0,0,.5))">
+      <circle cx="15" cy="15" r="11" fill="${dot}" stroke="${ring}" stroke-width="2.5" />
+      ${arrow}
+    </svg>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  })
+}
+
 /** ズームが深いほどマーカーを大きくする */
 export function markerSizeFor(zoom: number) {
   if (zoom >= 13) return 40

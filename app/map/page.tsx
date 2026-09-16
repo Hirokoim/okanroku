@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
 import { createPhotoUrls } from '@/lib/storage'
@@ -17,7 +16,14 @@ type PhotoRow = {
   records: { location_id: string | null; locations: { number: number; title_jp: string } | null } | null
 }
 
-export default async function MapPage() {
+export default async function MapPage({
+  searchParams,
+}: {
+  // クラスタ一覧（app/cluster-list.tsx）から「このクラスタで見る」を選んだときに
+  // ?cluster=クラスタ名 で渡ってくる。地図側の絞り込み初期値として使う。
+  searchParams: Promise<{ cluster?: string }>
+}) {
+  const { cluster: initialCluster } = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -31,7 +37,7 @@ export default async function MapPage() {
     ? await supabase
         .from('locations')
         .select(
-          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, latitude, longitude, accessibility_class, image_url'
+          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, latitude, longitude, accessibility_class, image_url'
         )
         .order('number')
     : { data: null }
@@ -80,19 +86,15 @@ export default async function MapPage() {
   }))
 
   return (
-    <main className="max-w-[430px] mx-auto p-6 space-y-4 w-full">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-display font-semibold">地図</h1>
-        <Link href="/" className="text-sm text-kin underline">
-          記録に戻る
-        </Link>
-      </div>
+    <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-4 w-full">
+      <h1 className="text-xl font-display font-semibold">地図</h1>
 
       {user ? (
         <MapPanel
           locations={asRows<LocationPin>(locations)}
           visitedLocationIds={[...visitedLocationIds]}
           visitPoints={visitPoints}
+          initialCluster={initialCluster ?? null}
         />
       ) : (
         <p className="text-nami-dim">地図を見るにはログインしてください。</p>

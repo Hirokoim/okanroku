@@ -12,6 +12,7 @@ export type LocationPin = {
   prefecture: string | null
   modern_location: string | null
   cluster: string | null
+  route_order: number | null
   latitude: number | null
   longitude: number | null
   accessibility_class: string | null

@@ -52,7 +52,12 @@ export function ClusterMap({ clusters }: { clusters: ClusterSummary[] }) {
   const shownCount = clusters.filter((c) => visibleStatuses.has(c.status)).length
 
   return (
-    <div className="rounded-lg overflow-hidden border border-line" style={{ background: MAP_THEME.panel.bg }}>
+    // isolation:isolateの理由はmap-view.tsxの同箇所コメント参照
+    // （ClusterLegendのz-[1000]がボトムナビを突き抜けないようにする）。
+    <div
+      className="rounded-lg overflow-hidden border border-line"
+      style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}
+    >
       <div
         className="flex items-center justify-between px-4 py-2 text-sm"
         style={{ borderBottom: `1px solid ${MAP_THEME.panel.divider}`, color: MAP_THEME.panel.title }}
@@ -82,7 +87,14 @@ export function ClusterMap({ clusters }: { clusters: ClusterSummary[] }) {
       </div>
 
       <div className="relative">
-        <MapContainer center={INITIAL_CENTER} zoom={INITIAL_ZOOM} style={{ height: '55vh', width: '100%' }}>
+        {/* map-view.tsxと同じ理由でscrollWheelZoomを切る（既定だとマウスホイールを
+            地図がズームとして奪い、ページのスクロールが止まって見える）。 */}
+        <MapContainer
+          center={INITIAL_CENTER}
+          zoom={INITIAL_ZOOM}
+          scrollWheelZoom={false}
+          style={{ height: '55dvh', width: '100%' }}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"

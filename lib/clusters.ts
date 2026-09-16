@@ -8,6 +8,7 @@ export type ClusterLocation = {
   number: number
   title_jp: string
   cluster: string | null
+  route_order: number | null
   latitude: number | null
   longitude: number | null
 }
@@ -101,10 +102,10 @@ export function buildClusterSummaries(
       maxKm,
       status: visited === 0 ? 'none' : visited === total ? 'complete' : 'partial',
       centroid,
-      // 図の番号順。クラスタ内の巡回順（route_order）はここでは引いていないため、
-      // 吹き出しでの並びは番号順に揃える
+      // クラスタ内の巡回順（route_order）で並べる。おすすめの回り方をそのまま
+      // 吹き出しの一覧順に反映するため（route_orderが無い行は図番号順で末尾に回す）。
       locations: [...locs]
-        .sort((a, b) => a.number - b.number)
+        .sort((a, b) => (a.route_order ?? Infinity) - (b.route_order ?? Infinity) || a.number - b.number)
         .map((l) => ({
           id: l.id,
           number: l.number,

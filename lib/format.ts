@@ -23,3 +23,15 @@ export function formatDate(value: string | null | undefined): string {
 export function formatDateTime(value: string | null | undefined): string {
   return parse(value)?.toLocaleString(LOCALE) ?? ''
 }
+
+/**
+ * ローカル日付を 'YYYY-MM-DD' で返す（記録カレンダーで「同じ日か」を揃えるために使う）。
+ * ISO文字列をそのままslice(0,10)すると、保存値がUTCのためタイムゾーンによっては
+ * 日付がずれる（JSTの深夜0時台がUTCでは前日になる等）。必ずDateのローカルgetterで組み立てる。
+ */
+export function dateKey(value: string | null | undefined): string | null {
+  const d = parse(value)
+  if (!d) return null
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
