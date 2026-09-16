@@ -2,6 +2,7 @@
 // どちらもLeafletの地図そのものではなく、地図を囲む枠に対して絶対配置している。
 // z-[1000] はLeafletのタイル・マーカーより手前に出すため。
 
+import { useEffect, useState } from 'react'
 import { MAP_THEME } from './map-theme'
 import type { LocationPin } from './map-types'
 
@@ -62,15 +63,49 @@ export function MapSearch({
 
 // 現在地ボタン。Leafletの標準ズームボタン（左上、+/−の2段）のすぐ下に
 // 重ねて置く、地図アプリでおなじみの位置・見た目に寄せた（ユーザー指定の
-// 参考画像どおり）。大きさ・角丸・影は、タッチ端末向けのLeaflet標準
-// ズームボタン（.leaflet-touch .leaflet-bar a、30×30px・角丸4px）と
-// 影（.leaflet-bar）にそろえ、同じ部品群の続きに見えるようにしてある
-// （node_modules/leaflet/dist/leaflet.cssで実測）。
-// ズームボタンは2段で62px前後の高さがあるため、そのぶん下げて置く。
-// トグル中（GPSを追い続けている間）は的（まと）の中心が青く塗りつぶされる。
-// 地図の操作バーからは独立させ、常に地図の同じ場所にあるようにする
-// （絞り込み中バナーの有無で位置がずれないように）。
+// 参考画像どおり）。
+//
+// 大きさ・位置は固定値ではなく、実際に描画されたズームボタン
+// （.leaflet-control-zoom-in）をDOMから測って合わせている。Leafletの
+// ズームボタンはタッチ端末なら30×30px、マウス操作の環境（Mac等）なら
+// 26×26pxと、環境によって実寸が変わる（node_modules/leaflet/dist/
+// leaflet.cssの.leaflet-bar aと.leaflet-touch .leaflet-bar a）。
+// 固定30pxで作ったところ、マウス環境では実際のズームボタンより
+// わずかに大きく・右にはみ出して見えてしまっていた（ユーザー報告）。
+const GAP_BELOW_ZOOM = 12
+
 export function LocateButton({ active, onClick }: { active: boolean; onClick: () => void }) {
+  const [rect, setRect] = useState<{ top: number; left: number; size: number } | null>(null)
+
+  useEffect(() => {
+    // ズームボタンはMapContainerの初期化と同じコミットでDOMに入るため、
+    // このeffectが走る時点（マウント後）にはすでに存在している。
+    //
+    // offsetTop/offsetLeftは使わない。値が「最も近い position:relative等の
+    // 先祖（offsetParent）」からの相対位置になり、それがこのボタンの絶対配置の
+    // 基準（.leaflet-containerを直接くるむ親div）と一致する保証が無いため。
+    // 代わりにgetBoundingClientRectで画面上の実座標を取り、地図の実座標との
+    // 差分を計算する（この差分は基準がどこであっても正しい）。
+    const container = document.querySelector<HTMLElement>('.leaflet-container')
+    const zoomButton = document.querySelector<HTMLElement>('.leaflet-control-zoom-in')
+    const zoomBar = document.querySelector<HTMLElement>('.leaflet-control-zoom')
+    if (container && zoomButton && zoomBar) {
+      const containerRect = container.getBoundingClientRect()
+      const barRect = zoomBar.getBoundingClientRect()
+      // マウント後に一度だけ、外部（実際のDOM寸法）を読んで反映する、想定通りの
+      // 使い方。record-form.tsxのlocalStorage読み込みと同じ理由で抑止する。
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRect({
+        top: barRect.bottom - containerRect.top + GAP_BELOW_ZOOM,
+        left: barRect.left - containerRect.left,
+        size: zoomButton.getBoundingClientRect().width,
+      })
+    }
+  }, [])
+
+  // 測れるまでは仮の位置に置く（一瞬だけ）。無いよりはある方がよい。
+  const { top, left, size } = rect ?? { top: 84, left: 10, size: 30 }
+
   return (
     <button
       onClick={onClick}
@@ -78,10 +113,10 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
       aria-pressed={active}
       className="absolute z-[1000] rounded flex items-center justify-center"
       style={{
-        top: 84,
-        left: 10,
-        width: 30,
-        height: 30,
+        top,
+        left,
+        width: size,
+        height: size,
         background: '#ffffff',
         boxShadow: '0 1px 5px rgba(0,0,0,.65)',
       }}
