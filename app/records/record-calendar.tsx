@@ -87,12 +87,12 @@ export function RecordCalendar({
               type="button"
               disabled={!hasRecord}
               onClick={() => onSelectDate(isSelected ? null : key)}
-              className={`aspect-square rounded-md flex items-center justify-center text-xs font-semibold transition-colors ${
+              className={`aspect-square rounded-md flex items-center justify-center text-xs font-bold transition-colors ${
                 isSelected
                   ? 'bg-hi text-nami'
                   : hasRecord
                     ? 'bg-kin text-sumi hover:bg-kin-dim'
-                    : 'text-nami-dim/60 font-normal'
+                    : 'text-nami-dim/60'
               } ${isToday && !isSelected ? 'ring-2 ring-kin' : ''}`}
             >
               {day}
