@@ -192,7 +192,17 @@ export function MapView({
   }, [placed, query])
 
   return (
-    <div className="rounded-lg overflow-hidden border" style={{ background: MAP_THEME.panel.bg }}>
+    // isolation:isolateで新しいスタッキングコンテキストを作る。Leaflet内部の
+    // コントロール（.leaflet-top等、z-index:1000）や、この地図自身が使う
+    // MapSearch・MapLegend・LocateButton（同じくz-[1000]）は、地図がページ内で
+    // どれだけ縦に長くても、この箱の外の要素（固定表示のボトムナビ、z-40）とは
+    // 無関係に地図の中だけで重なり順が完結してほしい。isolationが無いと、
+    // 地図の高さ次第でこれらの要素がボトムナビの上に描かれてしまう
+    // （2026-09-16、ユーザー指摘・実測で確認）。
+    <div
+      className="rounded-lg overflow-hidden border"
+      style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}
+    >
       <MapToolbar
         filter={filter}
         onFilterChange={setFilter}

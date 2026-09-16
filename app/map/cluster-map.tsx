@@ -52,7 +52,12 @@ export function ClusterMap({ clusters }: { clusters: ClusterSummary[] }) {
   const shownCount = clusters.filter((c) => visibleStatuses.has(c.status)).length
 
   return (
-    <div className="rounded-lg overflow-hidden border border-line" style={{ background: MAP_THEME.panel.bg }}>
+    // isolation:isolateの理由はmap-view.tsxの同箇所コメント参照
+    // （ClusterLegendのz-[1000]がボトムナビを突き抜けないようにする）。
+    <div
+      className="rounded-lg overflow-hidden border border-line"
+      style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}
+    >
       <div
         className="flex items-center justify-between px-4 py-2 text-sm"
         style={{ borderBottom: `1px solid ${MAP_THEME.panel.divider}`, color: MAP_THEME.panel.title }}
