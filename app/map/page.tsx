@@ -17,7 +17,14 @@ type PhotoRow = {
   records: { location_id: string | null; locations: { number: number; title_jp: string } | null } | null
 }
 
-export default async function MapPage() {
+export default async function MapPage({
+  searchParams,
+}: {
+  // クラスタ一覧（app/cluster-list.tsx）から「このクラスタで見る」を選んだときに
+  // ?cluster=クラスタ名 で渡ってくる。地図側の絞り込み初期値として使う。
+  searchParams: Promise<{ cluster?: string }>
+}) {
+  const { cluster: initialCluster } = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -31,7 +38,7 @@ export default async function MapPage() {
     ? await supabase
         .from('locations')
         .select(
-          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, latitude, longitude, accessibility_class, image_url'
+          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, latitude, longitude, accessibility_class, image_url'
         )
         .order('number')
     : { data: null }
@@ -93,6 +100,7 @@ export default async function MapPage() {
           locations={asRows<LocationPin>(locations)}
           visitedLocationIds={[...visitedLocationIds]}
           visitPoints={visitPoints}
+          initialCluster={initialCluster ?? null}
         />
       ) : (
         <p className="text-nami-dim">地図を見るにはログインしてください。</p>

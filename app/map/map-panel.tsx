@@ -22,10 +22,19 @@ export function MapPanel({
   locations,
   visitedLocationIds,
   visitPoints,
+  initialCluster,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
   visitPoints: VisitPoint[]
+  initialCluster: string | null
 }) {
-  return <MapView locations={locations} visitedLocationIds={visitedLocationIds} visitPoints={visitPoints} />
+  return (
+    <MapView
+      locations={locations}
+      visitedLocationIds={visitedLocationIds}
+      visitPoints={visitPoints}
+      initialCluster={initialCluster}
+    />
+  )
 }

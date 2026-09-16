@@ -21,9 +21,10 @@
 // データの出し入れはこのアプリのSupabaseクエリ（page.tsxで取得済み）に置き換えている。
 
 import { useEffect, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
+import Link from 'next/link'
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import type L from 'leaflet'
+import L from 'leaflet'
 
 import { MAP_THEME } from './map-theme'
 import { fujiIcon, markerSizeFor, numberIcon, visitIcon } from './map-icons'
@@ -55,6 +56,31 @@ function FlyTo({ target }: { target: [number, number] | null }) {
   return null
 }
 
+// クラスタ絞り込みが変わるたびに、そのクラスタの地点がちょうど収まる範囲へ地図を動かす。
+// FlyToと同じ理由（描画中に呼ぶと再描画のたびに引き戻される）でuseEffectに置く。
+function FitToPoints({ points }: { points: [number, number][] }) {
+  const map = useMap()
+  useEffect(() => {
+    if (points.length === 0) return
+    if (points.length === 1) {
+      map.flyTo(points[0], 13, { duration: 0.6 })
+      return
+    }
+    map.flyToBounds(L.latLngBounds(points), { padding: [36, 36], duration: 0.6 })
+    // pointsは絞り込みが変わるたびに作り直される配列のため、内容ではなく
+    // 「配列そのものの入れ替わり」を検知したい。JSON化して依存に使う。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(points), map])
+  return null
+}
+
+// クラスタ内の地点をおすすめの巡回順（route_order）で並べる。
+// lib/clusters.tsのbuildClusterSummariesと同じ並び替え規則
+// （route_orderが無い地点は図番号順で末尾に回す）。
+function byRouteOrder(a: LocationPin, b: LocationPin) {
+  return (a.route_order ?? Infinity) - (b.route_order ?? Infinity) || a.number - b.number
+}
+
 function matchesQuery(location: LocationPin, query: string) {
   return (
     String(location.number) === query ||
@@ -68,10 +94,13 @@ export function MapView({
   locations,
   visitedLocationIds,
   visitPoints,
+  initialCluster,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
   visitPoints: VisitPoint[]
+  /** ダッシュボードのクラスタ一覧から「ここへ行く」で来たときの絞り込み初期値 */
+  initialCluster: string | null
 }) {
   const [filter, setFilter] = useState<SeriesFilter>('all')
   const [showFuji, setShowFuji] = useState(false)
@@ -79,6 +108,7 @@ export function MapView({
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [query, setQuery] = useState('')
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
+  const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
 
   // useMemoで包まないと、検索ボックスに1文字打つたびにSetと配列が作り直され、
   // それを依存に持つ下のuseMemoも道連れで無効になる（＝メモ化が効かない）。
@@ -91,6 +121,18 @@ export function MapView({
   const filtered = useMemo(
     () => (filter === 'all' ? placed : placed.filter((l) => l.series === filter)),
     [placed, filter]
+  )
+
+  // クラスタ絞り込みは種類（正景/裏富士）の絞り込みとは独立に重ねてかける。
+  // 「このクラスタのこの種類だけ見たい」も成立するため。
+  const displayed = useMemo(
+    () => (clusterFilter ? filtered.filter((l) => l.cluster === clusterFilter).sort(byRouteOrder) : filtered),
+    [filtered, clusterFilter]
+  )
+
+  const fitPoints = useMemo(
+    () => (clusterFilter ? displayed.map((l) => [Number(l.latitude), Number(l.longitude)] as [number, number]) : []),
+    [clusterFilter, displayed]
   )
 
   const visitedCount = useMemo(
@@ -127,9 +169,26 @@ export function MapView({
         onToggleFuji={() => setShowFuji((v) => !v)}
         showVisit={showVisit}
         onToggleVisit={() => setShowVisit((v) => !v)}
-        shownCount={filtered.length}
+        shownCount={displayed.length}
         visitedCount={visitedCount}
       />
+
+      {clusterFilter && (
+        <div
+          className="flex items-center gap-2 px-4 py-2 text-xs flex-wrap"
+          style={{ borderBottom: `1px solid ${MAP_THEME.panel.divider}`, color: MAP_THEME.panel.text }}
+        >
+          <span style={{ color: MAP_THEME.panel.title }}>クラスタ：{clusterFilter}</span>
+          <span style={{ color: MAP_THEME.panel.muted }}>で絞り込み中</span>
+          <button
+            onClick={() => setClusterFilter(null)}
+            className="ml-auto text-xs px-3 py-1 rounded-full border"
+            style={{ background: 'transparent', color: MAP_THEME.panel.text, borderColor: MAP_THEME.panel.line }}
+          >
+            地図全体に戻る
+          </button>
+        </div>
+      )}
 
       <div className="relative">
         <MapSearch
@@ -149,8 +208,18 @@ export function MapView({
           />
           <ZoomWatcher onZoom={setZoom} />
           <FlyTo target={flyTarget} />
+          <FitToPoints points={fitPoints} />
 
-          {filtered.map((l) => (
+          {/* クラスタ絞り込み中だけ、地点をおすすめ順に結ぶ線を引く。
+              全地点表示のときに46点を繋いでも往還の単位を表さないため出さない。 */}
+          {clusterFilter && displayed.length > 1 && (
+            <Polyline
+              positions={displayed.map((l) => [Number(l.latitude), Number(l.longitude)] as [number, number])}
+              pathOptions={{ color: MAP_THEME.cluster.gold, weight: 2.5, opacity: 0.7, dashArray: '2 6' }}
+            />
+          )}
+
+          {displayed.map((l) => (
             <Marker
               key={l.id}
               position={[Number(l.latitude), Number(l.longitude)]}
@@ -182,6 +251,61 @@ export function MapView({
 
         <MapLegend />
       </div>
+
+      {clusterFilter && <RoutePanel clusterName={clusterFilter} locations={displayed} visited={visited} />}
+    </div>
+  )
+}
+
+// クラスタ絞り込み中に地図の下へ出す、おすすめの巡回順パネル。
+// 地図上のポリラインと同じ並び（byRouteOrder）を、タップして地点詳細へ飛べる
+// リストの形でも見せる。地図の線だけでは「結局どの順で回るか」が読み取りにくいため。
+function RoutePanel({
+  clusterName,
+  locations,
+  visited,
+}: {
+  clusterName: string
+  locations: LocationPin[]
+  visited: Set<string>
+}) {
+  if (locations.length === 0) {
+    return (
+      <div className="px-4 py-4 text-xs" style={{ color: MAP_THEME.panel.muted }}>
+        {clusterName}に座標のある地点がありません。
+      </div>
+    )
+  }
+
+  return (
+    <div className="px-4 py-4" style={{ borderTop: `1px solid ${MAP_THEME.panel.divider}` }}>
+      <div className="text-sm mb-3" style={{ color: MAP_THEME.panel.title, letterSpacing: '0.05em' }}>
+        {clusterName}のおすすめの回り方
+      </div>
+      <ol className="space-y-0">
+        {locations.map((l, i) => (
+          <li key={l.id} className="flex gap-3">
+            <div className="flex flex-col items-center flex-shrink-0">
+              <div
+                className="w-2.5 h-2.5 rounded-full mt-1.5"
+                style={{ background: MAP_THEME.cluster.gold }}
+              />
+              {i < locations.length - 1 && (
+                <div className="w-px flex-1" style={{ background: MAP_THEME.panel.line, minHeight: '1.5rem' }} />
+              )}
+            </div>
+            <Link href={`/locations/${l.id}`} className="pb-4 -mt-0.5 group">
+              <div className="text-sm group-hover:underline" style={{ color: MAP_THEME.panel.text }}>
+                第{l.number}景・{l.title_jp}
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: MAP_THEME.panel.muted }}>
+                {visited.has(l.id) ? '記録あり' : '未記録'}
+                {l.modern_location ? `　${l.modern_location}` : ''}
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }
