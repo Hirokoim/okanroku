@@ -65,13 +65,12 @@ export function MapSearch({
 // 重ねて置く、地図アプリでおなじみの位置・見た目に寄せた（ユーザー指定の
 // 参考画像どおり）。
 //
-// 大きさ・位置は固定値ではなく、実際に描画されたズームボタン
-// （.leaflet-control-zoom-in）をDOMから測って合わせている。Leafletの
-// ズームボタンはタッチ端末なら30×30px、マウス操作の環境（Mac等）なら
-// 26×26pxと、環境によって実寸が変わる（node_modules/leaflet/dist/
-// leaflet.cssの.leaflet-bar aと.leaflet-touch .leaflet-bar a）。
-// 固定30pxで作ったところ、マウス環境では実際のズームボタンより
-// わずかに大きく・右にはみ出して見えてしまっていた（ユーザー報告）。
+// 大きさ・位置は固定値ではなく、実際に描画されたズームボタンの「外枠」
+// （.leaflet-control-zoom。白い角丸の見た目そのもの）をDOMから測って
+// 合わせている。タッチ環境では外枠に2px分の境界線が付き、中のボタン本体
+// （.leaflet-control-zoom-in）より一回り大きくなる（node_modules/leaflet/
+// dist/leaflet.cssの.leaflet-touch .leaflet-bar）。外枠とボタン本体を
+// 混ぜて測ると、2〜4px分の見えないズレが出るため、常に外枠だけを基準にする。
 const GAP_BELOW_ZOOM = 12
 
 export function LocateButton({ active, onClick }: { active: boolean; onClick: () => void }) {
@@ -87,9 +86,8 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
     // 代わりにgetBoundingClientRectで画面上の実座標を取り、地図の実座標との
     // 差分を計算する（この差分は基準がどこであっても正しい）。
     const container = document.querySelector<HTMLElement>('.leaflet-container')
-    const zoomButton = document.querySelector<HTMLElement>('.leaflet-control-zoom-in')
     const zoomBar = document.querySelector<HTMLElement>('.leaflet-control-zoom')
-    if (container && zoomButton && zoomBar) {
+    if (container && zoomBar) {
       const containerRect = container.getBoundingClientRect()
       const barRect = zoomBar.getBoundingClientRect()
       // マウント後に一度だけ、外部（実際のDOM寸法）を読んで反映する、想定通りの
@@ -98,7 +96,7 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
       setRect({
         top: barRect.bottom - containerRect.top + GAP_BELOW_ZOOM,
         left: barRect.left - containerRect.left,
-        size: zoomButton.getBoundingClientRect().width,
+        size: barRect.width,
       })
     }
   }, [])
