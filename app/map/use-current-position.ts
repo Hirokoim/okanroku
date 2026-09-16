@@ -15,6 +15,12 @@ export type CurrentPosition = {
   longitude: number
   /** GPSの誤差半径（メートル）。地図に描く円の大きさに使う */
   accuracy: number
+  /**
+   * 進行方向（北を0度とした時計回り、度）。静止している間や、
+   * 端末・ブラウザが対応していない場合はnullになる（Geolocation APIの仕様）。
+   * マーカーの矢印の向きに使う（map-icons.tsのhereIcon参照）。
+   */
+  heading: number | null
 }
 
 export function useCurrentPosition() {
@@ -52,6 +58,7 @@ export function useCurrentPosition() {
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
+          heading: pos.coords.heading,
         })
       },
       (err) => {
