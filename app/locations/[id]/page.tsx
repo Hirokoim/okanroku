@@ -32,7 +32,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 
   if (!user) {
     return (
-      <main className="max-w-[430px] mx-auto p-6">
+      <main className="max-w-[430px] mx-auto p-6 pb-24">
         <p className="text-nami-dim">この画面を見るにはログインしてください。</p>
       </main>
     )
@@ -95,7 +95,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   const figureName = asRow<{ figures: { name: string } | null }>(location).figures?.name
 
   return (
-    <main className="max-w-[430px] mx-auto p-6 space-y-6 w-full">
+    <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-6 w-full">
       <div className="flex items-center justify-between">
         <Link href="/map" className="text-sm text-kin underline">
           ← 地図に戻る

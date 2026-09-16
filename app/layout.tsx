@@ -1,16 +1,26 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { createClient } from "@/lib/supabase/server";
+import { BottomNav } from "./bottom-nav";
 
 export const metadata: Metadata = {
   title: "往還録",
   description: "歴史上の人物が見た世界を現代で追体験する旅の記録",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ボトムナビ（往還／地図／記録／設定）はログイン後の画面にしか意味を持たない
+  // （未ログインではどのタブも「ログインしてください」しか出せないため）。
+  // 各ページも個別にログイン状態を見ているが、ここは「ナビを出すか」だけの判定。
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="ja" className="h-full antialiased">
       <head>
@@ -24,7 +34,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {user && <BottomNav />}
+      </body>
     </html>
   );
 }

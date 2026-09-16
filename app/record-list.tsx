@@ -18,7 +18,6 @@ export function RecordList({ records }: { records: RecordRow[] }) {
 
   return (
     <div className="space-y-3">
-      <h2 className="font-display font-semibold">記録一覧</h2>
       <ul className="space-y-3">
         {records.map((r) => {
           const title = r.locations?.title_jp || r.location_name

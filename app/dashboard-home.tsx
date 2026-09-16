@@ -12,12 +12,10 @@ export function DashboardHome({
   hasRecords,
   clusterView,
   mapView,
-  recordsView,
 }: {
   hasRecords: boolean
   clusterView: React.ReactNode
   mapView: React.ReactNode
-  recordsView: React.ReactNode
 }) {
   const [started, setStarted] = useState(hasRecords)
 
@@ -37,16 +35,14 @@ export function DashboardHome({
     )
   }
 
-  // 記録一覧はタブに入れない。タブは「次はどこを目指しますか」への
+  // 記録一覧はここに含めない。この画面のタブは「次はどこを目指しますか」への
   // 2通りの答え方（一覧で選ぶ／地図で見る）であり、これまでの記録は
   // その問いの答えではないため（要件定義書4-Aの画面2と画面14の違い）。
+  // 2026-09-16、ボトムナビ導入にあわせて/recordsへ独立させた。
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h2 className="font-display font-semibold">次はどこを目指しますか</h2>
-        <DashboardTabs clusterView={clusterView} mapView={mapView} />
-      </div>
-      {recordsView}
+    <div className="space-y-4">
+      <h2 className="font-display font-semibold">次はどこを目指しますか</h2>
+      <DashboardTabs clusterView={clusterView} mapView={mapView} />
     </div>
   )
 }

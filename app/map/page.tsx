@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
 import { createPhotoUrls } from '@/lib/storage'
@@ -87,13 +86,8 @@ export default async function MapPage({
   }))
 
   return (
-    <main className="max-w-[430px] mx-auto p-6 space-y-4 w-full">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-display font-semibold">地図</h1>
-        <Link href="/" className="text-sm text-kin underline">
-          記録に戻る
-        </Link>
-      </div>
+    <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-4 w-full">
+      <h1 className="text-xl font-display font-semibold">地図</h1>
 
       {user ? (
         <MapPanel
