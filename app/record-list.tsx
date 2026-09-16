@@ -6,6 +6,7 @@ export type RecordRow = {
   location_id: string | null
   location_name: string
   work_label: string | null
+  photographed_at: string | null
   created_at: string
   figures: { name: string } | null
   locations: { title_jp: string } | null
@@ -30,7 +31,9 @@ export function RecordList({ records }: { records: RecordRow[] }) {
                 {r.figures?.name}
                 {r.work_label ? ` ／ ${r.work_label}` : ''}
               </div>
-              <div className="text-nami-dim text-xs mt-1">{formatDateTime(r.created_at)}</div>
+              <div className="text-nami-dim text-xs mt-1">
+                {formatDateTime(r.photographed_at ?? r.created_at)}
+              </div>
             </>
           )
 

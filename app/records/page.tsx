@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
-import { RecordList, type RecordRow } from '../record-list'
+import type { RecordRow } from '../record-list'
+import { RecordsView } from './records-view'
 import { ImportPanel } from '../import-panel'
 import type { MatchableLocation } from '@/lib/location-match'
 
@@ -17,7 +18,9 @@ export default async function RecordsPage() {
   const { data: records } = user
     ? await supabase
         .from('records')
-        .select('id, location_id, location_name, work_label, created_at, figures(name), locations(title_jp)')
+        .select(
+          'id, location_id, location_name, work_label, photographed_at, created_at, figures(name), locations(title_jp)'
+        )
         .order('created_at', { ascending: false })
     : { data: null }
 
@@ -41,7 +44,7 @@ export default async function RecordsPage() {
       {user ? (
         <div className="space-y-4">
           {figureId && <ImportPanel userId={user.id} figureId={figureId} locations={locationRows} />}
-          <RecordList records={asRows<RecordRow>(records)} />
+          <RecordsView records={asRows<RecordRow>(records)} />
         </div>
       ) : (
         <p className="text-nami-dim">記録を見るにはログインしてください。</p>
