@@ -29,7 +29,7 @@ import L from 'leaflet'
 import { MAP_THEME } from './map-theme'
 import { fujiIcon, markerSizeFor, numberIcon, visitIcon } from './map-icons'
 import { MapToolbar } from './map-toolbar'
-import { MapLegend, MapSearch } from './map-overlays'
+import { LocateButton, MapLegend, MapSearch } from './map-overlays'
 import { FujiPopupBody, LocationPopupBody, VisitPopupBody } from './map-popups'
 import { CurrentPositionLayer } from './map-current-position'
 import { useCurrentPosition } from './use-current-position'
@@ -200,8 +200,6 @@ export function MapView({
         onToggleFuji={() => setShowFuji((v) => !v)}
         showVisit={showVisit}
         onToggleVisit={() => setShowVisit((v) => !v)}
-        showHere={hereWatching}
-        onToggleHere={toggleHere}
         shownCount={displayed.length}
         visitedCount={visitedCount}
       />
@@ -230,6 +228,8 @@ export function MapView({
       )}
 
       <div className="relative">
+        <LocateButton active={hereWatching} onClick={toggleHere} />
+
         <MapSearch
           query={query}
           onQueryChange={setQuery}

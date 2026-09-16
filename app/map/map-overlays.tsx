@@ -60,6 +60,35 @@ export function MapSearch({
   )
 }
 
+// 現在地ボタン。Leafletの標準ズームボタン（左上、+/−の2段）のすぐ下に
+// 重ねて置く、地図アプリでおなじみの位置・見た目に寄せた（ユーザー指定の
+// 参考画像どおり）。ズームボタンは62px前後の高さがあるため、そのぶん
+// 下げて置く。トグル中（GPSを追い続けている間）は的（まと）の中心が
+// 青く塗りつぶされる。地図の操作バーからは独立させ、常に地図の同じ場所に
+// あるようにする（絞り込み中バナーの有無で位置がずれないように）。
+export function LocateButton({ active, onClick }: { active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={active ? '現在地の追跡を止める' : '現在地を表示する'}
+      aria-pressed={active}
+      className="absolute z-[1000] w-9 h-9 rounded flex items-center justify-center shadow-md"
+      style={{ top: 84, left: 10, background: '#ffffff' }}
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <g stroke={active ? MAP_THEME.marker.here.dot : '#5f6368'} strokeWidth="2" fill="none">
+          <line x1="12" y1="1" x2="12" y2="4" />
+          <line x1="12" y1="20" x2="12" y2="23" />
+          <line x1="1" y1="12" x2="4" y2="12" />
+          <line x1="20" y1="12" x2="23" y2="12" />
+          <circle cx="12" cy="12" r="6.5" />
+        </g>
+        <circle cx="12" cy="12" r="3" fill={active ? MAP_THEME.marker.here.dot : '#5f6368'} />
+      </svg>
+    </button>
+  )
+}
+
 function LegendRow({ bg, border, children }: { bg: string; border: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">

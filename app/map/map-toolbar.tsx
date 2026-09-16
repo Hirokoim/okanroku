@@ -52,8 +52,6 @@ export function MapToolbar({
   onToggleFuji,
   showVisit,
   onToggleVisit,
-  showHere,
-  onToggleHere,
   shownCount,
   visitedCount,
 }: {
@@ -63,8 +61,6 @@ export function MapToolbar({
   onToggleFuji: () => void
   showVisit: boolean
   onToggleVisit: () => void
-  showHere: boolean
-  onToggleHere: () => void
   shownCount: number
   visitedCount: number
 }) {
@@ -90,9 +86,6 @@ export function MapToolbar({
       </PillButton>
       <PillButton active={showVisit} onClick={onToggleVisit}>
         📷 訪問地点を表示
-      </PillButton>
-      <PillButton active={showHere} onClick={onToggleHere}>
-        📍 現在地
       </PillButton>
 
       <span className="text-xs ml-auto" style={{ color: MAP_THEME.panel.muted }}>
