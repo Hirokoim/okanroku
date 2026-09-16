@@ -71,22 +71,6 @@ function FlyTo({ target }: { target: [number, number] | null }) {
   return null
 }
 
-// Leafletは初回マウント時にコンテナの大きさを1度だけ測って内部に覚える。
-// クラスタ絞り込み中は、地図の上に絞り込み中バナー・下にルート一覧（RoutePanel）が
-// 追加でレイアウトに入るため、周囲のレイアウトが確定する前にLeafletが古い大きさを
-// 覚えてしまい、マーカーやタイルの位置がずれて見える（絞り込みのないただの地図では
-// 発生せず、クラスタ絞り込み時だけ「一見おかしい」となる不具合と一致する）。
-// map.invalidateSize()で覚え直させる。requestAnimationFrameで1フレーム待つのは、
-// ブラウザがバナー・ルート一覧を含めた実際のレイアウトを確定させた後に測らせるため。
-function InvalidateSizeOnLayoutChange({ trigger }: { trigger: unknown }) {
-  const map = useMap()
-  useEffect(() => {
-    const id = requestAnimationFrame(() => safelyMoveMap(() => map.invalidateSize()))
-    return () => cancelAnimationFrame(id)
-  }, [trigger, map])
-  return null
-}
-
 // クラスタ絞り込みが変わるたびに、そのクラスタの地点がちょうど収まる範囲へ地図を動かす。
 // FlyToと同じ理由（描画中に呼ぶと再描画のたびに引き戻される）でuseEffectに置く。
 function FitToPoints({ points }: { points: [number, number][] }) {
@@ -274,7 +258,6 @@ export function MapView({
             attribution="&copy; OpenStreetMap contributors"
           />
           <ZoomWatcher onZoom={setZoom} />
-          <InvalidateSizeOnLayoutChange trigger={clusterFilter} />
           <FlyTo target={flyTarget} />
           <FitToPoints points={fitPoints} />
 
