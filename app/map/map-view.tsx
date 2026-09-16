@@ -20,7 +20,7 @@
 // 部分があったため、配色・マーカー・ポップアップ・凡例の「見た目」だけを移植し、
 // データの出し入れはこのアプリのSupabaseクエリ（page.tsxで取得済み）に置き換えている。
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -31,6 +31,8 @@ import { fujiIcon, markerSizeFor, numberIcon, visitIcon } from './map-icons'
 import { MapToolbar } from './map-toolbar'
 import { MapLegend, MapSearch } from './map-overlays'
 import { FujiPopupBody, LocationPopupBody, VisitPopupBody } from './map-popups'
+import { CurrentPositionLayer } from './map-current-position'
+import { useCurrentPosition } from './use-current-position'
 import type { LocationPin, SeriesFilter, VisitPoint } from './map-types'
 
 const FUJI: [number, number] = [35.3606, 138.7274]
@@ -138,6 +140,22 @@ export function MapView({
   const [query, setQuery] = useState('')
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
   const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
+  const { position: here, error: hereError, watching: hereWatching, toggle: toggleHere } =
+    useCurrentPosition()
+
+  // 最初に測位できたときだけ、地図を現在地へ寄せる。毎回寄せると、
+  // 地図を動かしたそばから引き戻されて操作できなくなる。
+  const flewToHereRef = useRef(false)
+  useEffect(() => {
+    if (!hereWatching) {
+      flewToHereRef.current = false
+      return
+    }
+    if (here && !flewToHereRef.current) {
+      flewToHereRef.current = true
+      setFlyTarget([here.latitude, here.longitude])
+    }
+  }, [here, hereWatching])
 
   // useMemoで包まないと、検索ボックスに1文字打つたびにSetと配列が作り直され、
   // それを依存に持つ下のuseMemoも道連れで無効になる（＝メモ化が効かない）。
@@ -198,9 +216,17 @@ export function MapView({
         onToggleFuji={() => setShowFuji((v) => !v)}
         showVisit={showVisit}
         onToggleVisit={() => setShowVisit((v) => !v)}
+        showHere={hereWatching}
+        onToggleHere={toggleHere}
         shownCount={displayed.length}
         visitedCount={visitedCount}
       />
+
+      {hereError && (
+        <div className="px-4 py-2 text-xs" style={{ color: MAP_THEME.panel.muted }}>
+          {hereError}
+        </div>
+      )}
 
       {clusterFilter && (
         <div
@@ -289,6 +315,8 @@ export function MapView({
                 </Popup>
               </Marker>
             ))}
+
+          {here && <CurrentPositionLayer position={here} />}
         </MapContainer>
 
         <MapLegend />
