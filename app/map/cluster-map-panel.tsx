@@ -12,7 +12,7 @@ const ClusterMap = dynamic(() => import('./cluster-map').then((m) => m.ClusterMa
   ssr: false,
   loading: () => (
     <div
-      className="h-[55vh] w-full rounded-lg border border-line flex items-center justify-center text-sm"
+      className="h-[55dvh] w-full rounded-lg border border-line flex items-center justify-center text-sm"
       style={{ background: MAP_THEME.panel.bg, color: MAP_THEME.panel.muted }}
     >
       開拓マップを読み込み中...

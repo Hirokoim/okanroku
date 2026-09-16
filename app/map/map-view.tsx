@@ -44,6 +44,19 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
   return null
 }
 
+// Leafletの地図はマウント解除後や、Strict Modeが誘発する不整合な状態のもとで
+// 命令的メソッド（flyTo等）を呼ぶと例外を投げることがある（2026-09-16調査、
+// next.config.tsのreactStrictModeのコメント参照）。カメラを動かすのはあくまで
+// 補助的な演出であり、失敗してもアプリ全体を巻き込んで落とす価値は無いため、
+// 例外を握りつぶして開発コンソールにだけ出す。
+function safelyMoveMap(fn: () => void) {
+  try {
+    fn()
+  } catch (err) {
+    console.error('地図の移動に失敗しました（表示には影響しません）', err)
+  }
+}
+
 // 検索結果をクリックしたときに地図を移動させる。
 // 地図の移動は「描画のついで」ではなく useEffect で行う。描画の途中で flyTo を
 // 呼ぶと、ズームやフィルタ切替など別の理由で再描画されるたびに再実行され、
@@ -51,8 +64,24 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
 function FlyTo({ target }: { target: [number, number] | null }) {
   const map = useMap()
   useEffect(() => {
-    if (target) map.flyTo(target, Math.max(map.getZoom(), 11), { duration: 0.6 })
+    if (target) safelyMoveMap(() => map.flyTo(target, Math.max(map.getZoom(), 11), { duration: 0.6 }))
   }, [target, map])
+  return null
+}
+
+// Leafletは初回マウント時にコンテナの大きさを1度だけ測って内部に覚える。
+// クラスタ絞り込み中は、地図の上に絞り込み中バナー・下にルート一覧（RoutePanel）が
+// 追加でレイアウトに入るため、周囲のレイアウトが確定する前にLeafletが古い大きさを
+// 覚えてしまい、マーカーやタイルの位置がずれて見える（絞り込みのないただの地図では
+// 発生せず、クラスタ絞り込み時だけ「一見おかしい」となる不具合と一致する）。
+// map.invalidateSize()で覚え直させる。requestAnimationFrameで1フレーム待つのは、
+// ブラウザがバナー・ルート一覧を含めた実際のレイアウトを確定させた後に測らせるため。
+function InvalidateSizeOnLayoutChange({ trigger }: { trigger: unknown }) {
+  const map = useMap()
+  useEffect(() => {
+    const id = requestAnimationFrame(() => safelyMoveMap(() => map.invalidateSize()))
+    return () => cancelAnimationFrame(id)
+  }, [trigger, map])
   return null
 }
 
@@ -63,10 +92,10 @@ function FitToPoints({ points }: { points: [number, number][] }) {
   useEffect(() => {
     if (points.length === 0) return
     if (points.length === 1) {
-      map.flyTo(points[0], 13, { duration: 0.6 })
+      safelyMoveMap(() => map.flyTo(points[0], 13, { duration: 0.6 }))
       return
     }
-    map.flyToBounds(L.latLngBounds(points), { padding: [36, 36], duration: 0.6 })
+    safelyMoveMap(() => map.flyToBounds(L.latLngBounds(points), { padding: [36, 36], duration: 0.6 }))
     // pointsは絞り込みが変わるたびに作り直される配列のため、内容ではなく
     // 「配列そのものの入れ替わり」を検知したい。JSON化して依存に使う。
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,12 +230,25 @@ export function MapView({
           }}
         />
 
-        <MapContainer center={INITIAL_CENTER} zoom={INITIAL_ZOOM} style={{ height: '70vh', width: '100%' }}>
+        {/* scrollWheelZoom=falseにする理由：既定ではマウスホイールが地図の上に
+            乗った瞬間にズーム操作として奪われ、ページ自体がスクロールしなくなる。
+            ページ最上部でカーソルが地図に重なった状態だと「下にスクロールしよう
+            としてもページが動かず、固定表示のボトムナビ（app/bottom-nav.tsx）に
+            地図が張り付いたまま」に見えていた（地図の外にカーソルを逃がすと
+            正常にスクロールできることと符合する）。ズームはツールバーの+/−ボタン・
+            ダブルクリック・タッチのピンチ操作で行える。 */}
+        <MapContainer
+          center={INITIAL_CENTER}
+          zoom={INITIAL_ZOOM}
+          scrollWheelZoom={false}
+          style={{ height: '70dvh', width: '100%' }}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
           <ZoomWatcher onZoom={setZoom} />
+          <InvalidateSizeOnLayoutChange trigger={clusterFilter} />
           <FlyTo target={flyTarget} />
           <FitToPoints points={fitPoints} />
 

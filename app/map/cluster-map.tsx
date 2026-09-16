@@ -82,7 +82,14 @@ export function ClusterMap({ clusters }: { clusters: ClusterSummary[] }) {
       </div>
 
       <div className="relative">
-        <MapContainer center={INITIAL_CENTER} zoom={INITIAL_ZOOM} style={{ height: '55vh', width: '100%' }}>
+        {/* map-view.tsxと同じ理由でscrollWheelZoomを切る（既定だとマウスホイールを
+            地図がズームとして奪い、ページのスクロールが止まって見える）。 */}
+        <MapContainer
+          center={INITIAL_CENTER}
+          zoom={INITIAL_ZOOM}
+          scrollWheelZoom={false}
+          style={{ height: '55dvh', width: '100%' }}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
