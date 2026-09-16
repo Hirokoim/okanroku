@@ -62,20 +62,31 @@ export function MapSearch({
 
 // 現在地ボタン。Leafletの標準ズームボタン（左上、+/−の2段）のすぐ下に
 // 重ねて置く、地図アプリでおなじみの位置・見た目に寄せた（ユーザー指定の
-// 参考画像どおり）。ズームボタンは62px前後の高さがあるため、そのぶん
-// 下げて置く。トグル中（GPSを追い続けている間）は的（まと）の中心が
-// 青く塗りつぶされる。地図の操作バーからは独立させ、常に地図の同じ場所に
-// あるようにする（絞り込み中バナーの有無で位置がずれないように）。
+// 参考画像どおり）。大きさ・角丸・影は、タッチ端末向けのLeaflet標準
+// ズームボタン（.leaflet-touch .leaflet-bar a、30×30px・角丸4px）と
+// 影（.leaflet-bar）にそろえ、同じ部品群の続きに見えるようにしてある
+// （node_modules/leaflet/dist/leaflet.cssで実測）。
+// ズームボタンは2段で62px前後の高さがあるため、そのぶん下げて置く。
+// トグル中（GPSを追い続けている間）は的（まと）の中心が青く塗りつぶされる。
+// 地図の操作バーからは独立させ、常に地図の同じ場所にあるようにする
+// （絞り込み中バナーの有無で位置がずれないように）。
 export function LocateButton({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
       aria-label={active ? '現在地の追跡を止める' : '現在地を表示する'}
       aria-pressed={active}
-      className="absolute z-[1000] w-9 h-9 rounded flex items-center justify-center shadow-md"
-      style={{ top: 84, left: 10, background: '#ffffff' }}
+      className="absolute z-[1000] rounded flex items-center justify-center"
+      style={{
+        top: 84,
+        left: 10,
+        width: 30,
+        height: 30,
+        background: '#ffffff',
+        boxShadow: '0 1px 5px rgba(0,0,0,.65)',
+      }}
     >
-      <svg viewBox="0 0 24 24" width="18" height="18">
+      <svg viewBox="0 0 24 24" width="16" height="16">
         <g stroke={active ? MAP_THEME.marker.here.dot : '#5f6368'} strokeWidth="2" fill="none">
           <line x1="12" y1="1" x2="12" y2="4" />
           <line x1="12" y1="20" x2="12" y2="23" />
