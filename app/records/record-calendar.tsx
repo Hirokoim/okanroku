@@ -87,21 +87,15 @@ export function RecordCalendar({
               type="button"
               disabled={!hasRecord}
               onClick={() => onSelectDate(isSelected ? null : key)}
-              className={`aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 text-xs transition-colors ${
+              className={`aspect-square rounded-md flex items-center justify-center text-xs font-semibold transition-colors ${
                 isSelected
-                  ? 'bg-hi text-nami font-semibold'
+                  ? 'bg-hi text-nami'
                   : hasRecord
-                    ? 'bg-sumi-3 text-nami hover:bg-sumi-4'
-                    : 'text-nami-dim/60'
-              } ${isToday && !isSelected ? 'ring-1 ring-kin-dim' : ''}`}
+                    ? 'bg-kin text-sumi hover:bg-kin-dim'
+                    : 'text-nami-dim/60 font-normal'
+              } ${isToday && !isSelected ? 'ring-2 ring-kin' : ''}`}
             >
-              <span>{day}</span>
-              {hasRecord && (
-                <span
-                  className={`w-1 h-1 rounded-full ${isSelected ? 'bg-nami' : 'bg-kin'}`}
-                  aria-hidden="true"
-                />
-              )}
+              {day}
             </button>
           )
         })}
