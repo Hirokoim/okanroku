@@ -4,6 +4,7 @@ import { buildClusterSummaries, type ClusterLocation } from '@/lib/clusters'
 import { ClusterList } from './cluster-list'
 import { ClusterMapPanel } from './map/cluster-map-panel'
 import { DashboardHome } from './dashboard-home'
+import { AuthButton } from './auth-button'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -39,7 +40,10 @@ export default async function Home() {
           mapView={<ClusterMapPanel clusters={clusterSummaries} />}
         />
       ) : (
-        <p className="text-nami-dim">記録を見るにはログインしてください。</p>
+        <div className="space-y-3">
+          <p className="text-nami-dim">記録を見るにはログインしてください。</p>
+          <AuthButton />
+        </div>
       )}
     </main>
   )
