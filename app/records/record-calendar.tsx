@@ -52,7 +52,7 @@ export function RecordCalendar({
         >
           ‹
         </button>
-        <div className="font-display font-semibold">
+        <div className="font-body font-semibold">
           {year}年{month + 1}月
         </div>
         <button

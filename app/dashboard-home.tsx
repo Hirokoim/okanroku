@@ -22,12 +22,12 @@ export function DashboardHome({
   if (!started) {
     return (
       <div className="border border-line rounded-lg p-6 text-center space-y-3 bg-sumi-2">
-        <p className="font-display font-semibold">北斎はどこに立っていたのか</p>
+        <p className="font-body font-semibold">北斎はどこに立っていたのか</p>
         <p className="text-nami-dim text-sm">46図ぶんの答え合わせが、まるごと残っています。</p>
         <button
           type="button"
           onClick={() => setStarted(true)}
-          className="inline-block bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-2 text-sm font-display transition-colors"
+          className="inline-block bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-2 text-sm font-body font-semibold transition-colors"
         >
           往還をはじめる
         </button>
@@ -41,7 +41,7 @@ export function DashboardHome({
   // 2026-09-16、ボトムナビ導入にあわせて/recordsへ独立させた。
   return (
     <div className="space-y-4">
-      <h2 className="font-display font-semibold">次はどこを目指しますか</h2>
+      <h2 className="font-body font-semibold">次はどこを目指しますか</h2>
       <DashboardTabs clusterView={clusterView} mapView={mapView} />
     </div>
   )

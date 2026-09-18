@@ -36,7 +36,7 @@ export function ClusterJourneyOverlay({
             background: 'radial-gradient(circle at 50% 50%, var(--hi-bright), var(--hi) 40%, var(--ai-deep) 100%)',
           }}
         />
-        <div className="okr-transition-word relative font-display text-3xl tracking-[0.3em] text-nami">
+        <div className="okr-transition-word relative font-body font-semibold text-3xl tracking-[0.3em] text-nami">
           {shortName}
         </div>
       </div>
@@ -52,7 +52,7 @@ export function ClusterJourneyOverlay({
       />
       <div className="relative rounded-t-3xl bg-sumi-3 border-t border-line p-6 pb-8 space-y-4">
         <div className="text-xs tracking-widest text-kin-dim">{cluster.name}</div>
-        <h2 className="font-display text-xl">{cluster.name}へ</h2>
+        <h2 className="font-body font-semibold text-xl">{cluster.name}へ</h2>
         <p className="text-sm text-nami-dim leading-relaxed">
           {cluster.total}図・最大{cluster.maxKm !== null ? `${cluster.maxKm.toFixed(1)}km` : '―'}
           。おすすめの回り方を地図で見られます。
@@ -68,7 +68,7 @@ export function ClusterJourneyOverlay({
           <button
             type="button"
             onClick={onConfirm}
-            className="flex-1 bg-hi hover:bg-hi-bright text-nami rounded-full py-3 text-sm font-display font-semibold transition-colors"
+            className="flex-1 bg-hi hover:bg-hi-hover text-nami rounded-full py-3 text-sm font-body font-semibold transition-colors"
           >
             ここへ、行きます
           </button>

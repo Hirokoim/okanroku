@@ -103,8 +103,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       </div>
 
       <div>
-        <div className="text-sm text-kin-dim font-display">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
-        <h1 className="text-2xl font-display font-semibold">{location.title_jp}</h1>
+        <div className="text-sm text-kin-dim font-body font-medium">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
+        <h1 className="text-2xl font-body font-semibold">{location.title_jp}</h1>
         {location.title_en && <p className="text-nami-dim">{location.title_en}</p>}
         <p className="text-sm leading-relaxed text-nami mt-3">
           {location.modern_location ? `${location.modern_location}。` : ''}
@@ -161,7 +161,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       )}
 
       <div className="border-t border-line pt-4">
-        <h2 className="font-display font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
+        <h2 className="font-body font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
         <LocationRecords records={recordsWithPhotos} userId={user.id} />
 
         <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />

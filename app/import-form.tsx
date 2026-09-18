@@ -155,14 +155,14 @@ export function ImportForm({
   if (results) {
     return (
       <div className="space-y-4">
-        <p className="font-display font-semibold">
+        <p className="font-body font-semibold">
           {results.filter((r) => r.status === 'ok').length}件の記録を作成しました
           {results.some((r) => r.status === 'error') && '（一部失敗しました）'}
         </p>
         <ul className="space-y-2">
           {results.map((r, i) => (
             <li key={i} className="border border-line rounded-lg p-3 bg-sumi-2 text-sm">
-              <div className="font-display font-semibold flex items-center gap-2">
+              <div className="font-body font-semibold flex items-center gap-2">
                 {r.status === 'error' && <span className="text-hi-bright">⚠</span>}
                 {r.label}（{r.count}枚）
               </div>
@@ -195,7 +195,7 @@ export function ImportForm({
       {photos.length > 0 && (
         <div className="space-y-3">
           <div>
-            <p className="text-sm font-display font-semibold">地点への振り分け</p>
+            <p className="text-sm font-body font-semibold">地点への振り分け</p>
             <p className="text-xs text-nami-dim">
               GPSに近い地点を自動で選んでいます。違う場合や複数候補がある場合は選び直してください。
             </p>
@@ -226,7 +226,7 @@ export function ImportForm({
           </ul>
 
           <div className="border border-line rounded-lg p-3 bg-sumi-2 text-sm">
-            <p className="font-display font-semibold mb-1">
+            <p className="font-body font-semibold mb-1">
               {photos.length}枚の写真は{groups.size}地点ぶんのようです
             </p>
             <p className="text-nami-dim text-xs">
@@ -249,7 +249,7 @@ export function ImportForm({
         type="button"
         onClick={handleImport}
         disabled={photos.length === 0 || submitting || convertingPhotos}
-        className="bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-2 text-sm font-display disabled:opacity-50 transition-colors"
+        className="bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-2 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
       >
         {submitting
           ? '取り込んでいます...'

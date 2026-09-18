@@ -21,7 +21,7 @@ export function DashboardTabs({
         <button
           type="button"
           onClick={() => setTab('cluster')}
-          className={`text-sm rounded-full px-4 py-2 font-display transition-colors ${
+          className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
             tab === 'cluster' ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
           }`}
         >
@@ -30,7 +30,7 @@ export function DashboardTabs({
         <button
           type="button"
           onClick={() => setTab('map')}
-          className={`text-sm rounded-full px-4 py-2 font-display transition-colors ${
+          className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
             tab === 'map' ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
           }`}
         >

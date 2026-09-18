@@ -124,7 +124,7 @@ export function ClusterPopupBody({ cluster }: { cluster: ClusterSummary }) {
       <ul className="mt-1">
         {cluster.locations.map((l) => (
           <li key={l.id} className="text-xs leading-relaxed">
-            <Link href={`/locations/${l.id}`} style={{ color: MAP_THEME.popup.link }}>
+            <Link href={`/locations/${l.id}`} className="underline" style={{ color: MAP_THEME.popup.link }}>
               <span style={{ color: MAP_THEME.popup.meta }}>第{l.number}景</span> {l.title_jp}
               {l.visited && <span style={{ color: MAP_THEME.popup.sub }}>（記録あり）</span>}
             </Link>

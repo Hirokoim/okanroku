@@ -23,7 +23,8 @@ export function MapSearch({
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
         placeholder="番号または作品名で検索…"
-        className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+        aria-label="番号または作品名で検索"
+        className="w-full text-sm px-3 py-2 rounded-lg"
         style={{
           background: MAP_THEME.overlay.bg,
           border: MAP_THEME.overlay.border,

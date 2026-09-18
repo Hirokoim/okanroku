@@ -36,7 +36,7 @@ export default async function RecordsPage() {
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-4 w-full">
-      <h1 className="text-xl font-display font-semibold">
+      <h1 className="text-xl font-body font-semibold">
         記録
         {user && <span className="text-sm font-normal text-nami-dim ml-2">{(records ?? []).length}件</span>}
       </h1>

@@ -10,6 +10,7 @@ import { uploadPhoto } from '@/lib/storage'
 import { readExif } from '@/lib/exif'
 import { toDisplayableImage } from '@/lib/heic'
 import { weatherCodeIcon, weatherLabelToCode, WEATHER_LABELS } from '@/lib/weather'
+import { LocationSearchField } from '../../location-search-field'
 import type { LocationRecord } from './location-records'
 
 const MAX_PHOTOS = 5
@@ -39,6 +40,8 @@ export function EditRecordForm({
   const [addingPhotos, setAddingPhotos] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  // どの写真の「位置を修正」検索を開いているか（1枚ぶんだけ）
+  const [locatingPhotoId, setLocatingPhotoId] = useState<string | null>(null)
 
   // 天気の再取得に使う座標。写真ごとにGPSが異なるため、最初に座標を持つ1枚を使う
   // （新規保存時（record-form.tsx）と同じ考え方）。
@@ -153,6 +156,24 @@ export function EditRecordForm({
       setPhotoError(err instanceof Error ? err.message : '写真の追加に失敗しました')
     } finally {
       setAddingPhotos(false)
+    }
+  }
+
+  // 保存済みの写真の座標を、地点検索の結果で上書きする。
+  // GPS情報が無い写真や、間違った座標で保存されてしまった写真を、あとから
+  // 地名検索で直せるようにするためのもの（緯度経度の手入力は負担が大きいため）。
+  async function handleUpdatePhotoLocation(photoId: string, latitude: number, longitude: number) {
+    setPhotoError(null)
+    const supabase = createClient()
+    try {
+      const { error: updateError } = await supabase
+        .from('record_photos')
+        .update({ latitude, longitude })
+        .eq('id', photoId)
+      if (updateError) throw updateError
+      router.refresh()
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : '位置情報の更新に失敗しました')
     }
   }
 
@@ -289,6 +310,7 @@ export function EditRecordForm({
               type="number"
               step="0.1"
               placeholder="気温（℃・任意）"
+              aria-label="気温（℃・任意）"
               defaultValue={record.weather?.temperature ?? ''}
               className="border border-line rounded p-1.5 text-sm w-32 bg-sumi-2 text-nami placeholder:text-nami-dim"
             />
@@ -316,16 +338,47 @@ export function EditRecordForm({
                     読み込めません
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={() => handleRemovePhoto(photo.id, photo.storage_path)}
-                  className="absolute top-1 right-1 bg-sumi/90 border border-line rounded px-1.5 text-[10px] text-hi-bright"
-                >
-                  削除
-                </button>
+                <div className="absolute top-1 right-1 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setLocatingPhotoId((id) => (id === photo.id ? null : photo.id))}
+                    className="bg-sumi/90 border border-line rounded px-1.5 text-[10px] text-kin"
+                    aria-label={`この写真の位置を修正（${photo.latitude !== null ? '現在地あり' : '位置情報なし'}）`}
+                  >
+                    位置
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(photo.id, photo.storage_path)}
+                    className="bg-sumi/90 border border-line rounded px-1.5 text-[10px] text-hi-bright"
+                  >
+                    削除
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
+        )}
+
+        {locatingPhotoId && (
+          <div className="border border-line rounded-lg p-3 bg-sumi-2 space-y-2">
+            <p className="text-xs text-nami-dim">
+              地名・住所で検索して、この写真の位置を設定します（手入力よりかんたんです）。
+            </p>
+            <LocationSearchField
+              onSelect={(r) => {
+                handleUpdatePhotoLocation(locatingPhotoId, r.latitude, r.longitude)
+                setLocatingPhotoId(null)
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setLocatingPhotoId(null)}
+              className="text-xs text-nami-dim underline"
+            >
+              キャンセル
+            </button>
+          </div>
         )}
         {record.photos.length < MAX_PHOTOS && (
           <label className="flex items-center justify-center gap-2 border-2 border-dashed border-kin-dim rounded-lg py-3 text-center bg-sumi-2 hover:bg-sumi active:bg-sumi hover:border-kin transition-colors cursor-pointer">
@@ -356,7 +409,7 @@ export function EditRecordForm({
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 bg-hi hover:bg-hi-bright text-nami rounded-full px-3 py-2.5 text-sm font-display font-semibold disabled:opacity-50 transition-colors"
+            className="flex-1 bg-hi hover:bg-hi-hover text-nami rounded-full px-3 py-2.5 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
           >
             {submitting ? '保存中...' : '保存する'}
           </button>

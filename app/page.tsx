@@ -31,7 +31,7 @@ export default async function Home() {
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-8 w-full">
-      <h1 className="text-xl font-display font-semibold tracking-wide">往還録</h1>
+      <h1 className="text-xl font-body font-semibold tracking-wide">往還録</h1>
 
       {user ? (
         <DashboardHome
