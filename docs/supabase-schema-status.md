@@ -1,8 +1,8 @@
 # Supabase スキーマ・RLS状態記録
 
-- **最終棚卸し日**：2026年9月17日
-- **最後にSupabaseで実測した日**：2026年8月21日（`figures`・`records`・Storageのみ）
-- **2026年9月17日、ご本人が`docs/sql/`ステップ16・17（27番の比定地・クラスタ変更、accessibility_class訂正）をSupabaseで実行済み**。実行結果そのものは未確認（逆算）。下の確認SQL④で実測に格上げできる
+- **最終棚卸し日**：2026年9月18日
+- **最後にSupabaseで実測した日**：2026年9月18日（確認SQL①〜⑤を実行し、下記の逆算部分をすべて実測に格上げ済み）
+- **2026年9月17日、ご本人が`docs/sql/`ステップ16・17（27番の比定地・クラスタ変更、accessibility_class訂正）をSupabaseで実行済み**。2026年9月18日、確認SQL④で期待値と完全一致することを実測で確認した
 
 ## このファイルの読み方
 
@@ -21,7 +21,7 @@ Supabaseの実体を見られるのはご本人だけである（開発環境か
 
 ---
 
-## 現行スキーマ（逆算：`docs/sql/`の適用結果＋アプリが実際に読み書きしている列）
+## 現行スキーマ（2026-09-18実測：`docs/sql/`の適用結果＋アプリが実際に読み書きしている列）
 
 ### `figures`（人物マスタ・8件）
 
@@ -47,8 +47,7 @@ Supabaseの実体を見られるのはご本人だけである（開発環境か
 | `id`, `user_id`, `figure_id`, `location_name`, `work_label`, `photographed_at`, `access_note`, `voice_transcript`, `edit_intent`, `created_at`, `updated_at` | 使用中。`user_id`はステップ2で`not null` ＋ `default auth.uid()`になった |
 | `location_id`, `is_public`, `weather`(jsonb) | ステップ2で追加。使用中 |
 | `diff_type` | **ステップ5で削除済み**（分類の置き場所が`locations`側だと判明したため） |
-| `latitude`, `longitude` | **レガシー**。列は残っているが、アプリは読み書きしていない |
-| `photo_urls` | **レガシー**。新規保存時に空配列`[]`を書いているだけで、実データは`record_photos`にある |
+| `latitude`, `longitude`, `photo_urls` | **ステップ18（2026-09-18）で削除済み**。削除前にテスト用データ1件（`location_name='東京'`、座標(50,50)、写真0件）を削除。アプリ側の`photo_urls: []`書き込みも同日除去（`app/import-form.tsx`・`app/locations/[id]/record-form.tsx`） |
 
 ### `record_photos`（写真1枚ごとのGPS・撮影日時）
 
@@ -64,16 +63,16 @@ Supabaseの実体を見られるのはご本人だけである（開発環境か
 
 ## RLSポリシー
 
-全テーブル`relrowsecurity = true`（`figures`・`records`は2026-08-21に**実測**。`locations`・`record_photos`は作成SQLに`enable row level security`が含まれているため**逆算**）。
+全テーブル`relrowsecurity = true`（`figures`・`locations`・`records`・`record_photos`とも2026-09-18に**実測**。`relforcerowsecurity`はいずれも`false`）。
 
 | table | policy | cmd | 条件 | 出所 |
 |---|---|---|---|---|
-| `figures` | `figures_select_all` | SELECT | `true`（`to authenticated`） | 逆算 |
-| `figures` | `figures_admin_write` | ALL | `auth.jwt() ->> 'email'` が管理者のもの | 逆算 |
-| `locations` | `locations_select_authenticated` | SELECT | `true`（`to authenticated`） | 逆算 |
-| `locations` | `locations_admin_write` | ALL | `auth.jwt() ->> 'email'` が管理者のもの | 逆算 |
-| `records` | own records select / insert / update / delete | 各1本 | `auth.uid() = user_id` | **実測**（2026-08-21） |
-| `record_photos` | `record_photos_select_own` / `_insert_own` / `_update_own` / `_delete_own` | 各1本 | `records`を辿って`r.user_id = auth.uid()` | 逆算 |
+| `figures` | `figures_select_authenticated` | SELECT | `true`（roles `{authenticated}`） | **実測**（2026-09-18。ポリシー名は`figures_select_all`ではなく`figures_select_authenticated`だった） |
+| `figures` | `figures_admin_write` | ALL | `auth.jwt() ->> 'email'` が管理者のもの | **実測**（2026-09-18） |
+| `locations` | `locations_select_authenticated` | SELECT | `true`（roles `{authenticated}`） | **実測**（2026-09-18） |
+| `locations` | `locations_admin_write` | ALL | `auth.jwt() ->> 'email'` が管理者のもの | **実測**（2026-09-18） |
+| `records` | own records select / insert / update / delete | 各1本 | `auth.uid() = user_id`（roles `{public}`） | **実測**（2026-08-21・2026-09-18再確認） |
+| `record_photos` | `record_photos_select_own` / `_insert_own` / `_update_own` / `_delete_own` | 各1本 | `records`を辿って`r.user_id = auth.uid()` | **実測**（2026-09-18） |
 | `storage.objects`（`photos`） | own photos select / insert / delete | 各1本 | `bucket_id='photos' AND auth.uid()::text = (storage.foldername(name))[1]` | **実測**（2026-08-21） |
 
 **設計上の割り切り**：管理者判定は`profiles.role`のようなロール列ではなく、メールアドレスの決め打ちである。Phase1が実質1人運用のための意図的な選択で、`figures`／`locations`に他の人が書き込む必要が出た時点でロール列に置き換える（要件定義書5-B）。
@@ -86,7 +85,7 @@ Supabaseの実体を見られるのはご本人だけである（開発環境か
 
 ## 確認SQL（ご本人のみ・5分）
 
-逆算した部分を実測に格上げするためのもの。Supabase SQL Editorに貼って一度に流せる。
+逆算した部分を実測に格上げするためのもの。Supabase SQL Editorに貼って一度に流せる。**2026-09-18に実行済み**（結果は上記に反映済み）。次にRLSを触る前（Phase2の(6)人物ごとのアクセス権、(13)他ユーザーの公開記録閲覧）に、再度流して現状と食い違いがないか確認すること。
 
 ```sql
 -- ① 現行の列（records に diff_type が残っていないか、is_public/location_id/weather が有るか）
@@ -126,14 +125,14 @@ from records;
 
 結果がこの記録と食い違っていたら、**実測のほうを正として**このファイルを書き換える。
 
+**2026-09-18の実行結果**：①〜④はすべて期待値と一致（④の18・27・39・45番の`cluster`・`route_order`・座標・`accessibility_class`も含む）。⑤は記録件数15、座標が入った記録1、`photo_urls`が空でない記録0——`records.latitude/longitude`・`records.photo_urls`のレガシー列にはほぼ実データが残っていない（座標1件のみ残存）。
+
 ---
 
 ## 残タスク
 
-前版の5項目は全て解消済みのため、現時点で残っているのは以下。
+2026-09-18の実測により、前版の「確認SQLを流す」「`figures`ロールの確認」の2項目は解消済み。現時点で残っているのは以下。
 
-- [ ] **上の確認SQLを流し、逆算部分を実測に格上げする**（Phase2でRLSを触る前に必須）
-- [ ] `figures`のSELECTポリシーのロール。2026-08-21時点では`{public}`（未ログインでも読める）だった。ステップ相当のSQL（`docs/次アクション手順書_2026-08-20.md`）で`to authenticated`に差し替える想定だが、**実際に差し替わったかは未確認**。確認SQL②の`roles`列で判定する
-- [ ] レガシー列（`records.latitude/longitude`・`records.photo_urls`）を削除するかの判断。確認SQL⑤で実データが0件なら`drop column`できる。**Phase1の途中では触らない**（記録の保存が壊れると原因の切り分けが難しくなるため、Phase1完了後にまとめて）
-- [ ] `figures`の書き込みポリシーのSQLが`docs/sql/`ではなく`docs/次アクション手順書_2026-08-20.md`の中にある。次にSQLを追加するときに`docs/sql/`へ移し、適用済みSQLの所在を一本化する
+- [x] レガシー列（`records.latitude/longitude`・`records.photo_urls`）を削除するかの判断 → **2026-09-18解消**。座標が入っていた1件はテストデータと判明したため削除し、[`docs/sql/2026-09-18-drop-legacy-record-columns.sql`](sql/2026-09-18-drop-legacy-record-columns.sql)で3列とも削除済み（実測確認済み）
+- [x] `figures`の書き込みポリシーのSQLが`docs/sql/`ではなく`docs/次アクション手順書_2026-08-20.md`の中にある。次にSQLを追加するときに`docs/sql/`へ移し、適用済みSQLの所在を一本化する → **2026-09-18解消**。[`docs/sql/2026-08-20-figures-rls.sql`](sql/2026-08-20-figures-rls.sql)へ移設し、元の手順書には移設先へのポインタを残した
 - [ ] `figure_entitlements`（ステップ12）はPhase2で適用する。**単独で適用しない**——人物データの追加とセットで行う（理由はroadmap.md 4章）

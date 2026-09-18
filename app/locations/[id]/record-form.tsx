@@ -93,7 +93,6 @@ export function LocationRecordForm({
           voice_transcript: draft.voice_transcript || null,
           edit_intent: draft.edit_intent || null,
           is_public: draft.is_public,
-          photo_urls: [],
         })
         .select('id')
         .single()

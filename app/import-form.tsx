@@ -107,7 +107,6 @@ export function ImportForm({
               location_name: '',
               photographed_at: earliest ? new Date(earliest).toISOString() : null,
               is_public: isPublic,
-              photo_urls: [],
             })
             .select('id')
             .single()
