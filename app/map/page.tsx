@@ -87,7 +87,7 @@ export default async function MapPage({
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-4 w-full">
-      <h1 className="text-xl font-display font-semibold">地図</h1>
+      <h1 className="text-xl font-body font-semibold">地図</h1>
 
       {user ? (
         <MapPanel

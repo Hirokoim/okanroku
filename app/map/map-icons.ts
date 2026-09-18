@@ -5,13 +5,19 @@
 import L from 'leaflet'
 import { MAP_THEME } from './map-theme'
 
-/** 番号入りの丸バッジ。訪問済みかどうかで色が変わり、ズームに応じて大きさが変わる */
+/** 番号入りの丸バッジ。訪問済みかどうかで色が変わり、ズームに応じて大きさが変わる。
+ *  色（緑／金）だけで区別すると色覚特性のあるユーザーが見分けられないため、
+ *  訪問済みには右上に✓バッジも付ける（色以外の手がかり）。 */
 export function numberIcon(number: number, visited: boolean, size: number) {
   const c = visited ? MAP_THEME.marker.visited : MAP_THEME.marker.unvisited
   const fontSize = Math.max(8, Math.round(size * 0.4))
+  const badgeSize = Math.max(10, Math.round(size * 0.42))
+  const check = visited
+    ? `<div style="position:absolute;top:-2px;right:-2px;width:${badgeSize}px;height:${badgeSize}px;border-radius:50%;background:${MAP_THEME.panel.bg};border:1.5px solid ${c.bg};color:${c.bg};font-size:${Math.round(badgeSize * 0.7)}px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:bold">✓</div>`
+    : ''
   return L.divIcon({
     className: '',
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${c.bg};border:2px solid ${c.border};color:${c.text};font-weight:bold;font-size:${fontSize}px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.5)">${number}</div>`,
+    html: `<div style="position:relative;width:${size}px;height:${size}px"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${c.bg};border:2px solid ${c.border};color:${c.text};font-weight:bold;font-size:${fontSize}px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.5)">${number}</div>${check}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
@@ -61,10 +67,11 @@ export function hereIcon(headingDeg: number | null) {
   })
 }
 
-/** ズームが深いほどマーカーを大きくする */
+/** ズームが深いほどマーカーを大きくする。
+ *  最小値は24px（WCAG 2.5.8のタッチターゲット最小推奨サイズ）を下回らないようにする。 */
 export function markerSizeFor(zoom: number) {
   if (zoom >= 13) return 40
   if (zoom >= 11) return 32
   if (zoom >= 9) return 26
-  return 20
+  return 24
 }

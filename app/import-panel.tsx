@@ -24,7 +24,7 @@ export function ImportPanel({
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
-      <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-display font-semibold text-sm flex items-center justify-between">
+      <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-body font-semibold text-sm flex items-center justify-between">
         写真からまとめて記録する
         <span className="text-xs text-nami-dim font-normal">帰宅後にまとめて</span>
       </summary>

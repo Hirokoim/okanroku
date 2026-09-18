@@ -18,11 +18,12 @@
   --ai-bright: #2c5580;
   --nami: #eee3cf; /* 生成り・本文文字 */
   --nami-dim: #a99a80; /* 生成り・控えめな文字 */
-  --hi: #c1432c; /* 緋・主要ボタン */
-  --hi-bright: #e2643f;
+  --hi: #b23c27; /* 緋・主要ボタン（生成り文字との対比 4.63:1） */
+  --hi-hover: #96331f; /* 緋・ホバー時（明るくすると文字が読めなくなるため、あえて暗くする） */
+  --hi-bright: #e2643f; /* 緋・エラー文字／アイコン用（背景には使わない） */
   --kin: #c9a24b; /* 金・リンク／アクセント */
-  --kin-dim: #8a723c;
-  --matsu: #41604f; /* 松・緑系アクセント */
+  --kin-dim: #a68d4f; /* 金-dim・控えめラベル文字（墨との対比 5.67:1） */
+  --matsu: #5f8a75; /* 松・緑系アクセント（墨との対比 4.66:1） */
   --line: rgba(238, 227, 207, 0.16); /* 枠線 */
 
   --background: var(--sumi);
@@ -43,13 +44,15 @@
   --color-nami: var(--nami);
   --color-nami-dim: var(--nami-dim);
   --color-hi: var(--hi);
+  --color-hi-hover: var(--hi-hover);
   --color-hi-bright: var(--hi-bright);
   --color-kin: var(--kin);
   --color-kin-dim: var(--kin-dim);
   --color-matsu: var(--matsu);
   --color-line: var(--line);
 
-  --font-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  /* 見出しもゴシック体に統一したため（2026-09-18、アクセシビリティ改善）、
+     font-display（Shippori Mincho）は廃止し、本文と同じ書体だけを使う。 */
   --font-body: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
 }
 
@@ -57,6 +60,26 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
+}
+
+/* 文字サイズ設定（設定画面／標準・大・特大）。Tailwindの文字サイズはremベースの
+   ため、html要素のfont-sizeを変えるだけで、個々のコンポーネントを直接触らずに
+   アプリ全体の文字サイズを拡大できる。地図のピン内の文字などpx固定の一部の
+   装飾要素は対象外（別途アクセシビリティ対応済み）。 */
+html[data-font-scale="large"] {
+  font-size: 112.5%;
+}
+html[data-font-scale="xlarge"] {
+  font-size: 125%;
+}
+
+/* キーボード操作・支援技術向けのフォーカス表示。
+   マウス操作時（:focus のみで :focus-visible が発火しない場合）には出さない。
+   地図パネル（茶＋金）にも同じ金色が馴染むため、テーマ全体で1色に統一している。 */
+:focus-visible {
+  outline: 3px solid var(--kin);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* クラスタ選択→地図へ、の遷移演出（app/cluster-journey.tsx）。

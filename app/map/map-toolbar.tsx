@@ -21,6 +21,7 @@ export function PillButton({
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       className="text-xs px-3 py-1 rounded-full border"
       style={
         active

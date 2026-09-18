@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
@@ -22,17 +23,27 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <html lang="ja" className="h-full antialiased">
+    <html lang="ja" className="h-full antialiased" suppressHydrationWarning>
       <head>
-        {/* 見出し用（Shippori Mincho）・本文用（Zen Kaku Gothic New）。
+        {/* 本文用（Zen Kaku Gothic New）。以前は見出しにShippori Minchoも
+            使っていたが、アクセシビリティ改善で全画面ゴシック体に統一したため
+            読み込みをやめた（2026-09-18）。
             CJKフォントはnext/fontでの自前ホストだとビルド時取得が重いため、
             プロトタイプ（UXアートファクト）と同じくGoogle Fonts配信のまま使う。 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
           rel="stylesheet"
         />
+        {/* 文字サイズ設定（設定画面）の復元。ページが表示される前に同期実行し、
+            標準→大 のような一瞬の切り替わり（ちらつき）を防ぐ。
+            キー名はapp/settings/font-size-setting.tsxと合わせること。
+            beforeInteractive: Reactのハイドレーションより前に実行させるための
+            next/script指定（生の<script>タグはApp Routerでは実行されない）。 */}
+        <Script id="font-scale-init" strategy="beforeInteractive">
+          {`try{var s=localStorage.getItem('okr-font-scale');if(s)document.documentElement.dataset.fontScale=s;}catch(e){}`}
+        </Script>
       </head>
       <body className="min-h-full flex flex-col">
         {children}

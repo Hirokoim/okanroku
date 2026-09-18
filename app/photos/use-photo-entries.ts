@@ -42,13 +42,13 @@ function isoToLocalInput(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function newPhotoEntry(file: File): PhotoEntry {
+function newPhotoEntry(file: File, defaultLocation: { latitude: number; longitude: number } | null): PhotoEntry {
   return {
     key: newId(),
     file,
     previewUrl: URL.createObjectURL(file),
-    latitude: '',
-    longitude: '',
+    latitude: defaultLocation ? String(defaultLocation.latitude) : '',
+    longitude: defaultLocation ? String(defaultLocation.longitude) : '',
     takenAt: '',
     loadingExif: true,
     fromExif: false,
@@ -58,6 +58,10 @@ function newPhotoEntry(file: File): PhotoEntry {
 
 export function usePhotoEntries(onError: (message: string) => void, maxPhotos: number = MAX_PHOTOS) {
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
+  // 写真を選ぶ前に地点検索で場所を決めておいた場合の座標。
+  // 写真を追加した瞬間の初期値として使い、EXIFに座標があればそちらを優先する
+  // （新しく足す写真がまだ無くても、先に場所だけ決められるようにするため）。
+  const [pendingLocation, setPendingLocation] = useState<{ latitude: number; longitude: number } | null>(null)
 
   // プレビュー用のobject URLは、明示的に解放しないとページを離れても残り続ける。
   // 最新のphotosをrefに写しておき、片付けの時に読む（photosを依存に入れると、
@@ -83,7 +87,9 @@ export function usePhotoEntries(onError: (message: string) => void, maxPhotos: n
       // 選択を解除すると同じオブジェクトの中身が空になる。setStateの更新関数は遅延実行される
       // ため、その中で FileList を読むと空になった後を見てしまい、写真が1枚も追加されない
       // （エラーも出ないので気づけない）。ここで同期的に配列へ写しきってから state に渡す。
-      const added = Array.from(files).slice(0, room).map(newPhotoEntry)
+      const added = Array.from(files)
+        .slice(0, room)
+        .map((file) => newPhotoEntry(file, pendingLocation))
       setPhotos((prev) => [...prev, ...added])
 
       // EXIF解析は1枚ごとに非同期で行い、終わったものから順にサムネイルの
@@ -172,5 +178,14 @@ export function usePhotoEntries(onError: (message: string) => void, maxPhotos: n
     })
   }
 
-  return { photos, addPhotos, applyCurrentLocation, removePhoto, updateCoordinate, clearPhotos }
+  return {
+    photos,
+    addPhotos,
+    applyCurrentLocation,
+    removePhoto,
+    updateCoordinate,
+    clearPhotos,
+    pendingLocation,
+    setPendingLocation,
+  }
 }

@@ -315,35 +315,53 @@ export function MapView({
         <MapLegend />
       </div>
 
-      {clusterFilter && <RoutePanel clusterName={clusterFilter} locations={displayed} visited={visited} />}
+      {/* 地図上の情報をテキストでも確認できるようにする（視覚的に地図を見づらい
+          ユーザー向け）。クラスタ絞り込み中はおすすめの回り方として開いた状態で
+          見せ、全体表示中は46景ぶん長くなるため折りたたんでおく。
+          key=clusterFilterで、絞り込みが変わるたびに開閉状態を初期値からやり直す。 */}
+      {displayed.length > 0 && (
+        <details key={clusterFilter ?? 'all'} open={clusterFilter !== null}>
+          <summary
+            className="cursor-pointer select-none px-4 py-3 text-sm font-body font-semibold"
+            style={{ borderTop: `1px solid ${MAP_THEME.panel.divider}`, color: MAP_THEME.panel.title }}
+          >
+            地点を一覧でテキスト表示（{displayed.length}件）
+          </summary>
+          <RoutePanel
+            clusterName={clusterFilter}
+            locations={clusterFilter ? displayed : [...displayed].sort((a, b) => a.number - b.number)}
+            visited={visited}
+          />
+        </details>
+      )}
     </div>
   )
 }
 
-// クラスタ絞り込み中に地図の下へ出す、おすすめの巡回順パネル。
-// 地図上のポリラインと同じ並び（byRouteOrder）を、タップして地点詳細へ飛べる
-// リストの形でも見せる。地図の線だけでは「結局どの順で回るか」が読み取りにくいため。
+// 地図の下へ出す地点リスト（テキスト版）。クラスタ絞り込み中はおすすめの巡回順
+// （byRouteOrder）を、地図上のポリラインと同じ並びで見せる。全体表示中は番号順。
+// 地図の線・ピンだけでは辿りにくい／見えにくいユーザーのための、同じ情報のテキスト版。
 function RoutePanel({
   clusterName,
   locations,
   visited,
 }: {
-  clusterName: string
+  clusterName: string | null
   locations: LocationPin[]
   visited: Set<string>
 }) {
   if (locations.length === 0) {
     return (
       <div className="px-4 py-4 text-xs" style={{ color: MAP_THEME.panel.muted }}>
-        {clusterName}に座標のある地点がありません。
+        {clusterName ?? '表示中の範囲'}に座標のある地点がありません。
       </div>
     )
   }
 
   return (
-    <div className="px-4 py-4" style={{ borderTop: `1px solid ${MAP_THEME.panel.divider}` }}>
+    <div className="px-4 py-4">
       <div className="text-sm mb-3" style={{ color: MAP_THEME.panel.title, letterSpacing: '0.05em' }}>
-        {clusterName}のおすすめの回り方
+        {clusterName ? `${clusterName}のおすすめの回り方` : 'すべての地点（番号順）'}
       </div>
       <ol className="space-y-0">
         {locations.map((l, i) => (
@@ -358,7 +376,7 @@ function RoutePanel({
               )}
             </div>
             <Link href={`/locations/${l.id}`} className="pb-4 -mt-0.5 group">
-              <div className="text-sm group-hover:underline" style={{ color: MAP_THEME.panel.text }}>
+              <div className="text-sm underline" style={{ color: MAP_THEME.panel.text }}>
                 第{l.number}景・{l.title_jp}
               </div>
               <div className="text-xs mt-0.5" style={{ color: MAP_THEME.panel.muted }}>

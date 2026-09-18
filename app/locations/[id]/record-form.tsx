@@ -35,8 +35,16 @@ export function LocationRecordForm({
   // records.weatherの値自体は既に保存されているが、一覧まで見に行かなくても確認できるように。
   const [weatherStatus, setWeatherStatus] = useState<string | null>(null)
 
-  const { photos, addPhotos, applyCurrentLocation, removePhoto, updateCoordinate, clearPhotos } =
-    usePhotoEntries(setError)
+  const {
+    photos,
+    addPhotos,
+    applyCurrentLocation,
+    removePhoto,
+    updateCoordinate,
+    clearPhotos,
+    pendingLocation,
+    setPendingLocation,
+  } = usePhotoEntries(setError)
 
   // 入力途中のテキスト欄をlocalStorageへ一時保持する（roadmap.md Phase1タスク(G)）。
   // 写真ファイルは対象外（EXIF再読み込みで足りるため、持たせるとかえって複雑になる）。
@@ -144,14 +152,14 @@ export function LocationRecordForm({
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
-      <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-display font-semibold text-sm flex items-center justify-between">
+      <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-body font-semibold text-sm flex items-center justify-between">
         見えたものを、そのまま
         <span className="text-xs text-nami-dim font-normal">この地点に紐づけて保存されます</span>
       </summary>
 
       {saved ? (
         <div className="p-4 space-y-3 border-t border-line bg-sumi-2">
-          <p className="font-display font-semibold">記録しました</p>
+          <p className="font-body font-semibold">記録しました</p>
           <p className="text-sm text-nami-dim">今日のここでの一日が、原本に一行増えました。</p>
           {weatherStatus && <p className="text-nami-dim text-sm">{weatherStatus}</p>}
           <div className="flex gap-3 items-center">
@@ -187,6 +195,8 @@ export function LocationRecordForm({
           onRemove={removePhoto}
           onCoordinateChange={updateCoordinate}
           onUseCurrentLocation={applyCurrentLocation}
+          pendingLocation={pendingLocation}
+          onSetPendingLocation={setPendingLocation}
         />
 
         <label className="block text-sm">
@@ -242,7 +252,7 @@ export function LocationRecordForm({
         <button
           type="submit"
           disabled={submitting || convertingPhotos}
-          className="w-full bg-hi hover:bg-hi-bright text-nami rounded-full px-4 py-3 text-base font-display font-semibold disabled:opacity-50 transition-colors"
+          className="w-full bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-3 text-base font-body font-semibold disabled:opacity-50 transition-colors"
         >
           {submitting
             ? '書きとめています...'
