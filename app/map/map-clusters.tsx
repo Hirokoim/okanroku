@@ -37,10 +37,13 @@ function isPlaced(cluster: ClusterSummary): cluster is PlacedCluster {
 export function ClusterLayer({
   clusters,
   visibleStatuses,
+  onSelect,
 }: {
   clusters: ClusterSummary[]
   /** 表示する状態。省略すると全部出す */
   visibleStatuses?: ReadonlySet<ClusterStatus>
+  /** 吹き出しの「ここへ行く」を押したとき（行き先の確認画面へ進む） */
+  onSelect: (cluster: ClusterSummary) => void
 }) {
   const placed = clusters.filter(isPlaced)
   // 経路線は絞り込みの影響を受けない。往還の順序を示す背景であり、
@@ -77,7 +80,7 @@ export function ClusterLayer({
             }}
           >
             <Popup>
-              <ClusterPopupBody cluster={c} />
+              <ClusterPopupBody cluster={c} onGo={() => onSelect(c)} />
             </Popup>
           </CircleMarker>
         )

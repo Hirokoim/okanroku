@@ -1,10 +1,7 @@
-// 地図の上に並ぶ操作バー（シリーズ絞り込み・表示切替・件数表示）。
+// 地図の上に並ぶ操作バー（表示切替・件数表示）。
 // 状態は持たず、押されたことを map-view.tsx へ伝えるだけ。
 
 import { MAP_THEME } from './map-theme'
-import type { SeriesFilter } from './map-types'
-
-const FILTERS: SeriesFilter[] = ['all', '正景', '裏富士']
 
 // 選択中／未選択で色が入れ替わる丸ボタン。同じ配色の指定が3か所に
 // コピーされていたのでここに1つだけ置く。
@@ -47,8 +44,6 @@ function Divider() {
 }
 
 export function MapToolbar({
-  filter,
-  onFilterChange,
   showFuji,
   onToggleFuji,
   showVisit,
@@ -56,8 +51,6 @@ export function MapToolbar({
   shownCount,
   visitedCount,
 }: {
-  filter: SeriesFilter
-  onFilterChange: (filter: SeriesFilter) => void
   showFuji: boolean
   onToggleFuji: () => void
   showVisit: boolean
@@ -73,13 +66,6 @@ export function MapToolbar({
       <span className="text-sm mr-2" style={{ color: MAP_THEME.panel.title, letterSpacing: '0.1em' }}>
         富嶽三十六景 訪問地図
       </span>
-
-      <Divider />
-      {FILTERS.map((f) => (
-        <PillButton key={f} active={filter === f} onClick={() => onFilterChange(f)}>
-          {f === 'all' ? '全景' : f}
-        </PillButton>
-      ))}
 
       <Divider />
       <PillButton active={showFuji} onClick={onToggleFuji}>

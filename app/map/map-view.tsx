@@ -33,7 +33,7 @@ import { LocateButton, MapLegend, MapSearch } from './map-overlays'
 import { FujiPopupBody, LocationPopupBody, VisitPopupBody } from './map-popups'
 import { CurrentPositionLayer } from './map-current-position'
 import { useCurrentPosition } from './use-current-position'
-import type { LocationPin, SeriesFilter, VisitPoint } from './map-types'
+import type { LocationPin, VisitPoint } from './map-types'
 
 const FUJI: [number, number] = [35.3606, 138.7274]
 const INITIAL_CENTER: [number, number] = [35.4, 138.9]
@@ -117,7 +117,6 @@ export function MapView({
   /** ダッシュボードのクラスタ一覧から「ここへ行く」で来たときの絞り込み初期値 */
   initialCluster: string | null
 }) {
-  const [filter, setFilter] = useState<SeriesFilter>('all')
   const [showFuji, setShowFuji] = useState(false)
   const [showVisit, setShowVisit] = useState(false)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
@@ -149,16 +148,10 @@ export function MapView({
     [locations]
   )
 
-  const filtered = useMemo(
-    () => (filter === 'all' ? placed : placed.filter((l) => l.series === filter)),
-    [placed, filter]
-  )
-
-  // クラスタ絞り込みは種類（正景/裏富士）の絞り込みとは独立に重ねてかける。
-  // 「このクラスタのこの種類だけ見たい」も成立するため。
+  // 正景／裏富士の絞り込みUIは一旦外した（データ上のseries列は残してある）。
   const displayed = useMemo(
-    () => (clusterFilter ? filtered.filter((l) => l.cluster === clusterFilter).sort(byRouteOrder) : filtered),
-    [filtered, clusterFilter]
+    () => (clusterFilter ? placed.filter((l) => l.cluster === clusterFilter).sort(byRouteOrder) : placed),
+    [placed, clusterFilter]
   )
 
   const fitPoints = useMemo(
@@ -204,8 +197,6 @@ export function MapView({
       style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}
     >
       <MapToolbar
-        filter={filter}
-        onFilterChange={setFilter}
         showFuji={showFuji}
         onToggleFuji={() => setShowFuji((v) => !v)}
         showVisit={showVisit}

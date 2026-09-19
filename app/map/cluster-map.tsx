@@ -31,7 +31,14 @@ const STATUS_LABEL: { status: ClusterStatus; label: string }[] = [
   { status: 'complete', label: '制覇' },
 ]
 
-export function ClusterMap({ clusters }: { clusters: ClusterSummary[] }) {
+export function ClusterMap({
+  clusters,
+  onSelectCluster,
+}: {
+  clusters: ClusterSummary[]
+  /** 円をタップしたとき。確認画面は地図の外（呼び出し側）で出す */
+  onSelectCluster: (cluster: ClusterSummary) => void
+}) {
   const visited = clusters.reduce((sum, c) => sum + c.visited, 0)
   const total = clusters.reduce((sum, c) => sum + c.total, 0)
 
@@ -93,13 +100,13 @@ export function ClusterMap({ clusters }: { clusters: ClusterSummary[] }) {
           center={INITIAL_CENTER}
           zoom={INITIAL_ZOOM}
           scrollWheelZoom={false}
-          style={{ height: '55dvh', width: '100%' }}
+          style={{ height: '70dvh', width: '100%' }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
-          <ClusterLayer clusters={clusters} visibleStatuses={visibleStatuses} />
+          <ClusterLayer clusters={clusters} visibleStatuses={visibleStatuses} onSelect={onSelectCluster} />
         </MapContainer>
 
         <ClusterLegend />

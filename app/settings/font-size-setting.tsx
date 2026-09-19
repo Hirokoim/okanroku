@@ -25,6 +25,7 @@ export function FontSizeSetting() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved === 'large' || saved === 'xlarge' || saved === 'standard') setScale(saved)
     } catch {
       // プライベートブラウジング等でlocalStorageが使えない場合は標準のまま
@@ -33,7 +34,7 @@ export function FontSizeSetting() {
 
   function handleChange(value: Scale) {
     setScale(value)
-    document.documentElement.dataset.fontScale = value
+    document.documentElement.setAttribute('data-font-scale', value)
     try {
       localStorage.setItem(STORAGE_KEY, value)
     } catch {

@@ -95,7 +95,14 @@ export function FujiPopupBody() {
 }
 
 /** 開拓マップのクラスタ円用 */
-export function ClusterPopupBody({ cluster }: { cluster: ClusterSummary }) {
+export function ClusterPopupBody({
+  cluster,
+  onGo,
+}: {
+  cluster: ClusterSummary
+  /** 「ここへ行く」を押したとき（確認画面へ進む） */
+  onGo: () => void
+}) {
   const complete = cluster.total > 0 && cluster.visited >= cluster.total
 
   return (
@@ -131,6 +138,15 @@ export function ClusterPopupBody({ cluster }: { cluster: ClusterSummary }) {
           </li>
         ))}
       </ul>
+
+      <button
+        type="button"
+        onClick={onGo}
+        className="w-full mt-3 rounded-full py-1.5 text-xs font-semibold"
+        style={{ background: MAP_THEME.popup.link, color: '#fff' }}
+      >
+        ここへ行く
+      </button>
     </div>
   )
 }

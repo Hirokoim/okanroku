@@ -35,6 +35,3 @@ export type VisitPoint = {
    */
   unsupportedFormat: boolean
 }
-
-/** ツールバーのシリーズ絞り込み。'all'は絞り込みなし */
-export type SeriesFilter = 'all' | '正景' | '裏富士'

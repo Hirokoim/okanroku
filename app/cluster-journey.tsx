@@ -8,9 +8,46 @@
 // 状態そのものはここでは持たない。cluster-list.tsxが「今どのクラスタを、
 // どの段階で選んでいるか」を持ち、このコンポーネントは受け取って描くだけ。
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { ClusterSummary } from '@/lib/clusters'
 
 export type JourneyPhase = 'transition' | 'confirm'
+
+// トランジション（フラッシュ演出）を見せておく最短時間。
+// クリックした瞬間に確認シートへ飛ぶと演出が一瞬で終わり効果が出ないため、
+// 短い時間だけ強制的に待たせる（UXプロトタイプの遷移画面と同じ考え方）。
+const TRANSITION_MS = 650
+
+/** クラスタ一覧・開拓マップの両方から使う「選ぶ→演出→確認→地図へ」の流れ */
+export function useClusterJourney() {
+  const router = useRouter()
+  const [selected, setSelected] = useState<ClusterSummary | null>(null)
+  const [phase, setPhase] = useState<JourneyPhase | null>(null)
+
+  function start(c: ClusterSummary) {
+    setSelected(c)
+    setPhase('transition')
+    window.setTimeout(() => setPhase('confirm'), TRANSITION_MS)
+  }
+
+  function cancel() {
+    setSelected(null)
+    setPhase(null)
+  }
+
+  function confirm() {
+    if (!selected) return
+    router.push(`/map?cluster=${encodeURIComponent(selected.name)}`)
+  }
+
+  const overlay =
+    selected && phase ? (
+      <ClusterJourneyOverlay cluster={selected} phase={phase} onCancel={cancel} onConfirm={confirm} />
+    ) : null
+
+  return { start, overlay }
+}
 
 export function ClusterJourneyOverlay({
   cluster,
