@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
 import { createPhotoUrls } from '@/lib/storage'
-import { MapPanel } from './map-panel'
+import { MapScreen } from './map-screen'
 import type { LocationPin, VisitPoint } from './map-types'
 
 // record_photos を、地点名まで一緒に引いたときの行の形。
@@ -90,7 +90,7 @@ export default async function MapPage({
       <h1 className="text-xl font-body font-semibold">地図</h1>
 
       {user ? (
-        <MapPanel
+        <MapScreen
           locations={asRows<LocationPin>(locations)}
           visitedLocationIds={[...visitedLocationIds]}
           visitPoints={visitPoints}
