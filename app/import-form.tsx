@@ -243,7 +243,7 @@ export function ImportForm({
         </div>
       )}
 
-      {error && <p className="text-hi-bright text-sm">{error}</p>}
+      {error && <p className="text-hi-bright text-sm"><span aria-hidden="true">⚠ </span>{error}</p>}
 
       <button
         type="button"

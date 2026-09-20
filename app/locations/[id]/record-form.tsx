@@ -247,7 +247,7 @@ export function LocationRecordForm({
           天気は保存後に自動で取得されます。取得できなくても保存は失敗しません。
         </p>
 
-        {error && <p className="text-hi-bright text-sm">{error}</p>}
+        {error && <p className="text-hi-bright text-sm"><span aria-hidden="true">⚠ </span>{error}</p>}
 
         <button
           type="submit"

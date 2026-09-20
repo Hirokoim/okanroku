@@ -13,7 +13,7 @@ export function numberIcon(number: number, visited: boolean, size: number) {
   const fontSize = Math.max(8, Math.round(size * 0.4))
   const badgeSize = Math.max(10, Math.round(size * 0.42))
   const check = visited
-    ? `<div style="position:absolute;top:-2px;right:-2px;width:${badgeSize}px;height:${badgeSize}px;border-radius:50%;background:${MAP_THEME.panel.bg};border:1.5px solid ${c.bg};color:${c.bg};font-size:${Math.round(badgeSize * 0.7)}px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:bold">✓</div>`
+    ? `<div style="position:absolute;top:-2px;right:-2px;width:${badgeSize}px;height:${badgeSize}px;border-radius:50%;background:#fff;border:1.5px solid ${c.bg};color:${c.bg};font-size:${Math.round(badgeSize * 0.7)}px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:bold">✓</div>`
     : ''
   return L.divIcon({
     className: '',

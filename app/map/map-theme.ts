@@ -36,8 +36,8 @@ export const MAP_THEME = {
     link: '#8a4a00',
     seriesBg: '#3a2a60',
     seriesText: '#a090e0',
-    visitedBg: '#2a4a20',
-    visitedText: '#6aaa40',
+    visitedBg: '#1f7a55',
+    visitedText: '#ffffff',
     unvisitedBg: '#3a2a10',
     unvisitedText: '#8a6a30',
   },
@@ -53,7 +53,8 @@ export const MAP_THEME = {
 
   // マーカー
   marker: {
-    visited: { bg: '#6aaa40', border: '#2a5a10', text: '#fff' },
+    // 訪問済みは暗い青みの緑。明るい黄緑は金（未訪問）と似て見えるため（東京都CUDガイドライン）
+    visited: { bg: '#1f7a55', border: '#0f3d2a', text: '#fff' },
     unvisited: { bg: '#e8c87a', border: '#8a4a00', text: '#3a1a00' },
     visit: { bg: '#3a8ac8', border: '#1a4a70' },
     fuji: { body: '#2a1a06', snow: '#e8c87a' },
