@@ -1,0 +1,33 @@
+name: CI
+
+# main への push と、すべてのプルリクエストで実行する。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Next.js 16 の要件は Node 20.9 以上。22 は LTS。
+          node-version: 22
+          cache: npm
+
+      # package-lock.json のとおりに厳密にインストールする（npm install ではない）。
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      # 本番ビルドが通ることまで確認する。全ルートが動的描画で、ビルド時には
+      # Supabase へ接続しないため、実際の接続情報は不要でダミー値で足りる。
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-build
