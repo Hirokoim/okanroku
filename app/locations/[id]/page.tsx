@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { asRow } from '@/lib/supabase/rows'
 import { accessibilityLabel, confidenceLabel } from '@/lib/labels'
 import { createPhotoUrls } from '@/lib/storage'
-import { LocationRecords, type LocationRecord, type RecordPhoto } from './location-records'
+import { LocationRecords } from './location-records'
+import type { LocationRecord, RecordPhoto } from './record-types'
 import { LocationRecordForm } from './record-form'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
@@ -86,8 +87,17 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
     photosByRecordId.set(row.record_id, photos)
   }
 
+  // 取得した列を明示して詰め替える。スプレッドで丸ごと写すと、selectの列を
+  // 変えたときに型とのズレが黙って通ってしまうため。
   const recordsWithPhotos: LocationRecord[] = (records ?? []).map((r) => ({
-    ...r,
+    id: r.id,
+    photographed_at: r.photographed_at,
+    created_at: r.created_at,
+    edit_intent: r.edit_intent,
+    voice_transcript: r.voice_transcript,
+    access_note: r.access_note,
+    is_public: r.is_public,
+    weather: r.weather,
     photos: photosByRecordId.get(r.id) ?? [],
   }))
 

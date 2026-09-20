@@ -7,6 +7,9 @@
 
 const LOCALE = 'ja-JP'
 
+/** 月日・時分を2桁に揃える（9 → "09"）。 */
+const pad = (n: number) => String(n).padStart(2, '0')
+
 function parse(value: string | null | undefined): Date | null {
   if (!value) return null
   const d = new Date(value)
@@ -32,6 +35,18 @@ export function formatDateTime(value: string | null | undefined): string {
 export function dateKey(value: string | null | undefined): string | null {
   const d = parse(value)
   if (!d) return null
-  const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * ISO文字列を <input type="datetime-local"> に渡せる 'YYYY-MM-DDTHH:mm' へ変換する。
+ * datetime-localはタイムゾーンを持たないため、必ずDateのローカルgetterで組み立てる
+ * （dateKeyと同じ理由。ISO文字列のsliceではJSTの深夜0時台が前日にずれる）。
+ *
+ * 記録の新規作成・編集・一括取込で同じ変換が必要なため、ここに集約している。
+ */
+export function isoToLocalInput(iso: string | null): string {
+  const d = parse(iso)
+  if (!d) return ''
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }

@@ -10,18 +10,11 @@ import { uploadPhoto } from '@/lib/storage'
 import { readExif } from '@/lib/exif'
 import { toDisplayableImage } from '@/lib/heic'
 import { weatherCodeIcon, weatherLabelToCode, WEATHER_LABELS } from '@/lib/weather'
+import { isoToLocalInput } from '@/lib/format'
 import { LocationSearchField } from '../../location-search-field'
-import type { LocationRecord } from './location-records'
+import type { LocationRecord } from './record-types'
 
 const MAX_PHOTOS = 5
-
-function isoToLocalInput(iso: string | null): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
 
 export function EditRecordForm({
   record,

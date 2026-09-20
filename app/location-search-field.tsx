@@ -27,7 +27,7 @@ export function LocationSearchField({
     if (q.length < MIN_QUERY_LENGTH) {
       // 短すぎる入力（1文字だけ等）で前回の検索結果を出しっぱなしにしないための
       // 同期的なクリア。record-form.tsxのlocalStorage読み込みと同じ理由で抑止する。
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 短すぎる入力で前回の結果を残さないための同期的なクリア
       setResults([])
       setError(null)
       return

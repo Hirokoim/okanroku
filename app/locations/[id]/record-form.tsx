@@ -11,10 +11,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { uploadPhoto } from '@/lib/storage'
 import { fetchAndApplyWeather } from '@/lib/weather'
 import { PhotoPicker } from '../../photos/photo-picker'
 import { MAX_PHOTOS, usePhotoEntries } from '../../photos/use-photo-entries'
+import { saveRecordPhotos } from '../../photos/save-record-photos'
 import { clearDraft, emptyDraft, loadDraft, saveDraft, type RecordDraft } from './record-draft'
 
 export function LocationRecordForm({
@@ -58,7 +58,7 @@ export function LocationRecordForm({
     const restored = loadDraft(locationId)
     // マウント後に一度だけ外部（localStorage）から読み込む、想定通りの使い方だが、
     // react-hooks/set-state-in-effectはeffect内の直接setStateを一律に警告するため抑止する。
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration後に一度だけlocalStorageの下書きを読む想定通りの用法
     setDraft(restored)
     setDraftReady(true)
     // 下書きが残っていたことに気づけるよう、その場合だけ開いておく
@@ -107,20 +107,7 @@ export function LocationRecordForm({
 
       if (insertError) throw insertError
 
-      for (let i = 0; i < photos.length; i++) {
-        const photo = photos[i]
-        const storagePath = await uploadPhoto(photo.file, userId)
-        const { error: photoError } = await supabase.from('record_photos').insert({
-          record_id: record.id,
-          storage_path: storagePath,
-          latitude: photo.latitude ? Number(photo.latitude) : null,
-          longitude: photo.longitude ? Number(photo.longitude) : null,
-          // datetime-localはタイムゾーン情報を持たないため、端末のローカル時刻として解釈する
-          taken_at: photo.takenAt ? new Date(photo.takenAt).toISOString() : null,
-          sort_order: i,
-        })
-        if (photoError) throw photoError
-      }
+      await saveRecordPhotos(supabase, record.id, userId, photos)
 
       const weatherPhoto = photos.find((p) => p.latitude && p.longitude)
       const datetime = photographedAtRaw ? new Date(photographedAtRaw).toISOString() : new Date().toISOString()
