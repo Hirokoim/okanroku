@@ -69,7 +69,7 @@ export function LocationSearchField({
       />
 
       {loading && <p className="text-xs text-nami-dim mt-1">検索中...</p>}
-      {error && <p className="text-xs text-hi-bright mt-1">{error}</p>}
+      {error && <p className="text-xs text-hi-bright mt-1"><span aria-hidden="true">⚠ </span>{error}</p>}
 
       {results.length > 0 && (
         <ul className="mt-1 border border-line rounded-lg overflow-hidden divide-y divide-line">

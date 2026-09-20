@@ -296,7 +296,7 @@ export function EditRecordForm({
             <select
               name="weather_override"
               defaultValue=""
-              className="border border-line rounded p-1.5 text-sm flex-1 bg-sumi-2 text-nami"
+              className="border border-line rounded p-1.5 text-sm flex-1 min-w-0 bg-sumi-2 text-nami"
             >
               <option value="">変更しない（自動取得のまま）</option>
               {WEATHER_LABELS.map((label) => (
@@ -312,7 +312,7 @@ export function EditRecordForm({
               placeholder="気温（℃・任意）"
               aria-label="気温（℃・任意）"
               defaultValue={record.weather?.temperature ?? ''}
-              className="border border-line rounded p-1.5 text-sm w-32 bg-sumi-2 text-nami placeholder:text-nami-dim"
+              className="border border-line rounded p-1.5 text-sm w-28 shrink-0 bg-sumi-2 text-nami placeholder:text-nami-dim"
             />
           </div>
         </label>
@@ -399,10 +399,10 @@ export function EditRecordForm({
             />
           </label>
         )}
-        {photoError && <p className="text-hi-bright text-xs">{photoError}</p>}
+        {photoError && <p className="text-hi-bright text-xs"><span aria-hidden="true">⚠ </span>{photoError}</p>}
       </div>
 
-      {error && <p className="text-hi-bright text-sm">{error}</p>}
+      {error && <p className="text-hi-bright text-sm"><span aria-hidden="true">⚠ </span>{error}</p>}
 
       <div className="pt-1 space-y-3">
         <div className="flex gap-2">
