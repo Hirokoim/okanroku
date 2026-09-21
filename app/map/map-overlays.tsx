@@ -93,7 +93,7 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
       const barRect = zoomBar.getBoundingClientRect()
       // マウント後に一度だけ、外部（実際のDOM寸法）を読んで反映する、想定通りの
       // 使い方。record-form.tsxのlocalStorage読み込みと同じ理由で抑止する。
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント後に一度だけ実際のDOM寸法を読んで反映する想定通りの用法
       setRect({
         top: barRect.bottom - containerRect.top + GAP_BELOW_ZOOM,
         left: barRect.left - containerRect.left,

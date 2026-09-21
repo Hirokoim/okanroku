@@ -84,7 +84,7 @@ function FitToPoints({ points }: { points: [number, number][] }) {
     safelyMoveMap(() => map.flyToBounds(L.latLngBounds(points), { padding: [36, 36], duration: 0.6 }))
     // pointsは絞り込みが変わるたびに作り直される配列のため、内容ではなく
     // 「配列そのものの入れ替わり」を検知したい。JSON化して依存に使う。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 配列の中身ではなく入れ替わりを検知したいためJSON化した値を依存に使う
   }, [JSON.stringify(points), map])
   return null
 }

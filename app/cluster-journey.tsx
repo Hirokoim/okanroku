@@ -49,7 +49,8 @@ export function useClusterJourney() {
   return { start, overlay }
 }
 
-export function ClusterJourneyOverlay({
+// useClusterJourneyが自分で組み立てて返すため、外から直接使うことはない。
+function ClusterJourneyOverlay({
   cluster,
   phase,
   onCancel,

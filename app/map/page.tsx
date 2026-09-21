@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
 import { createPhotoUrls } from '@/lib/storage'
+import { fetchVisitedLocationIds } from '@/lib/visited-locations'
 import { MapScreen } from './map-screen'
 import type { LocationPin, VisitPoint } from './map-types'
 
@@ -42,12 +43,7 @@ export default async function MapPage({
         .order('number')
     : { data: null }
 
-  // 「訪問済み」＝自分の記録がその地点(location_id)に紐づいているかどうか。
-  // locationsは全ユーザー共有だが、訪問したかどうかは自分の記録からしか分からない。
-  const { data: myRecords } = user
-    ? await supabase.from('records').select('location_id').not('location_id', 'is', null)
-    : { data: null }
-  const visitedLocationIds = new Set((myRecords ?? []).map((r) => r.location_id as string))
+  const visitedLocationIds = await fetchVisitedLocationIds(supabase, Boolean(user))
 
   // 実際に撮影した座標（record_photos）。地点の比定地とは別に、
   // 「訪問地点を表示」トグルで重ねて出す。

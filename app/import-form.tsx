@@ -7,11 +7,11 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { uploadPhoto } from '@/lib/storage'
 import { fetchAndApplyWeather } from '@/lib/weather'
 import { findNearestLocations, type MatchableLocation } from '@/lib/location-match'
 import { PhotoPicker } from './photos/photo-picker'
 import { MAX_IMPORT_PHOTOS, usePhotoEntries, type PhotoEntry } from './photos/use-photo-entries'
+import { saveRecordPhotos } from './photos/save-record-photos'
 
 // 「地点未設定」のグループを表す。locationsのidはuuidなので衝突しない。
 const UNSET = '__unset__'
@@ -113,19 +113,7 @@ export function ImportForm({
 
           if (insertError) throw insertError
 
-          for (let i = 0; i < groupPhotos.length; i++) {
-            const photo = groupPhotos[i]
-            const storagePath = await uploadPhoto(photo.file, userId)
-            const { error: photoError } = await supabase.from('record_photos').insert({
-              record_id: record.id,
-              storage_path: storagePath,
-              latitude: photo.latitude ? Number(photo.latitude) : null,
-              longitude: photo.longitude ? Number(photo.longitude) : null,
-              taken_at: photo.takenAt ? new Date(photo.takenAt).toISOString() : null,
-              sort_order: i,
-            })
-            if (photoError) throw photoError
-          }
+          await saveRecordPhotos(supabase, record.id, userId, groupPhotos)
 
           const weatherPhoto = groupPhotos.find((p) => p.latitude && p.longitude)
           const datetime = earliest ? new Date(earliest).toISOString() : new Date().toISOString()

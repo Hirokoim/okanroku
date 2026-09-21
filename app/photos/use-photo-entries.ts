@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react'
 import { newId } from '@/lib/id'
 import { readExif } from '@/lib/exif'
 import { toDisplayableImage } from '@/lib/heic'
+import { isoToLocalInput } from '@/lib/format'
 
 // 地点詳細の記録フォーム（1地点ぶん）での上限。
 export const MAX_PHOTOS = 5
@@ -32,14 +33,6 @@ export type PhotoEntry = {
   // HEIC→JPEG変換の完了待ち。trueの間はfile/previewUrlがまだHEICのままで、
   // ブラウザによってはプレビューが壊れた画像に見えるため、見た目側で隠す。
   convertingHeic: boolean
-}
-
-function isoToLocalInput(iso: string | null): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function newPhotoEntry(file: File, defaultLocation: { latitude: number; longitude: number } | null): PhotoEntry {

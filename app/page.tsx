@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
 import { buildClusterSummaries, type ClusterLocation } from '@/lib/clusters'
+import { fetchVisitedLocationIds } from '@/lib/visited-locations'
 import { ClusterList } from './cluster-list'
 import { ClusterMapPanel } from './map/cluster-map-panel'
 import { DashboardHome } from './dashboard-home'
@@ -21,10 +22,7 @@ export default async function Home() {
     ? await supabase.from('locations').select('id, number, title_jp, cluster, route_order, latitude, longitude')
     : { data: null }
 
-  const { data: myRecords } = user
-    ? await supabase.from('records').select('location_id').not('location_id', 'is', null)
-    : { data: null }
-  const visitedLocationIds = new Set((myRecords ?? []).map((r) => r.location_id as string))
+  const visitedLocationIds = await fetchVisitedLocationIds(supabase, Boolean(user))
 
   const locationRows = asRows<ClusterLocation>(locations)
   const clusterSummaries = buildClusterSummaries(locationRows, visitedLocationIds)
