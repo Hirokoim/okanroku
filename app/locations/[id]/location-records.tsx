@@ -7,6 +7,7 @@
 import { useState } from 'react'
 import { formatDate } from '@/lib/format'
 import { weatherCodeIcon } from '@/lib/weather'
+import { downloadTextFile, locationRecordsToMarkdown } from '@/lib/export'
 import { EditRecordForm } from './edit-record-form'
 import type { LocationRecord, RecordPhoto } from './record-types'
 
@@ -77,16 +78,39 @@ function RecordItem({ record: r, userId }: { record: LocationRecord; userId: str
   )
 }
 
-export function LocationRecords({ records, userId }: { records: LocationRecord[]; userId: string }) {
+export function LocationRecords({
+  records,
+  userId,
+  locationTitle,
+}: {
+  records: LocationRecord[]
+  userId: string
+  locationTitle: string
+}) {
   if (records.length === 0) {
     return <p className="text-nami-dim text-sm">まだこの地点の記録がありません。</p>
   }
 
+  function handleDownloadMarkdown() {
+    // note下書きの土台として使う想定（機能④）。ファイル名に地点名をそのまま使うと
+    // OS側で使えない記号（/など）を含む地点名があり得るため、日本語はそのまま許容しつつ
+    // ファイルシステムで問題になりやすい記号だけ置換する。
+    const safeTitle = locationTitle.replace(/[\\/:*?"<>|]/g, '_')
+    downloadTextFile(`${safeTitle}.md`, locationRecordsToMarkdown(locationTitle, records), 'text/markdown')
+  }
+
   return (
-    <ul className="space-y-3">
-      {records.map((r) => (
-        <RecordItem key={r.id} record={r} userId={userId} />
-      ))}
-    </ul>
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <button type="button" onClick={handleDownloadMarkdown} className="text-xs text-kin underline">
+          この地点の記録をMarkdownで書き出す
+        </button>
+      </div>
+      <ul className="space-y-3">
+        {records.map((r) => (
+          <RecordItem key={r.id} record={r} userId={userId} />
+        ))}
+      </ul>
+    </div>
   )
 }
