@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react'
 import { RecordList, type RecordRow } from '../record-list'
 import { RecordCalendar } from './record-calendar'
 import { dateKey } from '@/lib/format'
+import { downloadTextFile, recordsToCsv } from '@/lib/export'
 
 function effectiveDateKey(r: RecordRow): string | null {
   // 「その日に記録したか」を見たいので、保存日時（created_at）ではなく
@@ -46,8 +47,22 @@ export function RecordsView({ records }: { records: RecordRow[] }) {
     setCursor((c) => (c.month === 11 ? { year: c.year + 1, month: 0 } : { year: c.year, month: c.month + 1 }))
   }
 
+  function handleDownloadCsv() {
+    // フィルタ中でも「全記録」をエクスポートする（機能④）ため、
+    // selectedDateで絞り込んだfilteredではなくrecordsをそのまま使う。
+    downloadTextFile(`okanroku-records-${dateKey(new Date().toISOString())}.csv`, recordsToCsv(records), 'text/csv', true)
+  }
+
   return (
     <div className="space-y-4">
+      {records.length > 0 && (
+        <div className="flex justify-end">
+          <button type="button" onClick={handleDownloadCsv} className="text-xs text-kin underline">
+            全記録をCSVでダウンロード
+          </button>
+        </div>
+      )}
+
       <RecordCalendar
         year={cursor.year}
         month={cursor.month}
