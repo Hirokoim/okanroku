@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { fetchAndApplyWeather } from '@/lib/weather'
+import { datePeriodToIso, TIME_PERIOD_OPTIONS } from '@/lib/time-period'
 import { PhotoPicker } from '../../photos/photo-picker'
 import { MAX_PHOTOS, usePhotoEntries } from '../../photos/use-photo-entries'
 import { saveRecordPhotos } from '../../photos/save-record-photos'
@@ -83,7 +84,10 @@ export function LocationRecordForm({
     setWeatherStatus(null)
 
     const form = e.currentTarget
-    const photographedAtRaw = draft.photographed_at
+    const photographedAt =
+      draft.photographed_date && draft.time_period
+        ? datePeriodToIso(draft.photographed_date, draft.time_period)
+        : null
     const supabase = createClient()
 
     try {
@@ -95,8 +99,7 @@ export function LocationRecordForm({
           location_id: locationId,
           // location_id が設定されているため location_name/work_label は使わない（5-E⑦）
           location_name: '',
-          // datetime-localはタイムゾーン情報を持たないため、端末のローカル時刻として解釈して保存する
-          photographed_at: photographedAtRaw ? new Date(photographedAtRaw).toISOString() : null,
+          photographed_at: photographedAt,
           access_note: draft.access_note || null,
           voice_transcript: draft.voice_transcript || null,
           edit_intent: draft.edit_intent || null,
@@ -110,7 +113,7 @@ export function LocationRecordForm({
       await saveRecordPhotos(supabase, record.id, userId, photos)
 
       const weatherPhoto = photos.find((p) => p.latitude && p.longitude)
-      const datetime = photographedAtRaw ? new Date(photographedAtRaw).toISOString() : new Date().toISOString()
+      const datetime = photographedAt ?? new Date().toISOString()
       setWeatherStatus(
         await fetchAndApplyWeather(
           supabase,
@@ -164,16 +167,34 @@ export function LocationRecordForm({
         </div>
       ) : (
       <form onSubmit={handleSubmit} className="p-4 space-y-4 border-t border-line bg-sumi-2">
-        <label className="block text-sm">
-          訪問日時
-          <input
-            name="photographed_at"
-            type="datetime-local"
-            value={draft.photographed_at}
-            onChange={(e) => setDraft((d) => ({ ...d, photographed_at: e.target.value }))}
-            className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-          />
-        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm">
+            訪問日
+            <input
+              name="photographed_date"
+              type="date"
+              value={draft.photographed_date}
+              onChange={(e) => setDraft((d) => ({ ...d, photographed_date: e.target.value }))}
+              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+            />
+          </label>
+          <label className="block text-sm">
+            時間帯
+            <select
+              name="time_period"
+              value={draft.time_period}
+              onChange={(e) => setDraft((d) => ({ ...d, time_period: e.target.value as typeof d.time_period }))}
+              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+            >
+              <option value="">選択なし</option>
+              {TIME_PERIOD_OPTIONS.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <PhotoPicker
           photos={photos}

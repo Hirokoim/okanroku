@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { formatDateTime } from '@/lib/format'
+import { formatDateWithPeriod } from '@/lib/format'
 
 export type RecordRow = {
   id: string
@@ -32,7 +32,7 @@ export function RecordList({ records }: { records: RecordRow[] }) {
                 {r.work_label ? ` ／ ${r.work_label}` : ''}
               </div>
               <div className="text-nami-dim text-xs mt-1">
-                {formatDateTime(r.photographed_at ?? r.created_at)}
+                {formatDateWithPeriod(r.photographed_at ?? r.created_at)}
               </div>
             </>
           )

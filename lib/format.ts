@@ -2,8 +2,10 @@
 // 以前は new Date(...).toLocaleDateString('ja-JP') が3か所、
 // toLocaleString('ja-JP') が1か所に直接書かれていた。
 //
-// 表示のばらつき（日付だけ／日付＋時刻）は現状のまま保っている。
-// 全画面を揃えたくなったときは、この2つの関数の中身を直せばよい。
+// 表示のばらつき（日付だけ／日付＋時間帯）は現状のまま保っている。
+// 全画面を揃えたくなったときは、formatDate・formatDateWithPeriodの中身を直せばよい。
+
+import { timePeriodFromDatetime, timePeriodLabel } from './time-period'
 
 const LOCALE = 'ja-JP'
 
@@ -22,9 +24,16 @@ export function formatDate(value: string | null | undefined): string {
   return parse(value)?.toLocaleDateString(LOCALE) ?? ''
 }
 
-/** 「2026/9/4 14:30:00」 */
-export function formatDateTime(value: string | null | undefined): string {
-  return parse(value)?.toLocaleString(LOCALE) ?? ''
+/**
+ * 「2026/9/4 午後」。保存されている時刻は時間帯ラベルの代表時刻でしかないため、
+ * 分単位の時刻（14:00など）をそのまま見せると実際より精密であるかのように誤解させる。
+ * 一覧・CSVエクスポートなど、ユーザーが選んだ時間帯を見せたい場面ではこちらを使う。
+ */
+export function formatDateWithPeriod(value: string | null | undefined): string {
+  const date = formatDate(value)
+  if (!date) return ''
+  const period = timePeriodLabel(timePeriodFromDatetime(value ?? null))
+  return period ? `${date} ${period}` : date
 }
 
 /**

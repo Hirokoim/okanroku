@@ -56,7 +56,9 @@ async function fetchHourlyWeather(latitude: number, longitude: number, datetime:
   let closestDiff = Infinity
   const target = datetime.getTime()
   times.forEach((t, i) => {
-    const diff = Math.abs(new Date(t).getTime() - target)
+    // hourly.timeはtimezone=UTC指定でも'Z'なしで返るため、付与しないとローカルタイムとして誤解釈される
+    const utcString = t.endsWith('Z') ? t : `${t}Z`
+    const diff = Math.abs(new Date(utcString).getTime() - target)
     if (diff < closestDiff) {
       closestDiff = diff
       closestIndex = i

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const FETCH_TIMEOUT_MS = 5000
 const MAX_RESULTS = 5
+const MAX_QUERY_LENGTH = 100
 const USER_AGENT = 'okanroku-app/1.0 (travel record app; https://github.com/Hirokoim/okanroku)'
 
 export type GeocodeResult = {
@@ -20,7 +21,7 @@ export type GeocodeResult = {
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q')?.trim()
-  if (!q) {
+  if (!q || q.length > MAX_QUERY_LENGTH) {
     return NextResponse.json({ error: 'invalid input' }, { status: 400 })
   }
 
@@ -30,7 +31,11 @@ export async function GET(request: NextRequest) {
     const res = await fetch(url, {
       headers: { 'User-Agent': USER_AGENT },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      // Nominatim負荷軽減のため、同一クエリを24時間キャッシュ（必要に応じて調整）
+      cache: 'force-cache',
+      next: { revalidate: 86400 },
     })
+
     if (!res.ok) throw new Error(`geocode api responded ${res.status}`)
     const data = await res.json()
 
@@ -43,7 +48,8 @@ export async function GET(request: NextRequest) {
       .filter((r) => r.label && Number.isFinite(r.latitude) && Number.isFinite(r.longitude))
 
     return NextResponse.json({ results })
-  } catch {
+  } catch (error) {
+    console.error('[Geocode API Error]:', error)
     return NextResponse.json({ error: 'geocode fetch failed' }, { status: 502 })
   }
 }
