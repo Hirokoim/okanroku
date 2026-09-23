@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # GitHub Actionsのバージョン更新を検知する。
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # npm依存パッケージの更新を検知する。
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
