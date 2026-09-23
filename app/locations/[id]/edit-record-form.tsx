@@ -10,7 +10,8 @@ import { uploadPhoto } from '@/lib/storage'
 import { readExif } from '@/lib/exif'
 import { toDisplayableImage } from '@/lib/heic'
 import { weatherCodeIcon, weatherLabelToCode, WEATHER_LABELS } from '@/lib/weather'
-import { isoToLocalInput } from '@/lib/format'
+import { dateKey } from '@/lib/format'
+import { datePeriodToIso, timePeriodFromDatetime, TIME_PERIOD_OPTIONS, type TimePeriodKey } from '@/lib/time-period'
 import { LocationSearchField } from '../../location-search-field'
 import type { LocationRecord } from './record-types'
 
@@ -46,14 +47,16 @@ export function EditRecordForm({
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const photographedAtRaw = formData.get('photographed_at') as string
+    const photographedDate = formData.get('photographed_date') as string
+    const timePeriod = formData.get('time_period') as string
     const weatherOverrideLabel = formData.get('weather_override') as string
     const weatherTemperatureRaw = formData.get('weather_temperature') as string
     const supabase = createClient()
 
     try {
       const update: Record<string, unknown> = {
-        photographed_at: photographedAtRaw ? new Date(photographedAtRaw).toISOString() : null,
+        photographed_at:
+          photographedDate && timePeriod ? datePeriodToIso(photographedDate, timePeriod as TimePeriodKey) : null,
         access_note: formData.get('access_note') || null,
         voice_transcript: formData.get('voice_transcript') || null,
         edit_intent: formData.get('edit_intent') || null,
@@ -218,15 +221,32 @@ export function EditRecordForm({
 
   return (
     <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded bg-sumi-4 shadow-[0_2px_8px_rgba(0,0,0,0.4)] space-y-3">
-      <label className="block text-sm">
-        訪問日時
-        <input
-          name="photographed_at"
-          type="datetime-local"
-          defaultValue={isoToLocalInput(record.photographed_at)}
-          className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
-        />
-      </label>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="block text-sm">
+          訪問日
+          <input
+            name="photographed_date"
+            type="date"
+            defaultValue={dateKey(record.photographed_at) ?? ''}
+            className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
+          />
+        </label>
+        <label className="block text-sm">
+          時間帯
+          <select
+            name="time_period"
+            defaultValue={timePeriodFromDatetime(record.photographed_at) ?? ''}
+            className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
+          >
+            <option value="">選択なし</option>
+            {TIME_PERIOD_OPTIONS.map((p) => (
+              <option key={p.key} value={p.key}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       <label className="block text-sm">
         気づきメモ

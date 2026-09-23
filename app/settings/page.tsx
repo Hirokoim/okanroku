@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { AuthButton } from '../auth-button'
 import { FontSizeSetting } from './font-size-setting'
 
@@ -14,6 +15,10 @@ export default function SettingsPage() {
 
       <div className="border border-line rounded-lg p-4 bg-sumi-2">
         <AuthButton />
+      </div>
+
+      <div className="border border-line rounded-lg p-4 bg-sumi-2">
+        <Link href="/faq" className="text-sm text-kin underline">よくある質問</Link>
       </div>
     </main>
   )

@@ -9,6 +9,8 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { fetchAndApplyWeather } from '@/lib/weather'
 import { findNearestLocations, type MatchableLocation } from '@/lib/location-match'
+import { datePeriodToIso, timePeriodFromDatetime } from '@/lib/time-period'
+import { dateKey } from '@/lib/format'
 import { PhotoPicker } from './photos/photo-picker'
 import { MAX_IMPORT_PHOTOS, usePhotoEntries, type PhotoEntry } from './photos/use-photo-entries'
 import { saveRecordPhotos } from './photos/save-record-photos'
@@ -97,6 +99,11 @@ export function ImportForm({
         try {
           const takenAts = groupPhotos.map((p) => p.takenAt).filter((v): v is string => v !== '')
           const earliest = takenAts.length > 0 ? takenAts.sort()[0] : null
+          // EXIFの正確な撮影時刻は使わず、往還録の他の入力経路と揃えて時間帯ラベルへ丸め込む
+          const earliestDate = earliest ? dateKey(earliest) : null
+          const earliestPeriod = timePeriodFromDatetime(earliest)
+          const photographedAt =
+            earliestDate && earliestPeriod ? datePeriodToIso(earliestDate, earliestPeriod) : null
 
           const { data: record, error: insertError } = await supabase
             .from('records')
@@ -105,7 +112,7 @@ export function ImportForm({
               figure_id: figureId,
               location_id: locationId === UNSET ? null : locationId,
               location_name: '',
-              photographed_at: earliest ? new Date(earliest).toISOString() : null,
+              photographed_at: photographedAt,
               is_public: isPublic,
             })
             .select('id')
@@ -116,7 +123,7 @@ export function ImportForm({
           await saveRecordPhotos(supabase, record.id, userId, groupPhotos)
 
           const weatherPhoto = groupPhotos.find((p) => p.latitude && p.longitude)
-          const datetime = earliest ? new Date(earliest).toISOString() : new Date().toISOString()
+          const datetime = photographedAt ?? new Date().toISOString()
           const weatherMessage = await fetchAndApplyWeather(supabase, record.id, weatherPhoto ? photoCoords(weatherPhoto) : null, datetime)
 
           outcomes.push({ label, count: groupPhotos.length, status: 'ok', message: weatherMessage })

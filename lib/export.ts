@@ -5,7 +5,7 @@
 
 import type { RecordRow } from '@/app/record-list'
 import type { LocationRecord } from '@/app/locations/[id]/record-types'
-import { formatDate, formatDateTime } from './format'
+import { formatDate, formatDateWithPeriod } from './format'
 
 /** CSVの1フィールドをエスケープする（カンマ・改行・ダブルクォートを含む場合のみ引用符で囲む）。 */
 function csvField(value: string | null | undefined): string {
@@ -23,7 +23,7 @@ function csvField(value: string | null | undefined): string {
 export function recordsToCsv(records: RecordRow[]): string {
   const header = ['日付', '地点', '人物', '作品ラベル']
   const rows = records.map((r) => [
-    formatDateTime(r.photographed_at ?? r.created_at),
+    formatDateWithPeriod(r.photographed_at ?? r.created_at),
     r.locations?.title_jp || r.location_name || '',
     r.figures?.name ?? '',
     r.work_label ?? '',

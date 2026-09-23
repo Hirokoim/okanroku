@@ -3,8 +3,11 @@
 // 離脱時は再度EXIF読み込みからやり直す前提にしている。
 // 地点ごとに別の下書きを持てるよう、キーにlocationIdを含める。
 
+import type { TimePeriodKey } from '@/lib/time-period'
+
 export type RecordDraft = {
-  photographed_at: string
+  photographed_date: string
+  time_period: TimePeriodKey | ''
   voice_transcript: string
   edit_intent: string
   access_note: string
@@ -12,7 +15,8 @@ export type RecordDraft = {
 }
 
 export const emptyDraft: RecordDraft = {
-  photographed_at: '',
+  photographed_date: '',
+  time_period: '',
   voice_transcript: '',
   edit_intent: '',
   access_note: '',
