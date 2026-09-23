@@ -21,10 +21,13 @@ export default function FaqPage() {
 
       <div className="space-y-4">
         {QA_ITEMS.map((item) => (
-          <div key={item.question} className="border border-line rounded-lg p-4 bg-sumi-2 space-y-2">
-            <p className="font-semibold">{item.question}</p>
-            <p className="text-sm text-nami-dim">{item.answer}</p>
-          </div>
+          <details key={item.question} className="border border-line rounded-lg p-4 bg-sumi-2 group">
+            <summary className="font-semibold cursor-pointer list-none flex items-center justify-between gap-2">
+              {item.question}
+              <span className="text-nami-dim transition-transform group-open:rotate-180">▾</span>
+            </summary>
+            <p className="text-sm text-nami-dim mt-2">{item.answer}</p>
+          </details>
         ))}
       </div>
     </main>
