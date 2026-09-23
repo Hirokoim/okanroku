@@ -40,6 +40,7 @@ export function MapSearch({
           {results.map((l) => (
             <button
               key={l.id}
+              type="button"
               onClick={() => onSelect(l)}
               className="w-full text-left px-3 py-2 text-sm flex items-center gap-2"
               style={{
@@ -107,6 +108,7 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
 
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-label={active ? '現在地の追跡を止める' : '現在地を表示する'}
       aria-pressed={active}
