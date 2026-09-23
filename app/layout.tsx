@@ -25,9 +25,7 @@ export default async function RootLayout({
   return (
     <html lang="ja" className="h-full antialiased" suppressHydrationWarning>
       <head>
-        {/* 本文用（Zen Kaku Gothic New）。以前は見出しにShippori Minchoも
-            使っていたが、アクセシビリティ改善で全画面ゴシック体に統一したため
-            読み込みをやめた（2026-09-18）。
+        {/* 本文用（Zen Kaku Gothic New）。見出しも本文と同じ書体で統一している。
             CJKフォントはnext/fontでの自前ホストだとビルド時取得が重いため、
             プロトタイプ（UXアートファクト）と同じくGoogle Fonts配信のまま使う。 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

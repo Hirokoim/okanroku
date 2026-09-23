@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
-/* 全画面をダークテーマに固定する（2026-09-09、UXプロトタイプの配色に合わせて変更）。
-   以前は「画面は明るい配色に固定する」としていたが、今回はその逆で
-   「ダークな和風パレットに統一する」方針に変えたため、bg-white / text-gray-*
+/* 全画面をダークテーマに固定する（UXプロトタイプの配色に合わせたもの）。
+   「ダークな和風パレットに統一する」方針のため、bg-white / text-gray-*
    など明るい背景を前提にした指定は書かないこと。
    地図パネル（app/map/map-theme.ts）だけは別の由来（茶＋金の和風パレット）を
    持つ既存のダークテーマのため、今回はあえて揃えず現状のまま残している。 */
@@ -51,8 +50,8 @@
   --color-matsu: var(--matsu);
   --color-line: var(--line);
 
-  /* 見出しもゴシック体に統一したため（2026-09-18、アクセシビリティ改善）、
-     font-display（Shippori Mincho）は廃止し、本文と同じ書体だけを使う。 */
+  /* 見出しも本文と同じゴシック体に統一する（アクセシビリティ改善）。
+     font-display（Shippori Mincho）は使わない。 */
   --font-body: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
 }
 

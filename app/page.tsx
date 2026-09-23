@@ -12,7 +12,7 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser()
 
   // オープニングを見せるかどうかの判定にしか使わないため、行の中身は取らず件数だけ数える。
-  // 一覧そのものは/recordsが持つ（2026-09-16、ボトムナビ導入にあわせて分離）。
+  // 一覧そのものは/recordsが持つ。
   const { count: recordCount } = user
     ? await supabase.from('records').select('id', { count: 'exact', head: true })
     : { count: 0 }
