@@ -47,8 +47,8 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
 }
 
 // Leafletの地図はマウント解除後や、Strict Modeが誘発する不整合な状態のもとで
-// 命令的メソッド（flyTo等）を呼ぶと例外を投げることがある（2026-09-16調査、
-// next.config.tsのreactStrictModeのコメント参照）。カメラを動かすのはあくまで
+// 命令的メソッド（flyTo等）を呼ぶと例外を投げることがある
+// （next.config.tsのreactStrictModeのコメント参照）。カメラを動かすのはあくまで
 // 補助的な演出であり、失敗してもアプリ全体を巻き込んで落とす価値は無いため、
 // 例外を握りつぶして開発コンソールにだけ出す。
 function safelyMoveMap(fn: () => void) {
@@ -191,7 +191,6 @@ export function MapView({
     // どれだけ縦に長くても、この箱の外の要素（固定表示のボトムナビ、z-40）とは
     // 無関係に地図の中だけで重なり順が完結してほしい。isolationが無いと、
     // 地図の高さ次第でこれらの要素がボトムナビの上に描かれてしまう
-    // （2026-09-16、ユーザー指摘・実測で確認）。
     <div
       className="rounded-lg overflow-hidden border"
       style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}

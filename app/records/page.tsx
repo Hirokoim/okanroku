@@ -7,8 +7,7 @@ import type { MatchableLocation } from '@/lib/location-match'
 
 // 記録タブ。地点横断で時系列に見返す一覧と、写真からまとめて記録する入口
 // （要件定義書4-C・機能②）をここに置く。ダッシュボード（/）からは
-// 「次はどこを目指すか」の問いと直接関係しないため2026-09-16に分離した
-// （dashboard-home.tsxに以前あった経緯コメント参照）。
+// 「次はどこを目指すか」とは役割が異なるため、別のタブにしている。
 export default async function RecordsPage() {
   const supabase = await createClient()
   const {

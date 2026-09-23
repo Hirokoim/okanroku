@@ -20,10 +20,8 @@ function parseExifDateTime(value: string | undefined): string | null {
 // EXIFにGPSが無い写真は珍しくない（要件定義書 機能②）。
 // 解析自体が失敗した場合も含め、常に null 埋めの結果を返す（呼び出し側でtry/catch不要にする）。
 //
-// 以前はexifrを使っていたが、HEICファイルに埋め込まれたEXIF情報の場所を
-// 見つけられず、GPS付きの実写真でも常にnullを返す不具合があった（2026-09-08、
-// 実際にGPS埋め込みHEICを作って確認済み）。exifreaderに置き換えたところ、
-// 同じ条件で正しく緯度経度を取得できた。
+// exifrはHEICファイルに埋め込まれたEXIF情報の場所を見つけられず、GPS付きの
+// 写真でも常にnullを返すため使わない。exifreaderならGPSを正しく取得できる。
 export async function readExif(file: File): Promise<ExifResult> {
   try {
     const tags = await load(file, { expanded: true })
