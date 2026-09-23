@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
   // 一度破棄→作り直す動きをシミュレートする際、内部でLeafletの地図インスタンスが
   // 正しく再構築されず、flyToBounds等の呼び出しが
   // "Invalid LatLng object: (NaN, NaN)" で例外を投げてクラッシュする
-  // （/map?cluster=〜 でだけ発生していた表示崩れの実体、2026-09-16調査）。
+  // （/map?cluster=〜 でだけ発生していた「ボトムナビと地図が重なる・
+  // スクロールできない」不具合の実体、2026-09-16調査）。
   // Strict Modeの二重実行はdevビルドだけの挙動で本番ビルドには影響しないため、
   // ここで切っても本番の動作・品質は変わらない。
   reactStrictMode: false,
