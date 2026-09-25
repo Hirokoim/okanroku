@@ -39,7 +39,7 @@ export function LocationSearchField({
       setError(null)
       try {
         const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
-        const data = await res.json()
+        const data = (await res.json()) as { results?: GeocodeResult[]; error?: string }
         // 入力中に前のリクエストが後から返ってきて結果を上書きしないよう、
         // 最新のリクエストかどうかを確認する。
         if (requestId !== requestIdRef.current) return

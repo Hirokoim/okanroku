@@ -37,13 +37,17 @@ export async function GET(request: NextRequest) {
     })
 
     if (!res.ok) throw new Error(`geocode api responded ${res.status}`)
-    const data = await res.json()
+    // Nominatimのレスポンスのうち使う部分だけ。外部APIなので値は信用せず、ここで確かめる。
+    type NominatimItem = { display_name?: unknown; lat?: unknown; lon?: unknown } | null
 
-    const results: GeocodeResult[] = (Array.isArray(data) ? data : [])
+    const data = (await res.json()) as unknown
+    const items = (Array.isArray(data) ? data : []) as NominatimItem[]
+
+    const results: GeocodeResult[] = items
       .map((item) => ({
-        label: String(item.display_name ?? ''),
-        latitude: Number(item.lat),
-        longitude: Number(item.lon),
+        label: typeof item?.display_name === 'string' ? item.display_name : '',
+        latitude: Number(item?.lat),
+        longitude: Number(item?.lon),
       }))
       .filter((r) => r.label && Number.isFinite(r.latitude) && Number.isFinite(r.longitude))
 
