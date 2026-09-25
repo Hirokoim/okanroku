@@ -1,4 +1,4 @@
-// 記録フォームの文字欄だけを対象にした、入力途中データの一時保持（roadmap.md Phase1タスク(G)）。
+// 記録フォームの文字欄と、写真を選ぶ前に選んだ地点を対象にした、入力途中データの一時保持（roadmap.md Phase1タスク(G)）。
 // 写真は対象外。File はそのまま保存できず、保存できたとしても容量が大きくなりすぎるため、
 // 離脱時は再度EXIF読み込みからやり直す前提にしている。
 // 地点ごとに別の下書きを持てるよう、キーにlocationIdを含める。
@@ -12,6 +12,8 @@ export type RecordDraft = {
   edit_intent: string
   access_note: string
   is_public: boolean
+  /** 写真を選ぶ前に検索で選んだ地点。写真を追加したとき、その写真の座標の初期値になる */
+  pending_location: { latitude: number; longitude: number } | null
 }
 
 export const emptyDraft: RecordDraft = {
@@ -21,6 +23,7 @@ export const emptyDraft: RecordDraft = {
   edit_intent: '',
   access_note: '',
   is_public: false,
+  pending_location: null,
 }
 
 function draftKey(locationId: string): string {
@@ -41,6 +44,7 @@ export function loadDraft(locationId: string): RecordDraft {
     if (typeof parsed !== 'object' || parsed === null) return emptyDraft
     const d = parsed as Partial<Record<keyof RecordDraft, unknown>>
     const text = (v: unknown) => (typeof v === 'string' ? v : '')
+    const loc = d.pending_location as { latitude?: unknown; longitude?: unknown } | null | undefined
     return {
       photographed_date: text(d.photographed_date),
       time_period: TIME_PERIOD_OPTIONS.some((p) => p.key === d.time_period)
@@ -50,6 +54,13 @@ export function loadDraft(locationId: string): RecordDraft {
       edit_intent: text(d.edit_intent),
       access_note: text(d.access_note),
       is_public: d.is_public === true,
+      pending_location:
+        typeof loc?.latitude === 'number' &&
+        typeof loc?.longitude === 'number' &&
+        Math.abs(loc.latitude) <= 90 &&
+        Math.abs(loc.longitude) <= 180
+          ? { latitude: loc.latitude, longitude: loc.longitude }
+          : null,
     }
   } catch {
     return emptyDraft
