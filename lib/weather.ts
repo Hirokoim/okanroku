@@ -100,7 +100,7 @@ export async function fetchAndApplyWeather(
     if (!res.ok) {
       return '天気の取得に失敗しました（記録は保存されています）'
     }
-    const weather = await res.json()
+    const weather = (await res.json()) as WeatherSnapshot
     await supabase.from('records').update({ weather }).eq('id', recordId)
     return `${weatherCodeIcon(weather.weathercode)} 天気を取得しました：${weather.description}${weather.temperature !== null ? `　${weather.temperature}℃` : ''}`
   } catch {
