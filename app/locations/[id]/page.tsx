@@ -7,6 +7,7 @@ import { createPhotoUrls } from '@/lib/storage'
 import { LocationRecords } from './location-records'
 import type { LocationRecord, RecordPhoto } from './record-types'
 import { LocationRecordForm } from './record-form'
+import type { WeatherSnapshot } from '@/lib/weather'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
 // schema.jsonから自動生成している詳細モーダルの見せ方を参考にした
@@ -97,7 +98,9 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
     voice_transcript: r.voice_transcript,
     access_note: r.access_note,
     is_public: r.is_public,
-    weather: r.weather,
+    // weatherはDB上は「何でも入るJSON」だが、書き込む箇所（lib/weather.ts・
+    // use-record-weather.ts・edit-record-form.tsx）はいずれもWeatherSnapshotの形でしか保存しない。
+    weather: r.weather as WeatherSnapshot | null,
     photos: photosByRecordId.get(r.id) ?? [],
   }))
 
