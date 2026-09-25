@@ -15,6 +15,8 @@ Supabaseの実体を見られるのはご本人だけである（開発環境か
 
 **逆算は証拠ではない。** 逆算した内容は末尾の「確認SQL」で実測に格上げできる。次にRLSを触る前（Phase2の(6)人物ごとのアクセス権、(13)他ユーザーの公開記録閲覧）に一度流しておくこと。
 
+**SQLを手動実行したら、型定義も同時に更新する。** SupabaseでSQLを実行してスキーマを変えたときは、その場で`SUPABASE_ACCESS_TOKEN=<トークン> npx supabase gen types typescript --project-id uirxznxqtmurzxsyfycl > lib/supabase/database.types.ts`も必ず再実行してコミットすること。型定義だけ古いまま放置すると、実際には存在しない列を参照するコードが型チェックを通ってしまう。
+
 ### 2026-08-21版からの変更点
 
 前版の「残タスク」5項目は**全て解消済み**のため削除した。前版は`records`に`is_public`が無く`diff_type`がある状態を記録していたが、これは`docs/sql/2026-08-21-phase1-schema.sql`のステップ2・5を適用する前の姿であり、現状と食い違っていた。

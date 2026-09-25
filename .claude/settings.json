@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/post-edit-check.sh",
+            "timeout": 60,
+            "statusMessage": "型チェック・lintを実行中..."
+          }
+        ]
+      }
+    ]
+  }
+}
