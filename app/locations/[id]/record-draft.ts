@@ -3,7 +3,7 @@
 // 離脱時は再度EXIF読み込みからやり直す前提にしている。
 // 地点ごとに別の下書きを持てるよう、キーにlocationIdを含める。
 
-import type { TimePeriodKey } from '@/lib/time-period'
+import { TIME_PERIOD_OPTIONS, type TimePeriodKey } from '@/lib/time-period'
 
 export type RecordDraft = {
   photographed_date: string
@@ -35,7 +35,22 @@ export function loadDraft(locationId: string): RecordDraft {
   try {
     const raw = window.localStorage.getItem(draftKey(locationId))
     if (!raw) return emptyDraft
-    return { ...emptyDraft, ...JSON.parse(raw) }
+    // 古い版で保存した下書きや壊れたデータが残っていても、項目ごとに形を確かめて
+    // 合わないものは空に戻す（おかしな値を入力欄に入れないため）。
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null) return emptyDraft
+    const d = parsed as Partial<Record<keyof RecordDraft, unknown>>
+    const text = (v: unknown) => (typeof v === 'string' ? v : '')
+    return {
+      photographed_date: text(d.photographed_date),
+      time_period: TIME_PERIOD_OPTIONS.some((p) => p.key === d.time_period)
+        ? (d.time_period as TimePeriodKey)
+        : '',
+      voice_transcript: text(d.voice_transcript),
+      edit_intent: text(d.edit_intent),
+      access_note: text(d.access_note),
+      is_public: d.is_public === true,
+    }
   } catch {
     return emptyDraft
   }
