@@ -49,16 +49,20 @@ async function fetchCurrentWeather(latitude: number, longitude: number): Promise
 }
 
 // 指定日時に最も近い1時間ぶんを、hourly配列から拾う。
-// forecast APIは直近92日程度までhourly値を過去にも遡って返せるため、まずこちらを試し、
-// それより古い日付（400が返る）だけarchive APIへ切り替える。
+// forecast APIは直近の過去もhourly値を返せるため、まずこちらを試す。
 async function fetchHourlyWeather(latitude: number, longitude: number, datetime: Date): Promise<WeatherSnapshot> {
   const date = toDateOnly(datetime)
   const params = `latitude=${latitude}&longitude=${longitude}&start_date=${date}&end_date=${date}&hourly=temperature_2m,weathercode,precipitation&timezone=UTC`
 
-  let data: OpenMeteoHourlyResponse
+  let data: OpenMeteoHourlyResponse | null = null
   try {
     data = await fetchJson<OpenMeteoHourlyResponse>(`https://api.open-meteo.com/v1/forecast?${params}`)
   } catch {
+    // 古い日付は400で断られる。下でarchive APIへ切り替える
+  }
+  // forecast APIは、保持期間を少し過ぎた日付（実測で約2〜3か月前）だと200を返しつつ
+  // 値をすべてnullで埋めてくる。これも「データなし」とみなしてarchive APIへ切り替える。
+  if (!data?.hourly?.temperature_2m?.some((v) => v !== null)) {
     data = await fetchJson<OpenMeteoHourlyResponse>(`https://archive-api.open-meteo.com/v1/archive?${params}`)
   }
 
