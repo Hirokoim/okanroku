@@ -61,17 +61,19 @@ export function LocationRecordForm({
     // react-hooks/set-state-in-effectはeffect内の直接setStateを一律に警告するため抑止する。
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration後に一度だけlocalStorageの下書きを読む想定通りの用法
     setDraft(restored)
+    if (restored.pending_location) setPendingLocation(restored.pending_location)
     setDraftReady(true)
     // 下書きが残っていたことに気づけるよう、その場合だけ開いておく
-    if (Object.values(restored).some((v) => (typeof v === 'boolean' ? v : v !== ''))) {
+    if (Object.values(restored).some((v) => (typeof v === 'boolean' ? v : v !== '' && v !== null))) {
       setOpen(true)
     }
-  }, [locationId])
+  }, [locationId, setPendingLocation])
 
+  // 選んだ地点は写真側（usePhotoEntries）が持っているので、保存するときに合わせて書く
   useEffect(() => {
     if (!draftReady) return
-    saveDraft(locationId, draft)
-  }, [draft, draftReady, locationId])
+    saveDraft(locationId, { ...draft, pending_location: pendingLocation })
+  }, [draft, draftReady, locationId, pendingLocation])
 
   // HEIC→JPEG変換が終わる前に保存されると、変換前のHEICのままアップロードされて
   // しまう（use-photo-entries.tsがfileを差し替えるのは変換完了後のため）。
@@ -125,6 +127,7 @@ export function LocationRecordForm({
 
       form.reset()
       clearPhotos()
+      setPendingLocation(null)
       clearDraft(locationId)
       setDraft(emptyDraft)
       setSaved(true)

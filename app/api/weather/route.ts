@@ -15,41 +15,59 @@ function toDateOnly(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
-async function fetchJson(url: string) {
+// Open-Meteoのレスポンスのうち使う部分だけ。外部APIなので数値は信用せず、使う直前に確かめる。
+type OpenMeteoCurrentResponse = {
+  current_weather?: { temperature?: unknown; weathercode?: unknown }
+}
+type OpenMeteoHourlyResponse = {
+  hourly?: { time?: string[]; temperature_2m?: unknown[]; weathercode?: unknown[]; precipitation?: unknown[] }
+}
+
+function numberOrNull(value: unknown): number | null {
+  return typeof value === 'number' ? value : null
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
   if (!res.ok) throw new Error(`weather api responded ${res.status}`)
-  return res.json()
+  return (await res.json()) as T
 }
 
 async function fetchCurrentWeather(latitude: number, longitude: number): Promise<WeatherSnapshot> {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=UTC`
-  const data = await fetchJson(url)
+  const data = await fetchJson<OpenMeteoCurrentResponse>(url)
   const cw = data.current_weather
+  const weathercode = numberOrNull(cw?.weathercode)
   return {
-    temperature: typeof cw?.temperature === 'number' ? cw.temperature : null,
-    weathercode: typeof cw?.weathercode === 'number' ? cw.weathercode : null,
+    temperature: numberOrNull(cw?.temperature),
+    weathercode,
     precipitation: null,
-    description: weatherCodeLabel(cw?.weathercode ?? null),
+    description: weatherCodeLabel(weathercode),
     source: 'current',
     fetchedAt: new Date().toISOString(),
   }
 }
 
 // 指定日時に最も近い1時間ぶんを、hourly配列から拾う。
-// forecast APIは直近92日程度までhourly値を過去にも遡って返せるため、まずこちらを試し、
-// それより古い日付（400が返る）だけarchive APIへ切り替える。
+// forecast APIは直近の過去もhourly値を返せるため、まずこちらを試す。
 async function fetchHourlyWeather(latitude: number, longitude: number, datetime: Date): Promise<WeatherSnapshot> {
   const date = toDateOnly(datetime)
   const params = `latitude=${latitude}&longitude=${longitude}&start_date=${date}&end_date=${date}&hourly=temperature_2m,weathercode,precipitation&timezone=UTC`
 
-  let data
+  let data: OpenMeteoHourlyResponse | null = null
   try {
-    data = await fetchJson(`https://api.open-meteo.com/v1/forecast?${params}`)
+    data = await fetchJson<OpenMeteoHourlyResponse>(`https://api.open-meteo.com/v1/forecast?${params}`)
   } catch {
-    data = await fetchJson(`https://archive-api.open-meteo.com/v1/archive?${params}`)
+    // 古い日付は400で断られる。下でarchive APIへ切り替える
+  }
+  // forecast APIは、保持期間を少し過ぎた日付（実測で約2〜3か月前）だと200を返しつつ
+  // 値をすべてnullで埋めてくる。これも「データなし」とみなしてarchive APIへ切り替える。
+  if (!data?.hourly?.temperature_2m?.some((v) => v !== null)) {
+    data = await fetchJson<OpenMeteoHourlyResponse>(`https://archive-api.open-meteo.com/v1/archive?${params}`)
   }
 
-  const times: string[] = data.hourly?.time ?? []
+  const hourly = data.hourly
+  const times = hourly?.time ?? []
   if (times.length === 0) throw new Error('no hourly data')
 
   let closestIndex = 0
@@ -65,11 +83,11 @@ async function fetchHourlyWeather(latitude: number, longitude: number, datetime:
     }
   })
 
-  const weathercode = data.hourly.weathercode?.[closestIndex] ?? null
+  const weathercode = numberOrNull(hourly?.weathercode?.[closestIndex])
   return {
-    temperature: data.hourly.temperature_2m?.[closestIndex] ?? null,
+    temperature: numberOrNull(hourly?.temperature_2m?.[closestIndex]),
     weathercode,
-    precipitation: data.hourly.precipitation?.[closestIndex] ?? null,
+    precipitation: numberOrNull(hourly?.precipitation?.[closestIndex]),
     description: weatherCodeLabel(weathercode),
     source: 'historical',
     fetchedAt: new Date().toISOString(),
@@ -77,7 +95,7 @@ async function fetchHourlyWeather(latitude: number, longitude: number, datetime:
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null)
+  const body = (await request.json().catch(() => null)) as { latitude?: unknown; longitude?: unknown; datetime?: unknown } | null
   const latitude = Number(body?.latitude)
   const longitude = Number(body?.longitude)
   const datetimeRaw = body?.datetime

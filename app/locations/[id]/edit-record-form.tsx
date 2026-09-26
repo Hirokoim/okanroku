@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { weatherLabelToCode } from '@/lib/weather'
+import type { Database } from '@/lib/supabase/database.types'
 import { dateKey } from '@/lib/format'
 import { datePeriodToIso, timePeriodFromDatetime, TIME_PERIOD_OPTIONS, type TimePeriodKey } from '@/lib/time-period'
 import type { LocationRecord } from './record-types'
@@ -53,11 +54,11 @@ export function EditRecordForm({
     const supabase = createClient()
 
     try {
-      const update: Record<string, unknown> = {
+      const update: Database['public']['Tables']['records']['Update'] = {
         photographed_at: currentPhotographedAt,
-        access_note: formData.get('access_note') || null,
-        voice_transcript: formData.get('voice_transcript') || null,
-        edit_intent: formData.get('edit_intent') || null,
+        access_note: (formData.get('access_note') as string) || null,
+        voice_transcript: (formData.get('voice_transcript') as string) || null,
+        edit_intent: (formData.get('edit_intent') as string) || null,
         is_public: formData.get('is_public') === 'on',
       }
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { weatherCodeIcon } from '@/lib/weather'
+import { weatherCodeIcon, type WeatherSnapshot } from '@/lib/weather'
 import type { LocationRecord } from './record-types'
 
 export function useRecordWeather(record: LocationRecord, photographedAt: string | null) {
@@ -34,7 +34,7 @@ export function useRecordWeather(record: LocationRecord, photographedAt: string 
         setStatus('天気の取得に失敗しました')
         return
       }
-      const weather = await res.json()
+      const weather = (await res.json()) as WeatherSnapshot
       await supabase.from('records').update({ weather }).eq('id', record.id)
       setStatus(
         `${weatherCodeIcon(weather.weathercode)} 天気を取得しました：${weather.description}${weather.temperature !== null ? `　${weather.temperature}℃` : ''}`
