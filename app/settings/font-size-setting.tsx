@@ -5,7 +5,7 @@
 // アプリ全体で連動して拡大する。個々のコンポーネントは一切触らない。
 // キー名はapp/layout.tsxのちらつき防止スクリプトと合わせること。
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 const STORAGE_KEY = 'okr-font-scale'
 
@@ -17,23 +17,29 @@ const SCALES = [
 
 type Scale = (typeof SCALES)[number]['value']
 
-export function FontSizeSetting() {
-  const [scale, setScale] = useState<Scale>('standard')
+// 選択状態はhtml要素のdata-font-scale属性をそのまま正とする。
+// 初期値はlayout.tsxのスクリプトがlocalStorageから反映済みのため、
+// localStorageを読み直したり、別のstateに写したりしない。
+function subscribe(onChange: () => void) {
+  const observer = new MutationObserver(onChange)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-font-scale'] })
+  return () => observer.disconnect()
+}
 
-  // 初期表示はlayout.tsxのスクリプトが既にDOMへ反映済みのため、ここでは
-  // ラジオボタンの選択状態をlocalStorageに合わせるだけでよい。
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント後に一度だけlocalStorageを読んで選択状態を合わせる想定通りの用法
-      if (saved === 'large' || saved === 'xlarge' || saved === 'standard') setScale(saved)
-    } catch {
-      // プライベートブラウジング等でlocalStorageが使えない場合は標準のまま
-    }
-  }, [])
+function readScale(): Scale {
+  const current = document.documentElement.dataset.fontScale
+  return current === 'large' || current === 'xlarge' ? current : 'standard'
+}
+
+// サーバー側では属性を読めないため標準として描画し、hydration後に実際の値へ合わせる
+function readServerScale(): Scale {
+  return 'standard'
+}
+
+export function FontSizeSetting() {
+  const scale = useSyncExternalStore(subscribe, readScale, readServerScale)
 
   function handleChange(value: Scale) {
-    setScale(value)
     document.documentElement.setAttribute('data-font-scale', value)
     try {
       localStorage.setItem(STORAGE_KEY, value)

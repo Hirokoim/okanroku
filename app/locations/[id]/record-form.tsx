@@ -11,7 +11,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { fetchAndApplyWeather } from '@/lib/weather'
-import { datePeriodToIso, TIME_PERIOD_OPTIONS } from '@/lib/time-period'
+import { datePeriodToIso } from '@/lib/time-period'
+import { TimePeriodSelect } from '../../time-period-select'
 import { PhotoPicker } from '../../photos/photo-picker'
 import { MAX_PHOTOS, usePhotoEntries } from '../../photos/use-photo-entries'
 import { saveRecordPhotos } from '../../photos/save-record-photos'
@@ -218,19 +219,12 @@ export function LocationRecordForm({
           </label>
           <label className="block text-sm">
             時間帯
-            <select
+            <TimePeriodSelect
               name="time_period"
               value={draft.time_period}
-              onChange={(e) => setDraft((d) => ({ ...d, time_period: e.target.value as typeof d.time_period }))}
+              onChange={(time_period) => setDraft((d) => ({ ...d, time_period }))}
               className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-            >
-              <option value="">選択なし</option>
-              {TIME_PERIOD_OPTIONS.map((p) => (
-                <option key={p.key} value={p.key}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
+            />
           </label>
         </div>
 

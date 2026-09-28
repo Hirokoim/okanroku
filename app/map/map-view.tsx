@@ -75,17 +75,18 @@ function FlyTo({ target }: { target: [number, number] | null }) {
 // FlyToと同じ理由（描画中に呼ぶと再描画のたびに引き戻される）でuseEffectに置く。
 function FitToPoints({ points }: { points: [number, number][] }) {
   const map = useMap()
+  // pointsは再描画のたびに作り直される配列のため、そのまま依存にすると同じ地点でも
+  // 毎回地図が動いてしまう。JSON化した文字列を依存にし、中身が変わったときだけ動かす。
+  const pointsKey = JSON.stringify(points)
   useEffect(() => {
-    if (points.length === 0) return
-    if (points.length === 1) {
-      safelyMoveMap(() => map.flyTo(points[0], 13, { duration: 0.6 }))
+    const pts = JSON.parse(pointsKey) as [number, number][]
+    if (pts.length === 0) return
+    if (pts.length === 1) {
+      safelyMoveMap(() => map.flyTo(pts[0], 13, { duration: 0.6 }))
       return
     }
-    safelyMoveMap(() => map.flyToBounds(L.latLngBounds(points), { padding: [36, 36], duration: 0.6 }))
-    // pointsは絞り込みが変わるたびに作り直される配列のため、内容ではなく
-    // 「配列そのものの入れ替わり」を検知したい。JSON化して依存に使う。
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 配列の中身ではなく入れ替わりを検知したいためJSON化した値を依存に使う
-  }, [JSON.stringify(points), map])
+    safelyMoveMap(() => map.flyToBounds(L.latLngBounds(pts), { padding: [36, 36], duration: 0.6 }))
+  }, [pointsKey, map])
   return null
 }
 

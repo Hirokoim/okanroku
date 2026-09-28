@@ -22,6 +22,10 @@ export const emptyDraft: RecordDraft = {
   pending_location: null,
 }
 
+function text(v: unknown): string {
+  return typeof v === 'string' ? v : ''
+}
+
 function draftKey(locationId: string): string {
   return `okanroku:draft:record:${locationId}`
 }
@@ -39,7 +43,6 @@ export function loadDraft(locationId: string): RecordDraft {
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return emptyDraft
     const d = parsed as Partial<Record<keyof RecordDraft, unknown>>
-    const text = (v: unknown) => (typeof v === 'string' ? v : '')
     const loc = d.pending_location as { latitude?: unknown; longitude?: unknown } | null | undefined
     return {
       photographed_date: text(d.photographed_date),

@@ -10,7 +10,8 @@ import { createClient } from '@/lib/supabase/client'
 import { weatherLabelToCode } from '@/lib/weather'
 import type { Database } from '@/lib/supabase/database.types'
 import { dateKey } from '@/lib/format'
-import { datePeriodToIso, timePeriodFromDatetime, TIME_PERIOD_OPTIONS, type TimePeriodKey } from '@/lib/time-period'
+import { datePeriodToIso, timePeriodFromDatetime, type TimePeriodKey } from '@/lib/time-period'
+import { TimePeriodSelect } from '../../time-period-select'
 import type { LocationRecord } from './record-types'
 import { useRecordWeather } from './use-record-weather'
 import { useRecordPhotos } from './use-record-photos'
@@ -99,19 +100,12 @@ export function EditRecordForm({
         </label>
         <label className="block text-sm">
           時間帯
-          <select
+          <TimePeriodSelect
             name="time_period"
             value={timePeriod}
-            onChange={(e) => setTimePeriod(e.target.value as TimePeriodKey | '')}
+            onChange={setTimePeriod}
             className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
-          >
-            <option value="">選択なし</option>
-            {TIME_PERIOD_OPTIONS.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+          />
         </label>
       </div>
 
