@@ -174,7 +174,9 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       )}
 
       <div className="border-t border-line pt-4">
-        <h2 className="font-body font-semibold mb-2">自分の記録（{recordsWithPhotos.length}件）</h2>
+        <h2 className="font-body font-semibold mb-2">
+          自分の記録 <span className="text-hi">{recordsWithPhotos.length}</span>件
+        </h2>
         <LocationRecords records={recordsWithPhotos} userId={user.id} locationTitle={location.title_jp} />
 
         <LocationRecordForm locationId={location.id} figureId={location.figure_id} userId={user.id} />
