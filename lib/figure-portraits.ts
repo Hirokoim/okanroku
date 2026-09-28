@@ -13,6 +13,8 @@
 export const FIGURE_PORTRAITS: Record<string, string> = {
   葛飾北斎: '/figures/hokusai.webp',
   伊能忠敬: '/figures/ino-tadataka.webp',
+  松尾芭蕉: '/figures/matsuo-basho.webp',
+  歌川広重: '/figures/utagawa-hiroshige.webp',
 }
 
 export function figurePortrait(name: string): string | null {
