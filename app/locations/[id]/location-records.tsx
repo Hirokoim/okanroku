@@ -8,7 +8,7 @@
 // ここは受け取った内容を並べるだけ。記録ごとの編集フォームの開閉と、
 // 座標を見せている写真の選択だけ状態を持つ。
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { dateKey, formatDate } from '@/lib/format'
 import { timePeriodFromDatetime, timePeriodLabel } from '@/lib/time-period'
 import { weatherCodeIcon } from '@/lib/weather'
@@ -18,7 +18,12 @@ import type { LocationRecord, RecordPhoto } from './record-types'
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
-const ORDER_OPTIONS: { value: 'newest' | 'oldest'; label: string }[] = [
+type Order = 'newest' | 'oldest'
+
+// 並び順はすべての地点で共通の好みとして覚えておく（地点ごとには分けない）
+const ORDER_STORAGE_KEY = 'okr-record-order'
+
+const ORDER_OPTIONS: { value: Order; label: string }[] = [
   { value: 'newest', label: '新しい順' },
   { value: 'oldest', label: '古い順' },
 ]
@@ -202,7 +207,28 @@ export function LocationRecords({
   locationTitle: string
 }) {
   // records は page.tsx で新しい順に並んで届く。古い順は日付の並びも1日の中の並びも逆にする
-  const [order, setOrder] = useState<'newest' | 'oldest'>('newest')
+  const [order, setOrder] = useState<Order>('newest')
+
+  // 前回選んだ並び順を復元する。useStateの初期値で読むとサーバー側の描画と食い違うため、
+  // マウント後に一度だけ読む（font-size-setting.tsxと同じ考え方）。
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(ORDER_STORAGE_KEY)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント後に一度だけlocalStorageを読んで並び順を合わせる想定通りの用法
+      if (saved === 'newest' || saved === 'oldest') setOrder(saved)
+    } catch {
+      // プライベートブラウジング等でlocalStorageが使えない場合は新しい順のまま
+    }
+  }, [])
+
+  function handleOrderChange(value: Order) {
+    setOrder(value)
+    try {
+      localStorage.setItem(ORDER_STORAGE_KEY, value)
+    } catch {
+      // 保存できなくても、今の画面の並びは変わっているので致命的ではない
+    }
+  }
 
   if (records.length === 0) {
     return <p className="text-nami-dim text-sm">まだこの地点の記録がありません。</p>
@@ -227,7 +253,7 @@ export function LocationRecords({
               key={o.value}
               type="button"
               aria-pressed={order === o.value}
-              onClick={() => setOrder(o.value)}
+              onClick={() => handleOrderChange(o.value)}
               className={`text-xs rounded-full px-3 py-1 transition-colors ${
                 order === o.value ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
               }`}
