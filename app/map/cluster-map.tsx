@@ -62,7 +62,7 @@ export function ClusterMap({
     // isolation:isolateの理由はmap-view.tsxの同箇所コメント参照
     // （ClusterLegendのz-[1000]がボトムナビを突き抜けないようにする）。
     <div
-      className="rounded-lg overflow-hidden border border-line"
+      className="rounded-xl overflow-hidden"
       style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}
     >
       <div

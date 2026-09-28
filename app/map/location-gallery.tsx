@@ -48,10 +48,8 @@ export function LocationGallery({
         ))}
       </div>
 
-      <p className="text-sm text-nami-dim">
-        全{locations.length}景・訪問済み {locations.filter((l) => visited.has(l.id)).length}景
-        {filter !== 'all' && `（${shown.length}景を表示中）`}
-      </p>
+      {/* 全体の進み具合は地図タブの上（map-screen.tsx）に出しているので、ここは絞り込み中の件数だけ */}
+      {filter !== 'all' && <p className="text-sm text-nami-dim">{shown.length}景を表示中</p>}
 
       {shown.length === 0 ? (
         <p className="text-sm text-nami-dim">該当する作品がありません。</p>
@@ -63,23 +61,30 @@ export function LocationGallery({
               <li key={l.id}>
                 <Link
                   href={`/locations/${l.id}`}
-                  className="block h-full border border-line rounded-lg overflow-hidden bg-sumi-2 hover:bg-sumi-3 transition-colors"
+                  className="block h-full rounded-xl overflow-hidden bg-sumi-2 hover:bg-sumi-3 transition-colors"
                 >
                   <div className="relative aspect-[3/4] bg-sumi-3">
                     {l.image_url && (
                       // eslint-disable-next-line @next/next/no-img-element -- 取得元ドメインが行ごとに異なりnext/imageに事前登録できない
                       <img src={l.image_url} alt="" loading="lazy" className="w-full h-full object-cover" />
                     )}
+                    {/* 番号は日付印と同じ赤茶の丸い印にする */}
+                    <span
+                      className="absolute top-2 left-2 w-8 h-8 rounded-full bg-hi text-washi border-2 border-white flex items-center justify-center text-xs font-bold"
+                      aria-hidden="true"
+                    >
+                      {l.number}
+                    </span>
                     <span
                       className={`absolute top-2 right-2 text-xs font-semibold rounded-full px-2 py-0.5 ${
-                        isVisited ? 'bg-matsu text-washi' : 'bg-sumi/90 border border-line text-nami-dim'
+                        isVisited ? 'bg-matsu text-washi' : 'bg-washi/90 text-nami-dim'
                       }`}
                     >
                       {isVisited ? '✓ 訪問済み' : '未訪問'}
                     </span>
                   </div>
                   <div className="p-3 space-y-0.5">
-                    <div className="text-xs text-kin-dim">第{l.number}景</div>
+                    <div className="text-xs text-hi">第{l.number}景</div>
                     <div className="text-sm font-body font-semibold leading-snug">{l.title_jp}</div>
                     {l.prefecture && <div className="text-xs text-nami-dim">{l.prefecture}</div>}
                   </div>

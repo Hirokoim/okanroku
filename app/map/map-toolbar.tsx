@@ -40,35 +40,24 @@ export function PillButton({
   )
 }
 
-function Divider() {
-  return <div className="w-px h-5" style={{ background: MAP_THEME.panel.divider }} />
-}
-
 export function MapToolbar({
   showFuji,
   onToggleFuji,
   showVisit,
   onToggleVisit,
   shownCount,
-  visitedCount,
 }: {
   showFuji: boolean
   onToggleFuji: () => void
   showVisit: boolean
   onToggleVisit: () => void
   shownCount: number
-  visitedCount: number
 }) {
   return (
     <div
       className="flex items-center gap-2 px-4 py-2 flex-wrap"
       style={{ borderBottom: `1px solid ${MAP_THEME.panel.divider}` }}
     >
-      <span className="text-sm mr-2" style={{ color: MAP_THEME.panel.title, letterSpacing: '0.1em' }}>
-        富嶽三十六景 訪問地図
-      </span>
-
-      <Divider />
       <PillButton active={showFuji} onClick={onToggleFuji}>
         富士山を表示
       </PillButton>
@@ -76,8 +65,9 @@ export function MapToolbar({
         📷 訪問地点を表示
       </PillButton>
 
+      {/* 作品名と訪問済みの数は地図の上の進み具合（map-screen.tsx）に出しているので、ここは表示中の数だけ */}
       <span className="text-xs ml-auto" style={{ color: MAP_THEME.panel.muted }}>
-        表示 {shownCount}景 ／ 訪問済み {visitedCount}景
+        表示 {shownCount}景
       </span>
     </div>
   )

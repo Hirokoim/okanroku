@@ -78,9 +78,10 @@ export const MAP_THEME = {
 
   // マーカー
   marker: {
-    // 訪問済みは松緑、未訪問は黄土。明るさの差でも見分けられ、✓バッジも付く
-    visited: { bg: '#3d5a3a', border: '#22331f', text: '#f4efe6' },
-    unvisited: { bg: '#e3b35a', border: '#8a5a14', text: '#2b1d17' },
+    // 開拓マップの円と同じシール風。訪問済みは松緑に白いふち、未訪問は生成りに
+    // 薄い赤茶のふち（白いふちだと白い陸地に溶けるため）。明るさの差でも見分けられ、✓バッジも付く
+    visited: { bg: '#3d5a3a', border: '#ffffff', text: '#f4efe6' },
+    unvisited: { bg: '#fffaf0', border: '#e98a6e', text: '#a8432b' },
     visit: { bg: '#9cc3dc', border: '#2f5f80' },
     // 富士山のマーカーそのものを赤富士にする
     fuji: { body: '#a8432b', snow: '#f4efe6' },

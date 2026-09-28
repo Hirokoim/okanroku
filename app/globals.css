@@ -125,3 +125,27 @@ html[data-font-scale="xlarge"] {
 .okr-map-tiles-gsi {
   filter: saturate(1.8) brightness(1.03);
 }
+
+/* Leafletの吹き出しとズームボタン。既定の白い四角を、D案の生成りの角丸に寄せる。
+   Leafletが自前で描く部品なので、コンポーネントからは指定できずここで上書きする。
+   leaflet.cssは地図のコンポーネント側で読み込まれ、こちらより後に効くことがあるため、
+   同じ強さの指定で負けるものには!importantを付けている。
+   現在地ボタン（app/map/map-overlays.tsx の LocateButton）も同じ見た目に揃えてある。 */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--washi);
+  color: var(--nami);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(43, 29, 23, 0.25);
+}
+.leaflet-bar {
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--washi) !important;
+  color: var(--nami) !important;
+}

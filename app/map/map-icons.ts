@@ -17,7 +17,7 @@ export function numberIcon(number: number, visited: boolean, size: number) {
     : ''
   return L.divIcon({
     className: '',
-    html: `<div style="position:relative;width:${size}px;height:${size}px"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${c.bg};border:2px solid ${c.border};color:${c.text};font-weight:bold;font-size:${fontSize}px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.5)">${number}</div>${check}</div>`,
+    html: `<div style="position:relative;width:${size}px;height:${size}px"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${c.bg};border:2.5px solid ${c.border};color:${c.text};font-weight:bold;font-size:${fontSize}px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(43,29,23,.3)">${number}</div>${check}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
@@ -27,7 +27,7 @@ export function numberIcon(number: number, visited: boolean, size: number) {
 /** 実際に撮影した地点のマーカー（比定地とは別扱い） */
 export const visitIcon = L.divIcon({
   className: '',
-  html: `<div style="width:22px;height:22px;border-radius:50%;background:${MAP_THEME.marker.visit.bg};border:2px solid ${MAP_THEME.marker.visit.border};display:flex;align-items:center;justify-content:center;font-size:12px">📷</div>`,
+  html: `<div style="width:22px;height:22px;border-radius:50%;background:${MAP_THEME.marker.visit.bg};border:2px solid ${MAP_THEME.marker.visit.border};box-shadow:0 1px 4px rgba(43,29,23,.3);display:flex;align-items:center;justify-content:center;font-size:12px">📷</div>`,
   iconSize: [22, 22],
   iconAnchor: [11, 11],
   popupAnchor: [0, -11],

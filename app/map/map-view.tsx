@@ -159,10 +159,6 @@ export function MapView({
     [clusterFilter, displayed]
   )
 
-  const visitedCount = useMemo(
-    () => placed.filter((l) => visited.has(l.id)).length,
-    [placed, visited]
-  )
 
   const size = markerSizeFor(zoom)
 
@@ -192,7 +188,7 @@ export function MapView({
     // 無関係に地図の中だけで重なり順が完結してほしい。isolationが無いと、
     // 地図の高さ次第でこれらの要素がボトムナビの上に描かれてしまう
     <div
-      className="rounded-lg overflow-hidden border"
+      className="rounded-xl overflow-hidden"
       style={{ background: MAP_THEME.panel.bg, isolation: 'isolate' }}
     >
       <MapToolbar
@@ -201,7 +197,6 @@ export function MapView({
         showVisit={showVisit}
         onToggleVisit={() => setShowVisit((v) => !v)}
         shownCount={displayed.length}
-        visitedCount={visitedCount}
       />
 
       {hereError && (
@@ -268,7 +263,7 @@ export function MapView({
           {clusterFilter && displayed.length > 1 && (
             <Polyline
               positions={displayed.map((l) => [Number(l.latitude), Number(l.longitude)] as [number, number])}
-              pathOptions={{ color: MAP_THEME.cluster.gold, weight: 2.5, opacity: 0.7, dashArray: '2 6' }}
+              pathOptions={{ color: MAP_THEME.cluster.route, weight: 2.5, opacity: 0.6, dashArray: '1 6', lineCap: 'round' }}
             />
           )}
 
@@ -359,16 +354,26 @@ function RoutePanel({
         {locations.map((l, i) => (
           <li key={l.id} className="flex gap-3">
             <div className="flex flex-col items-center flex-shrink-0">
+              {/* 記録のある地点は赤茶で塗り、まだの地点は白抜き（記録タブのタイムラインと同じ点線でつなぐ） */}
               <div
-                className="w-2.5 h-2.5 rounded-full mt-1.5"
-                style={{ background: MAP_THEME.cluster.gold }}
+                className="w-3 h-3 rounded-full mt-1"
+                style={{
+                  background: visited.has(l.id) ? MAP_THEME.cluster.fill : MAP_THEME.cluster.none,
+                  border: `2px solid ${MAP_THEME.cluster.fill}`,
+                }}
               />
               {i < locations.length - 1 && (
-                <div className="w-px flex-1" style={{ background: MAP_THEME.panel.line, minHeight: '1.5rem' }} />
+                <div
+                  className="w-0.5 flex-1 mt-1"
+                  style={{
+                    background: `repeating-linear-gradient(${MAP_THEME.cluster.fill} 0 3px, transparent 3px 8px)`,
+                    minHeight: '1.5rem',
+                  }}
+                />
               )}
             </div>
             <Link href={`/locations/${l.id}`} className="pb-4 -mt-0.5 group">
-              <div className="text-sm underline" style={{ color: MAP_THEME.panel.text }}>
+              <div className="text-sm font-semibold group-hover:underline" style={{ color: MAP_THEME.panel.title }}>
                 第{l.number}景・{l.title_jp}
               </div>
               <div className="text-xs mt-0.5" style={{ color: MAP_THEME.panel.muted }}>

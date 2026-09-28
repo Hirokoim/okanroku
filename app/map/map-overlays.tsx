@@ -112,14 +112,17 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
       onClick={onClick}
       aria-label={active ? '現在地の追跡を止める' : '現在地を表示する'}
       aria-pressed={active}
-      className="absolute z-[1000] rounded flex items-center justify-center"
+      className="absolute z-[1000] flex items-center justify-center"
       style={{
         top,
         left,
         width: size,
         height: size,
-        background: '#ffffff',
-        boxShadow: '0 1px 5px rgba(0,0,0,.65)',
+        // ズームボタン（globals.cssの.leaflet-barの上書き）と同じ生成りの角丸に揃える
+        background: 'var(--washi)',
+        borderRadius: 10,
+        border: '2px solid rgba(0,0,0,.2)',
+        backgroundClip: 'padding-box',
       }}
     >
       <svg viewBox="0 0 24 24" width="16" height="16">
