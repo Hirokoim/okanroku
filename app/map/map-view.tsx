@@ -109,20 +109,21 @@ export function MapView({
   locations,
   visitedLocationIds,
   visitPoints,
-  initialCluster,
+  clusterFilter,
+  onClusterFilterChange,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
   visitPoints: VisitPoint[]
-  /** ダッシュボードのクラスタ一覧から「ここへ行く」で来たときの絞り込み初期値 */
-  initialCluster: string | null
+  /** クラスタの絞り込み。作品一覧と共有するため、状態は呼び出し側（map-screen.tsx）が持つ */
+  clusterFilter: string | null
+  onClusterFilterChange: (cluster: string | null) => void
 }) {
   const [showFuji, setShowFuji] = useState(false)
   const [showVisit, setShowVisit] = useState(false)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [query, setQuery] = useState('')
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
-  const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
   const { position: here, error: hereError, watching: hereWatching, toggle: toggleHere } =
     useCurrentPosition()
 
@@ -213,7 +214,7 @@ export function MapView({
           <span style={{ color: MAP_THEME.panel.title }}>クラスタ：{clusterFilter}</span>
           <span style={{ color: MAP_THEME.panel.muted }}>で絞り込み中</span>
           <button
-            onClick={() => setClusterFilter(null)}
+            onClick={() => onClusterFilterChange(null)}
             className="ml-auto text-xs px-3 py-1 rounded-full border"
             style={{ background: 'transparent', color: MAP_THEME.panel.text, borderColor: MAP_THEME.panel.line }}
           >

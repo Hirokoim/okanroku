@@ -1,14 +1,13 @@
 'use client'
 
-// 地点詳細から開く「ここで記録する」フォーム。
+// 地点詳細で、右下の「記録する」ボタン（app/record-fab.tsx）から開くポップアップの記録フォーム。
 // 入力欄の並びと保存処理だけを持ち、写真まわりとテキストの下書きは別ファイルに分けてある。
 //
 //   app/photos/use-photo-entries.ts … 添付写真の状態（追加・EXIF読み取り・現在地・削除）
 //   app/photos/photo-picker.tsx     … 添付写真の見た目
 //   record-draft.ts                 … 文字欄の一時保持（localStorage）
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { fetchAndApplyWeather } from '@/lib/weather'
@@ -16,6 +15,7 @@ import { datePeriodToIso, TIME_PERIOD_OPTIONS } from '@/lib/time-period'
 import { PhotoPicker } from '../../photos/photo-picker'
 import { MAX_PHOTOS, usePhotoEntries } from '../../photos/use-photo-entries'
 import { saveRecordPhotos } from '../../photos/save-record-photos'
+import { OPEN_RECORD_FORM_EVENT } from '../../record-fab'
 import { clearDraft, emptyDraft, loadDraft, saveDraft, type RecordDraft } from './record-draft'
 
 export function LocationRecordForm({
@@ -29,6 +29,7 @@ export function LocationRecordForm({
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -62,12 +63,27 @@ export function LocationRecordForm({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration後に一度だけlocalStorageの下書きを読む想定通りの用法
     setDraft(restored)
     if (restored.pending_location) setPendingLocation(restored.pending_location)
+    // 下書きが残っていても、ポップアップを勝手には開かない（開いたときに入力が戻っている）
     setDraftReady(true)
-    // 下書きが残っていたことに気づけるよう、その場合だけ開いておく
-    if (Object.values(restored).some((v) => (typeof v === 'boolean' ? v : v !== '' && v !== null))) {
+  }, [locationId, setPendingLocation])
+
+  // 右下の「記録する」ボタンが押されたら開く。前回の保存直後の表示は残さず、新しい記録から始める
+  useEffect(() => {
+    function openForm() {
+      setSaved(false)
       setOpen(true)
     }
-  }, [locationId, setPendingLocation])
+    window.addEventListener(OPEN_RECORD_FORM_EVENT, openForm)
+    return () => window.removeEventListener(OPEN_RECORD_FORM_EVENT, openForm)
+  }, [])
+
+  // <dialog>のshowModal()を使う。背景の操作を止め、Escで閉じられ、フォーカスも中に閉じ込められる
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (open && !dialog.open) dialog.showModal()
+    if (!open && dialog.open) dialog.close()
+  }, [open])
 
   // 選んだ地点は写真側（usePhotoEntries）が持っているので、保存するときに合わせて書く
   useEffect(() => {
@@ -102,9 +118,7 @@ export function LocationRecordForm({
           // location_id が設定されているため location_name/work_label は使わない（5-E⑦）
           location_name: '',
           photographed_at: photographedAt,
-          access_note: draft.access_note || null,
           voice_transcript: draft.voice_transcript || null,
-          edit_intent: draft.edit_intent || null,
           is_public: draft.is_public,
         })
         .select('id')
@@ -140,18 +154,35 @@ export function LocationRecordForm({
   }
 
   return (
-    <details
-      className="border border-line rounded-lg overflow-hidden mt-6"
-      open={open}
-      onToggle={(e) => setOpen(e.currentTarget.open)}
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="record-form-title"
+      onClose={() => setOpen(false)}
+      // 背景（ダイアログの外側）を押したら閉じる
+      onClick={(e) => {
+        if (e.target === e.currentTarget) e.currentTarget.close()
+      }}
+      className="m-auto w-[calc(100%-2rem)] max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-line bg-sumi-2 text-nami p-0 shadow-[0_10px_40px_rgba(43,29,23,0.3)] backdrop:bg-nami/50"
     >
-      <summary className="cursor-pointer select-none px-4 py-3 bg-sumi-2 font-body font-semibold text-sm flex items-center justify-between">
-        見えたものを、そのまま
-        <span className="text-xs text-nami-dim font-normal">この地点に紐づけて保存されます</span>
-      </summary>
+      <div className="sticky top-0 z-10 flex items-start justify-between gap-3 px-4 py-3 bg-sumi-2 border-b border-line">
+        <div>
+          <h2 id="record-form-title" className="font-body font-semibold">
+            見えたものを、そのまま
+          </h2>
+          <p className="text-xs text-nami-dim">この地点に紐づけて保存されます</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => dialogRef.current?.close()}
+          aria-label="閉じる"
+          className="shrink-0 w-10 h-10 -mr-2 -mt-1 rounded-full text-2xl leading-none text-nami-dim hover:text-nami"
+        >
+          ×
+        </button>
+      </div>
 
       {saved ? (
-        <div className="p-4 space-y-3 border-t border-line bg-sumi-2">
+        <div className="p-4 space-y-3 bg-sumi-2">
           <p className="font-body font-semibold">記録しました</p>
           <p className="text-sm text-nami-dim">今日のここでの一日が、原本に一行増えました。</p>
           {weatherStatus && <p className="text-nami-dim text-sm">{weatherStatus}</p>}
@@ -163,13 +194,17 @@ export function LocationRecordForm({
             >
               続けて記録する
             </button>
-            <Link href="/map" className="text-sm text-kin underline">
-              地図に戻る
-            </Link>
+            <button
+              type="button"
+              onClick={() => dialogRef.current?.close()}
+              className="text-sm text-kin underline"
+            >
+              閉じる
+            </button>
           </div>
         </div>
       ) : (
-      <form onSubmit={handleSubmit} className="p-4 space-y-4 border-t border-line bg-sumi-2">
+      <form onSubmit={handleSubmit} className="p-4 space-y-4 bg-sumi-2">
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-sm">
             訪問日
@@ -222,26 +257,6 @@ export function LocationRecordForm({
           <p className="text-xs text-nami-dim mt-1">あとから直せます。いまは一行で十分です。</p>
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm">
-            編集意図（1行）
-            <input
-              name="edit_intent"
-              value={draft.edit_intent}
-              onChange={(e) => setDraft((d) => ({ ...d, edit_intent: e.target.value }))}
-              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-            />
-          </label>
-          <label className="block text-sm">
-            アクセス情報
-            <input
-              name="access_note"
-              value={draft.access_note}
-              onChange={(e) => setDraft((d) => ({ ...d, access_note: e.target.value }))}
-              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-            />
-          </label>
-        </div>
 
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -275,6 +290,6 @@ export function LocationRecordForm({
         </button>
       </form>
       )}
-    </details>
+    </dialog>
   )
 }

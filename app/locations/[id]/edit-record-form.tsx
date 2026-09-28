@@ -56,9 +56,7 @@ export function EditRecordForm({
     try {
       const update: Database['public']['Tables']['records']['Update'] = {
         photographed_at: currentPhotographedAt,
-        access_note: (formData.get('access_note') as string) || null,
         voice_transcript: (formData.get('voice_transcript') as string) || null,
-        edit_intent: (formData.get('edit_intent') as string) || null,
         is_public: formData.get('is_public') === 'on',
       }
 
@@ -87,7 +85,7 @@ export function EditRecordForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded bg-sumi-4 shadow-[0_2px_8px_rgba(0,0,0,0.4)] space-y-3">
+    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded-xl bg-sumi-4 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <label className="block text-sm">
           訪問日
@@ -126,24 +124,6 @@ export function EditRecordForm({
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block text-sm">
-          編集意図（1行）
-          <input
-            name="edit_intent"
-            defaultValue={record.edit_intent ?? ''}
-            className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
-          />
-        </label>
-        <label className="block text-sm">
-          アクセス情報
-          <input
-            name="access_note"
-            defaultValue={record.access_note ?? ''}
-            className="w-full border border-line rounded p-2 mt-1 bg-sumi-2 text-nami"
-          />
-        </label>
-      </div>
 
       <label className="flex items-center gap-2 text-sm">
         <input name="is_public" type="checkbox" defaultChecked={record.is_public} />

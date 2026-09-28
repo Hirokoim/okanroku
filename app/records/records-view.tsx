@@ -44,11 +44,11 @@ function RecordStats({ records }: { records: RecordRow[] }) {
 
 export function RecordsView({
   records,
-  importPanel,
+  entry,
 }: {
   records: RecordListItem[]
-  /** 数字の下・カレンダーの上に置く「写真からまとめて記録する」 */
-  importPanel?: React.ReactNode
+  /** 数字の下・カレンダーの上に置く「写真から記録する」画面への入口 */
+  entry?: React.ReactNode
 }) {
   const [order, setOrder] = useRecordOrder()
   const [cursor, setCursor] = useState(() => {
@@ -90,7 +90,7 @@ export function RecordsView({
     <div className="space-y-4">
       {records.length > 0 && <RecordStats records={records} />}
 
-      {importPanel}
+      {entry}
 
       <RecordCalendar
         year={cursor.year}

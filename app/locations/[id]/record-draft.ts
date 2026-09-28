@@ -9,8 +9,6 @@ export type RecordDraft = {
   photographed_date: string
   time_period: TimePeriodKey | ''
   voice_transcript: string
-  edit_intent: string
-  access_note: string
   is_public: boolean
   /** 写真を選ぶ前に検索で選んだ地点。写真を追加したとき、その写真の座標の初期値になる */
   pending_location: { latitude: number; longitude: number } | null
@@ -20,8 +18,6 @@ export const emptyDraft: RecordDraft = {
   photographed_date: '',
   time_period: '',
   voice_transcript: '',
-  edit_intent: '',
-  access_note: '',
   is_public: false,
   pending_location: null,
 }
@@ -51,8 +47,6 @@ export function loadDraft(locationId: string): RecordDraft {
         ? (d.time_period as TimePeriodKey)
         : '',
       voice_transcript: text(d.voice_transcript),
-      edit_intent: text(d.edit_intent),
-      access_note: text(d.access_note),
       is_public: d.is_public === true,
       pending_location:
         typeof loc?.latitude === 'number' &&

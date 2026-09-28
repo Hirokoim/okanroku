@@ -4,11 +4,10 @@ import type { RecordListItem, RecordRow } from '../record-list'
 import { createPhotoUrls } from '@/lib/storage'
 import type { WeatherSnapshot } from '@/lib/weather'
 import { RecordsView } from './records-view'
-import { ImportPanel } from '../import-panel'
-import type { MatchableLocation } from '@/lib/location-match'
+import Link from 'next/link'
 
-// 記録タブ。地点横断で時系列に見返す一覧と、写真からまとめて記録する入口
-// （要件定義書4-C・機能②）をここに置く。ダッシュボード（/）からは
+// 記録タブ。地点横断で時系列に見返す一覧と、写真から記録する画面（/records/new）への
+// 入口（要件定義書4-C・機能②）をここに置く。ダッシュボード（/）からは
 // 「次はどこを目指すか」とは役割が異なるため、別のタブにしている。
 export default async function RecordsPage() {
   const supabase = await createClient()
@@ -23,13 +22,6 @@ export default async function RecordsPage() {
           'id, location_id, location_name, work_label, photographed_at, created_at, weather, figures(name), locations(title_jp)'
         )
         .order('created_at', { ascending: false })
-    : { data: null }
-
-  // 一括取り込み（ImportPanel）は地点候補探しに46図の座標が要る。
-  // Phase1はlocationsが北斎のみのため、代表して1件目からfigure_idを拾えば足りる
-  // （app/page.tsxの元の実装と同じ前提）。
-  const { data: locations } = user
-    ? await supabase.from('locations').select('id, figure_id, number, title_jp, latitude, longitude')
     : { data: null }
 
   // 一覧のカードに出す写真。全記録ぶんを並べる画面なので、表示用の署名付きURLは
@@ -70,9 +62,6 @@ export default async function RecordsPage() {
     }
   })
 
-  const locationRows = asRows<MatchableLocation & { figure_id: string }>(locations)
-  const figureId = locationRows[0]?.figure_id ?? null
-
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-4 w-full">
       <h1 className="text-xl font-body font-semibold">記録</h1>
@@ -80,7 +69,27 @@ export default async function RecordsPage() {
       {user ? (
         <RecordsView
           records={listItems}
-          importPanel={figureId && <ImportPanel userId={user.id} figureId={figureId} locations={locationRows} />}
+          entry={
+            // 写真から記録する画面（/records/new）への入口。カメラの絵で、文字を読む前に伝える
+            <Link
+              href="/records/new"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 bg-sumi-2 hover:bg-sumi-3 transition-colors"
+            >
+              <span className="w-9 h-9 rounded-full bg-hi text-washi flex items-center justify-center shrink-0" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 8h3l1.5-2h7L17 8h3v11H4Z" />
+                  <circle cx="12" cy="13" r="3.5" />
+                </svg>
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block font-body font-semibold text-sm">写真から記録する</span>
+                <span className="block text-xs text-nami-dim">撮った写真から、まとめて書きとめる</span>
+              </span>
+              <span className="text-hi text-lg leading-none" aria-hidden="true">
+                ›
+              </span>
+            </Link>
+          }
         />
       ) : (
         <p className="text-nami-dim">記録を見るにはログインしてください。</p>

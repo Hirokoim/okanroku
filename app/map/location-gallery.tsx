@@ -20,9 +20,14 @@ const FILTERS: { value: Filter; label: string }[] = [
 export function LocationGallery({
   locations,
   visitedLocationIds,
+  clusterFilter,
+  onClearClusterFilter,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
+  /** 地図側で選んだクラスタ。指定時は、渡されたlocationsがそのクラスタに絞り込み済み */
+  clusterFilter: string | null
+  onClearClusterFilter: () => void
 }) {
   const [filter, setFilter] = useState<Filter>('all')
   const visited = new Set(visitedLocationIds)
@@ -32,6 +37,20 @@ export function LocationGallery({
 
   return (
     <section aria-label="作品一覧" className="space-y-3">
+      {clusterFilter && (
+        <div className="flex items-center gap-2 flex-wrap text-sm rounded-xl px-3 py-2 bg-sumi-2">
+          <span className="text-hi font-semibold">クラスタ：{clusterFilter}</span>
+          <span className="text-nami-dim">で絞り込み中</span>
+          <button
+            type="button"
+            onClick={onClearClusterFilter}
+            className="ml-auto text-xs px-3 py-1 rounded-full bg-sumi-4 border border-line text-nami"
+          >
+            全景に戻る
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-2 flex-wrap">
         {FILTERS.map((f) => (
           <button
@@ -48,8 +67,14 @@ export function LocationGallery({
         ))}
       </div>
 
-      {/* 全体の進み具合は地図タブの上（map-screen.tsx）に出しているので、ここは絞り込み中の件数だけ */}
-      {filter !== 'all' && <p className="text-sm text-nami-dim">{shown.length}景を表示中</p>}
+      {/* 46景全体の進み具合は地図タブの上（map-screen.tsx）に出しているので、ここはクラスタで
+          絞り込んだとき（そのクラスタの数）と、訪問済み／未訪問で絞ったときの件数だけ出す */}
+      {(clusterFilter || filter !== 'all') && (
+        <p className="text-sm text-nami-dim">
+          {clusterFilter && `${locations.length}景・訪問済み ${locations.filter((l) => visited.has(l.id)).length}景`}
+          {filter !== 'all' && `（${shown.length}景を表示中）`}
+        </p>
+      )}
 
       {shown.length === 0 ? (
         <p className="text-sm text-nami-dim">該当する作品がありません。</p>
