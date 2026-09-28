@@ -1,68 +1,18 @@
 'use client'
 
-// 地点詳細の「自分の記録」一覧。同じ日の記録を1日分にまとめ、日付印を点線で
-// つないだタイムラインとして見せる。同じ日に何度も記録した＝その日に何度も
-// 迷って確かめた、という往還の跡が見えるようにするため。
+// 地点詳細の「自分の記録」一覧。日付ごとのタイムライン（app/record-timeline.tsx）で見せる。
 //
 // 署名付きURLの発行はサーバー側（page.tsx）で済ませてあり、
 // ここは受け取った内容を並べるだけ。記録ごとの編集フォームの開閉と、
 // 座標を見せている写真の選択だけ状態を持つ。
 
-import { useEffect, useState } from 'react'
-import { dateKey, formatDate } from '@/lib/format'
+import { useState } from 'react'
 import { timePeriodFromDatetime, timePeriodLabel } from '@/lib/time-period'
 import { weatherCodeIcon } from '@/lib/weather'
 import { downloadTextFile, locationRecordsToMarkdown } from '@/lib/export'
 import { EditRecordForm } from './edit-record-form'
 import type { LocationRecord, RecordPhoto } from './record-types'
-
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
-
-type Order = 'newest' | 'oldest'
-
-// 並び順はすべての地点で共通の好みとして覚えておく（地点ごとには分けない）
-const ORDER_STORAGE_KEY = 'okr-record-order'
-
-const ORDER_OPTIONS: { value: Order; label: string }[] = [
-  { value: 'newest', label: '新しい順' },
-  { value: 'oldest', label: '古い順' },
-]
-
-/** 記録の日時。訪問日時が無い古い記録は作成日時で代用する（他の画面と同じ扱い） */
-function recordDatetime(r: LocationRecord): string {
-  return r.photographed_at ?? r.created_at
-}
-
-type DayGroup = { key: string; date: Date; records: LocationRecord[] }
-
-/** 記録を日付ごとにまとめる。並び順は受け取った順（page.tsxで新しい順に並べてある）を保つ */
-function groupByDay(records: LocationRecord[]): DayGroup[] {
-  const groups: DayGroup[] = []
-  for (const r of records) {
-    const key = dateKey(recordDatetime(r)) ?? 'unknown'
-    const last = groups[groups.length - 1]
-    if (last && last.key === key) {
-      last.records.push(r)
-    } else {
-      groups.push({ key, date: new Date(recordDatetime(r)), records: [r] })
-    }
-  }
-  return groups
-}
-
-/** タイムラインの左側に並ぶ、赤茶の丸い日付印 */
-function DateStamp({ date }: { date: Date }) {
-  const valid = !isNaN(date.getTime())
-  return (
-    <div
-      className="w-11 h-11 rounded-full bg-hi text-washi flex flex-col items-center justify-center leading-none shrink-0"
-      aria-hidden="true"
-    >
-      <span className="text-[10px]">{valid ? `${date.getMonth() + 1}月` : ''}</span>
-      <span className="text-lg font-bold">{valid ? date.getDate() : '?'}</span>
-    </div>
-  )
-}
+import { RecordOrderToggle, TimelineDay, groupByDay, useRecordOrder } from '../../record-timeline'
 
 /** 写真1枚ぶんのボタン。タップすると撮影位置の表示を切り替える */
 function PhotoButton({
@@ -167,36 +117,6 @@ function RecordEntry({ record: r, userId }: { record: LocationRecord; userId: st
   )
 }
 
-function DaySection({ group, isLast, userId }: { group: DayGroup; isLast: boolean; userId: string }) {
-  const valid = !isNaN(group.date.getTime())
-  const count = group.records.length
-  return (
-    <li className="flex gap-3">
-      <div className="flex flex-col items-center">
-        <DateStamp date={group.date} />
-        {/* 次の日付印へつなぐ点線。最後の日には引かない */}
-        {!isLast && (
-          <div
-            className="w-0.5 flex-1 mt-1"
-            style={{ background: 'repeating-linear-gradient(var(--hi) 0 3px, transparent 3px 8px)' }}
-          />
-        )}
-      </div>
-      <div className="flex-1 min-w-0 pb-6">
-        <h3 className="text-xs text-nami-dim pt-3">
-          {valid ? `${formatDate(group.date.toISOString())}（${WEEKDAYS[group.date.getDay()]}）` : '日付不明'}
-          {count > 1 && <span className="text-hi font-semibold">・{count}回の記録</span>}
-        </h3>
-        <ul className="space-y-2 mt-2">
-          {group.records.map((r) => (
-            <RecordEntry key={r.id} record={r} userId={userId} />
-          ))}
-        </ul>
-      </div>
-    </li>
-  )
-}
-
 export function LocationRecords({
   records,
   userId,
@@ -206,35 +126,13 @@ export function LocationRecords({
   userId: string
   locationTitle: string
 }) {
-  // records は page.tsx で新しい順に並んで届く。古い順は日付の並びも1日の中の並びも逆にする
-  const [order, setOrder] = useState<Order>('newest')
-
-  // 前回選んだ並び順を復元する。useStateの初期値で読むとサーバー側の描画と食い違うため、
-  // マウント後に一度だけ読む（font-size-setting.tsxと同じ考え方）。
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(ORDER_STORAGE_KEY)
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント後に一度だけlocalStorageを読んで並び順を合わせる想定通りの用法
-      if (saved === 'newest' || saved === 'oldest') setOrder(saved)
-    } catch {
-      // プライベートブラウジング等でlocalStorageが使えない場合は新しい順のまま
-    }
-  }, [])
-
-  function handleOrderChange(value: Order) {
-    setOrder(value)
-    try {
-      localStorage.setItem(ORDER_STORAGE_KEY, value)
-    } catch {
-      // 保存できなくても、今の画面の並びは変わっているので致命的ではない
-    }
-  }
+  const [order, setOrder] = useRecordOrder()
 
   if (records.length === 0) {
     return <p className="text-nami-dim text-sm">まだこの地点の記録がありません。</p>
   }
 
-  const groups = groupByDay(order === 'newest' ? records : [...records].reverse())
+  const groups = groupByDay(records, order)
 
   function handleDownloadMarkdown() {
     // note下書きの土台として使う想定（機能④）。ファイル名に地点名をそのまま使うと
@@ -247,28 +145,18 @@ export function LocationRecords({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-1" role="group" aria-label="記録の並び順">
-          {ORDER_OPTIONS.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              aria-pressed={order === o.value}
-              onClick={() => handleOrderChange(o.value)}
-              className={`text-xs rounded-full px-3 py-1 transition-colors ${
-                order === o.value ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
+        <RecordOrderToggle order={order} onChange={setOrder} />
         <button type="button" onClick={handleDownloadMarkdown} className="text-xs text-kin underline">
           Markdownで書き出す
         </button>
       </div>
       <ol>
         {groups.map((g, i) => (
-          <DaySection key={g.key + i} group={g} isLast={i === groups.length - 1} userId={userId} />
+          <TimelineDay key={g.key + i} date={g.date} count={g.records.length} isLast={i === groups.length - 1}>
+            {g.records.map((r) => (
+              <RecordEntry key={r.id} record={r} userId={userId} />
+            ))}
+          </TimelineDay>
         ))}
       </ol>
     </div>

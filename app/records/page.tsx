@@ -35,16 +35,13 @@ export default async function RecordsPage() {
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-4 w-full">
-      <h1 className="text-xl font-body font-semibold">
-        記録
-        {user && <span className="text-sm font-normal text-nami-dim ml-2">{(records ?? []).length}件</span>}
-      </h1>
+      <h1 className="text-xl font-body font-semibold">記録</h1>
 
       {user ? (
-        <div className="space-y-4">
-          {figureId && <ImportPanel userId={user.id} figureId={figureId} locations={locationRows} />}
-          <RecordsView records={asRows<RecordRow>(records)} />
-        </div>
+        <RecordsView
+          records={asRows<RecordRow>(records)}
+          importPanel={figureId && <ImportPanel userId={user.id} figureId={figureId} locations={locationRows} />}
+        />
       ) : (
         <p className="text-nami-dim">記録を見るにはログインしてください。</p>
       )}
