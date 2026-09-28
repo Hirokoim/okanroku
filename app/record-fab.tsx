@@ -34,7 +34,10 @@ const FAB_CLASS =
 
 export function RecordFab() {
   const pathname = usePathname()
-  if (pathname === '/records/new') return null
+  // 記録する画面そのもの、人物を選ぶ画面（まだ何を記録するか決める前の画面）、
+  // 設定画面（記録とは関係のない画面）では出さない
+  const HIDDEN_ON = ['/records/new', '/figures', '/settings']
+  if (HIDDEN_ON.includes(pathname)) return null
 
   const onLocationPage = pathname.startsWith('/locations/')
   // 地図画面では右下に地図の出典表示が来るため、ボタンを少し上げて重ならないようにする
