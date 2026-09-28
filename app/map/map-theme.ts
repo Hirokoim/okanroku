@@ -10,7 +10,7 @@ export const MAP_TILE = {
   url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
   attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">国土地理院</a>',
   maxZoom: 18,
-  // 淡色地図の灰色を、生成りのパネルになじむよう少しだけ温かく寄せる
+  // 淡色地図の色を少し強めて、海を見出しの空色に近づける
   className: 'okr-map-tiles',
 } as const
 
@@ -52,13 +52,16 @@ export const MAP_THEME = {
   },
 
   // 開拓マップ（クラスタ単位の進捗を円で重ねるモード）。
-  // 進むほど円が赤茶に染まっていく（地図がだんだん赤富士の色になる）。
-  // 制覇したクラスタだけ縁を黄土の太枠にして「特別感」を出す。
+  // シールのような円で、未踏＝生成り（薄い赤茶のふち。白いふちだと白い陸地に溶けるため）、
+  // 開拓中＝白いふちの薄い赤茶の中に訪問率ぶんの赤茶の丸、制覇＝赤茶一色＋黄土のふち。
   cluster: {
+    none: '#fffaf0',
+    noneRim: '#e98a6e',
+    partial: '#e98a6e',
     fill: '#a8432b',
-    stroke: '#8d3622',
-    gold: '#d9a441',
-    route: '#2b1d17',
+    rim: '#ffffff',
+    gold: '#e3b35a',
+    route: '#a8432b',
   },
 
   // マーカー

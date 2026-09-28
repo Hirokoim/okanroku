@@ -116,8 +116,9 @@ html[data-font-scale="xlarge"] {
   }
 }
 
-/* 地図タイル（国土地理院の淡色地図）の灰色を、生成りのパネルになじむよう少し温かくする。
+/* 地図タイル（国土地理院の淡色地図）の色を強めて、海を見出しの空色に近づける。
+   そのままだと灰色がちで、赤富士の見出しと並べると渋く見えるため。
    指定元は app/map/map-theme.ts の MAP_TILE.className。 */
 .okr-map-tiles {
-  filter: sepia(0.18) saturate(0.95);
+  filter: saturate(1.8) brightness(1.03);
 }

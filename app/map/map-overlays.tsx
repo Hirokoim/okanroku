@@ -139,16 +139,19 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
 function LegendRow({ bg, border, children }: { bg: string; border: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="inline-block w-4 h-4 rounded-full" style={{ background: bg, border: `2px solid ${border}` }} />
+      {/* 外側の細い影は、白いふち（開拓マップの円）が明るい凡例の地に溶けないようにするため */}
+      <span
+        className="inline-block w-4 h-4 rounded-full"
+        style={{ background: bg, border: `2px solid ${border}`, boxShadow: '0 0 0 1px rgba(43,29,23,.25)' }}
+      />
       {children}
     </div>
   )
 }
 
-/** 開拓マップ（クラスタ円）を出しているときの凡例。円の濃さと金枠の意味を示す */
+/** 開拓マップ（クラスタ円）を出しているときの凡例。円の塗り分けと黄土のふちの意味を示す */
 export function ClusterLegend() {
-  const { fill, stroke, gold } = MAP_THEME.cluster
-  // 見本の塗りの濃さは map-clusters.tsx の fillOpacityFor（0 / 途中 / 100%）に合わせてある
+  const { none, noneRim, partial, fill, rim, gold } = MAP_THEME.cluster
   return (
     <div
       className="absolute bottom-6 left-3 z-[1000] rounded-lg px-4 py-3 text-sm space-y-2"
@@ -158,14 +161,14 @@ export function ClusterLegend() {
         color: MAP_THEME.panel.text,
       }}
     >
-      <LegendRow bg={`${fill}1a`} border={stroke}>
+      <LegendRow bg={none} border={noneRim}>
         未踏
       </LegendRow>
-      <LegendRow bg={`${fill}7a`} border={stroke}>
+      <LegendRow bg={`radial-gradient(circle, ${fill} 0 45%, ${partial} 46%)`} border={rim}>
         開拓中
       </LegendRow>
-      <LegendRow bg={`${fill}b3`} border={gold}>
-        制覇（黄土の枠）
+      <LegendRow bg={fill} border={gold}>
+        制覇（黄土のふち）
       </LegendRow>
     </div>
   )
