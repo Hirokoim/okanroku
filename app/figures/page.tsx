@@ -57,7 +57,7 @@ export default async function FiguresPage() {
           const ready = count > 0
           const body = (
             <>
-              <FigureAvatar slug={f.slug} name={f.name} className="w-28 h-28 mx-auto" />
+              <FigureAvatar name={f.name} decorative className="w-28 h-28 mx-auto" />
               <div className="mt-3 text-center">
                 <div className="font-body font-bold">{f.name}</div>
                 <div className="text-xs text-nami-dim mt-0.5">

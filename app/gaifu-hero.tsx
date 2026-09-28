@@ -10,7 +10,7 @@
 import Link from 'next/link'
 import { FigureAvatar } from './figure-avatar'
 
-export type HeroFigure = { slug: string; name: string; work: string }
+export type HeroFigure = { name: string; work: string }
 
 export function GaifuHero({ figure }: { figure?: HeroFigure }) {
   return (
@@ -38,7 +38,7 @@ export function GaifuHero({ figure }: { figure?: HeroFigure }) {
             href="/figures"
             className="mt-2 inline-flex items-center gap-2 rounded-full bg-washi/90 pl-1 pr-3 py-1 text-xs text-nami hover:bg-washi transition-colors"
           >
-            <FigureAvatar slug={figure.slug} name="" className="w-7 h-7 border" />
+            <FigureAvatar name={figure.name} decorative className="w-7 h-7 border" />
             <span>
               {figure.name}・{figure.work}
             </span>
