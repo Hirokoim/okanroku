@@ -34,7 +34,7 @@ export default async function NewRecordPage() {
       {!user ? (
         <p className="text-nami-dim">記録するにはログインしてください。</p>
       ) : figureId ? (
-        <div className="border border-line rounded-lg p-4 bg-sumi-2">
+        <div className="rounded-xl p-4 bg-sumi-2">
           <ImportForm userId={user.id} figureId={figureId} locations={locationRows} />
         </div>
       ) : (

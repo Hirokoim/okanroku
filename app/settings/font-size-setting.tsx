@@ -9,10 +9,11 @@ import { useSyncExternalStore } from 'react'
 
 const STORAGE_KEY = 'okr-font-scale'
 
+// sampleは選択肢の中に見本として出す「あ」の大きさ（どれくらい大きくなるかを、選ぶ前に見せる）
 const SCALES = [
-  { value: 'standard', label: '標準' },
-  { value: 'large', label: '大' },
-  { value: 'xlarge', label: '特大' },
+  { value: 'standard', label: '標準', sample: 'text-base' },
+  { value: 'large', label: '大', sample: 'text-lg' },
+  { value: 'xlarge', label: '特大', sample: 'text-xl' },
 ] as const
 
 type Scale = (typeof SCALES)[number]['value']
@@ -50,13 +51,13 @@ export function FontSizeSetting() {
 
   return (
     <fieldset>
-      <legend className="text-sm font-body font-semibold mb-2">文字サイズ</legend>
-      <div className="flex gap-2" role="radiogroup" aria-label="文字サイズ">
+      <legend className="text-sm font-body font-semibold mb-3">文字サイズ</legend>
+      <div className="flex gap-2 items-stretch" role="radiogroup" aria-label="文字サイズ">
         {SCALES.map((s) => (
           <label
             key={s.value}
-            className={`flex-1 text-center text-sm font-body font-medium px-3 py-2 rounded-full border cursor-pointer transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-kin has-[:focus-visible]:outline-offset-2 ${
-              scale === s.value ? 'bg-hi text-nami border-hi' : 'border-line text-nami-dim'
+            className={`flex-1 flex flex-col items-center justify-end gap-1 h-20 pb-2.5 rounded-xl border-2 cursor-pointer transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-kin has-[:focus-visible]:outline-offset-2 ${
+              scale === s.value ? 'bg-hi text-washi border-hi' : 'bg-sumi-4 border-line text-nami-dim'
             }`}
           >
             <input
@@ -67,7 +68,10 @@ export function FontSizeSetting() {
               onChange={() => handleChange(s.value)}
               className="sr-only"
             />
-            {s.label}
+            <span className={`${s.sample} font-bold leading-none`} aria-hidden="true">
+              あ
+            </span>
+            <span className="text-xs font-body font-medium">{s.label}</span>
           </label>
         ))}
       </div>

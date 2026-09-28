@@ -27,7 +27,7 @@ export function DashboardHome({
         <button
           type="button"
           onClick={() => setStarted(true)}
-          className="inline-block bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-2 text-sm font-body font-semibold transition-colors"
+          className="inline-block bg-hi hover:bg-hi-hover text-washi rounded-full px-4 py-2 text-sm font-body font-semibold transition-colors"
         >
           往還をはじめる
         </button>

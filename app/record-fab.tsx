@@ -30,7 +30,7 @@ function BrushIcon() {
 }
 
 const FAB_CLASS =
-  'pointer-events-auto flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-full bg-hi hover:bg-hi-hover text-nami border-2 border-kin shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-colors'
+  'pointer-events-auto flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-full bg-hi hover:bg-hi-hover text-washi border-2 border-white shadow-[0_4px_14px_rgba(43,29,23,0.3)] transition-colors'
 
 export function RecordFab() {
   const pathname = usePathname()

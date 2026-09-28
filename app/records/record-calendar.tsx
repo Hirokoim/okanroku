@@ -4,6 +4,8 @@
 // パッと見て判断できるようにする（一覧は日付順の羅列で、抜けている日を
 // 目で数えるのは向かないため）。
 //
+// 記録のある日は、タイムラインの日付印と同じ赤茶の丸で示す。
+//
 // 記録データそのものは持たない。日付ごとの件数（dateCounts）だけを受け取り、
 // 選んだ日をrecords-view.tsxへ伝えるだけの見た目役。
 
@@ -42,13 +44,13 @@ export function RecordCalendar({
   const todayKey = dateKey(new Date().toISOString())
 
   return (
-    <div className="border border-line rounded-lg p-4 bg-sumi-2">
+    <div className="rounded-xl p-4 bg-sumi-2">
       <div className="flex items-center justify-between mb-3">
         <button
           type="button"
           onClick={onPrevMonth}
           aria-label="前の月"
-          className="w-8 h-8 rounded-full border border-line text-nami-dim flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-sumi-4 text-nami-dim flex items-center justify-center"
         >
           ‹
         </button>
@@ -59,7 +61,7 @@ export function RecordCalendar({
           type="button"
           onClick={onNextMonth}
           aria-label="次の月"
-          className="w-8 h-8 rounded-full border border-line text-nami-dim flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-sumi-4 text-nami-dim flex items-center justify-center"
         >
           ›
         </button>
@@ -87,15 +89,22 @@ export function RecordCalendar({
               type="button"
               disabled={!hasRecord}
               onClick={() => onSelectDate(isSelected ? null : key)}
-              className={`aspect-square rounded-md flex items-center justify-center text-xs font-bold transition-colors ${
+              aria-label={hasRecord ? `${month + 1}月${day}日（${count}件の記録）` : undefined}
+              className={`relative aspect-square rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                 isSelected
-                  ? 'bg-hi text-nami'
+                  ? 'bg-nami text-washi'
                   : hasRecord
-                    ? 'bg-kin text-sumi hover:bg-kin-dim'
+                    ? 'bg-hi text-washi hover:bg-hi-hover'
                     : 'text-nami-dim/60'
               } ${isToday && !isSelected ? 'ring-2 ring-kin' : ''}`}
             >
               {day}
+              {/* 1日に複数回記録した日は、右上に件数の小さな札を付ける */}
+              {count > 1 && (
+                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-odo text-nami text-[10px] leading-4">
+                  {count}
+                </span>
+              )}
             </button>
           )
         })}

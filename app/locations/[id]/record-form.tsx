@@ -163,7 +163,7 @@ export function LocationRecordForm({
       onClick={(e) => {
         if (e.target === e.currentTarget) e.currentTarget.close()
       }}
-      className="m-auto w-[calc(100%-2rem)] max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-line bg-sumi-2 text-nami p-0 shadow-[0_10px_40px_rgba(0,0,0,0.6)] backdrop:bg-black/60"
+      className="m-auto w-[calc(100%-2rem)] max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-line bg-sumi-2 text-nami p-0 shadow-[0_10px_40px_rgba(43,29,23,0.3)] backdrop:bg-nami/50"
     >
       <div className="sticky top-0 z-10 flex items-start justify-between gap-3 px-4 py-3 bg-sumi-2 border-b border-line">
         <div>
@@ -272,7 +272,7 @@ export function LocationRecordForm({
         <button
           type="submit"
           disabled={submitting || convertingPhotos}
-          className="w-full bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-3 text-base font-body font-semibold disabled:opacity-50 transition-colors"
+          className="w-full bg-hi hover:bg-hi-hover text-washi rounded-full px-4 py-3 text-base font-body font-semibold disabled:opacity-50 transition-colors"
         >
           {submitting
             ? '書きとめています...'

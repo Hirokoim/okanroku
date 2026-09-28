@@ -32,17 +32,44 @@ export function MapScreen({
   const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
   const galleryLocations = clusterFilter ? locations.filter((l) => l.cluster === clusterFilter) : locations
 
+  // 進み具合。地図にも作品一覧にも共通なので、切り替えの上に1回だけ出す
+  const visited = new Set(visitedLocationIds)
+  const visitedCount = locations.filter((l) => visited.has(l.id)).length
+  const percent = locations.length === 0 ? 0 : Math.round((visitedCount / locations.length) * 100)
+
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="rounded-xl bg-sumi-2 px-4 py-3">
+        <div className="flex items-baseline justify-between">
+          <span className="text-xs text-nami-dim">富嶽三十六景</span>
+          <span className="text-xs text-nami-dim">
+            <span className="text-xl font-bold text-hi tabular-nums">{visitedCount}</span>
+            <span className="mx-0.5">/</span>
+            {locations.length}景
+          </span>
+        </div>
+        <div
+          className="h-2 rounded-full bg-sumi-3 mt-2 overflow-hidden"
+          role="progressbar"
+          aria-label="訪問した景の割合"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div className="h-full rounded-full bg-hi" style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+
+      {/* 地図／作品一覧の切り替え。1つにつながったボタンにして「同じものの見せ方違い」と分かるようにする */}
+      <div className="grid grid-cols-2 rounded-full bg-sumi-2 p-1" role="group" aria-label="表示の切り替え">
         {VIEWS.map((v) => (
           <button
             key={v.value}
             type="button"
             aria-pressed={view === v.value}
             onClick={() => setView(v.value)}
-            className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
-              view === v.value ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
+            className={`text-sm rounded-full py-2 font-body font-semibold transition-colors ${
+              view === v.value ? 'bg-hi text-washi' : 'text-nami-dim'
             }`}
           >
             {v.label}

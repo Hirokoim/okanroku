@@ -112,14 +112,17 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
       onClick={onClick}
       aria-label={active ? '現在地の追跡を止める' : '現在地を表示する'}
       aria-pressed={active}
-      className="absolute z-[1000] rounded flex items-center justify-center"
+      className="absolute z-[1000] flex items-center justify-center"
       style={{
         top,
         left,
         width: size,
         height: size,
-        background: '#ffffff',
-        boxShadow: '0 1px 5px rgba(0,0,0,.65)',
+        // ズームボタン（globals.cssの.leaflet-barの上書き）と同じ生成りの角丸に揃える
+        background: 'var(--washi)',
+        borderRadius: 10,
+        border: '2px solid rgba(0,0,0,.2)',
+        backgroundClip: 'padding-box',
       }}
     >
       <svg viewBox="0 0 24 24" width="16" height="16">
@@ -139,15 +142,19 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
 function LegendRow({ bg, border, children }: { bg: string; border: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="inline-block w-4 h-4 rounded-full" style={{ background: bg, border: `2px solid ${border}` }} />
+      {/* 外側の細い影は、白いふち（開拓マップの円）が明るい凡例の地に溶けないようにするため */}
+      <span
+        className="inline-block w-4 h-4 rounded-full"
+        style={{ background: bg, border: `2px solid ${border}`, boxShadow: '0 0 0 1px rgba(43,29,23,.25)' }}
+      />
       {children}
     </div>
   )
 }
 
-/** 開拓マップ（クラスタ円）を出しているときの凡例。円の濃さと金枠の意味を示す */
+/** 開拓マップ（クラスタ円）を出しているときの凡例。円の塗り分けと黄土のふちの意味を示す */
 export function ClusterLegend() {
-  const { indigo, gold } = MAP_THEME.cluster
+  const { none, noneRim, partial, fill, rim, gold } = MAP_THEME.cluster
   return (
     <div
       className="absolute bottom-6 left-3 z-[1000] rounded-lg px-4 py-3 text-sm space-y-2"
@@ -157,14 +164,14 @@ export function ClusterLegend() {
         color: MAP_THEME.panel.text,
       }}
     >
-      <LegendRow bg="rgba(30,77,120,.1)" border={indigo}>
+      <LegendRow bg={none} border={noneRim}>
         未踏
       </LegendRow>
-      <LegendRow bg="rgba(30,77,120,.48)" border={indigo}>
+      <LegendRow bg={`radial-gradient(circle, ${fill} 0 45%, ${partial} 46%)`} border={rim}>
         開拓中
       </LegendRow>
-      <LegendRow bg="rgba(30,77,120,.7)" border={gold}>
-        制覇（金枠）
+      <LegendRow bg={fill} border={gold}>
+        制覇（黄土のふち）
       </LegendRow>
     </div>
   )

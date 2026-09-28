@@ -22,7 +22,7 @@ export function DashboardTabs({
           type="button"
           onClick={() => setTab('cluster')}
           className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
-            tab === 'cluster' ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
+            tab === 'cluster' ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
           }`}
         >
           次へ・クラスター
@@ -31,7 +31,7 @@ export function DashboardTabs({
           type="button"
           onClick={() => setTab('map')}
           className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
-            tab === 'map' ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
+            tab === 'map' ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
           }`}
         >
           開拓マップ

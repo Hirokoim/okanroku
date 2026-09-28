@@ -86,7 +86,7 @@ export function EditRecordForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded bg-sumi-4 shadow-[0_2px_8px_rgba(0,0,0,0.4)] space-y-3">
+    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-line rounded-xl bg-sumi-4 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <label className="block text-sm">
           訪問日
@@ -150,7 +150,7 @@ export function EditRecordForm({
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 bg-hi hover:bg-hi-hover text-nami rounded-full px-3 py-2.5 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
+            className="flex-1 bg-hi hover:bg-hi-hover text-washi rounded-full px-3 py-2.5 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
           >
             {submitting ? '保存中...' : '保存する'}
           </button>

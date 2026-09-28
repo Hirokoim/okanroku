@@ -85,7 +85,7 @@ function ClusterJourneyOverlay({
     <div className="fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="クラスタ選択の確認">
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(180deg, var(--ai-deep) 0%, var(--sumi) 75%)' }}
+        style={{ background: 'linear-gradient(180deg, var(--ai) 0%, var(--sumi) 75%)' }}
         onClick={onCancel}
       />
       <div className="relative rounded-t-3xl bg-sumi-3 border-t border-line p-6 pb-8 space-y-4">
@@ -106,7 +106,7 @@ function ClusterJourneyOverlay({
           <button
             type="button"
             onClick={onConfirm}
-            className="flex-1 bg-hi hover:bg-hi-hover text-nami rounded-full py-3 text-sm font-body font-semibold transition-colors"
+            className="flex-1 bg-hi hover:bg-hi-hover text-washi rounded-full py-3 text-sm font-body font-semibold transition-colors"
           >
             ここへ、行きます
           </button>
