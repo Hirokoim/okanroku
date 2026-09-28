@@ -18,6 +18,11 @@ import type { LocationRecord, RecordPhoto } from './record-types'
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
+const ORDER_OPTIONS: { value: 'newest' | 'oldest'; label: string }[] = [
+  { value: 'newest', label: '新しい順' },
+  { value: 'oldest', label: '古い順' },
+]
+
 /** 記録の日時。訪問日時が無い古い記録は作成日時で代用する（他の画面と同じ扱い） */
 function recordDatetime(r: LocationRecord): string {
   return r.photographed_at ?? r.created_at
@@ -54,46 +59,69 @@ function DateStamp({ date }: { date: Date }) {
   )
 }
 
+/** 写真1枚ぶんのボタン。タップすると撮影位置の表示を切り替える */
+function PhotoButton({
+  photo,
+  selected,
+  large,
+  onToggle,
+}: {
+  photo: RecordPhoto
+  selected: boolean
+  /** 1枚目はカードの横幅いっぱいに大きく出す */
+  large: boolean
+  onToggle: () => void
+}) {
+  const size = large ? 'w-full aspect-[4/3] rounded-xl' : 'w-[4.5rem] h-[4.5rem] rounded-lg'
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={selected}
+      aria-label="写真の撮影位置を表示"
+      className={`${size} block border-2 overflow-hidden ${selected ? 'border-hi' : 'border-white'}`}
+    >
+      {photo.unsupportedFormat ? (
+        <span className="w-full h-full bg-sumi-3 grid place-items-center text-nami-dim text-[10px] leading-tight px-1">
+          HEICのため表示不可
+        </span>
+      ) : photo.url ? (
+        // eslint-disable-next-line @next/next/no-img-element -- 有効期限付きの署名URLのためnext/imageの最適化対象にしない
+        <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+      ) : (
+        <span className="w-full h-full bg-sumi-3 grid place-items-center text-nami-dim text-[10px] leading-tight px-1">
+          読み込めませんでした
+        </span>
+      )}
+    </button>
+  )
+}
+
 function RecordPhotos({ photos }: { photos: RecordPhoto[] }) {
   // 座標は一覧では出さず、写真をタップしたときだけ見せる（一覧を記録らしく見せるため）
   const [selectedId, setSelectedId] = useState<string | null>(null)
   if (photos.length === 0) return null
   const selected = photos.find((p) => p.id === selectedId)
+  const [first, ...rest] = photos
+  const toggle = (id: string) => setSelectedId(selectedId === id ? null : id)
 
   return (
     <div className="mt-2">
-      <ul className="flex flex-wrap gap-2">
-        {photos.map((photo) => {
-          const isSelected = photo.id === selectedId
-          const frame = `w-[4.5rem] h-[4.5rem] rounded-lg border-2 overflow-hidden ${
-            isSelected ? 'border-hi' : 'border-white'
-          }`
-          return (
+      <PhotoButton photo={first} selected={first.id === selectedId} large onToggle={() => toggle(first.id)} />
+      {rest.length > 0 && (
+        <ul className="flex flex-wrap gap-2 mt-2">
+          {rest.map((photo) => (
             <li key={photo.id}>
-              <button
-                type="button"
-                onClick={() => setSelectedId(isSelected ? null : photo.id)}
-                aria-pressed={isSelected}
-                aria-label="写真の撮影位置を表示"
-                className={`${frame} block`}
-              >
-                {photo.unsupportedFormat ? (
-                  <span className="w-full h-full bg-sumi-3 grid place-items-center text-nami-dim text-[10px] leading-tight px-1">
-                    HEICのため表示不可
-                  </span>
-                ) : photo.url ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- 有効期限付きの署名URLのためnext/imageの最適化対象にしない
-                  <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                ) : (
-                  <span className="w-full h-full bg-sumi-3 grid place-items-center text-nami-dim text-[10px] leading-tight px-1">
-                    読み込めませんでした
-                  </span>
-                )}
-              </button>
+              <PhotoButton
+                photo={photo}
+                selected={photo.id === selectedId}
+                large={false}
+                onToggle={() => toggle(photo.id)}
+              />
             </li>
-          )
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
       {selected && (
         <div className="text-nami-dim text-xs mt-1.5 tabular-nums">
           {selected.latitude !== null && selected.longitude !== null
@@ -173,11 +201,14 @@ export function LocationRecords({
   userId: string
   locationTitle: string
 }) {
+  // records は page.tsx で新しい順に並んで届く。古い順は日付の並びも1日の中の並びも逆にする
+  const [order, setOrder] = useState<'newest' | 'oldest'>('newest')
+
   if (records.length === 0) {
     return <p className="text-nami-dim text-sm">まだこの地点の記録がありません。</p>
   }
 
-  const groups = groupByDay(records)
+  const groups = groupByDay(order === 'newest' ? records : [...records].reverse())
 
   function handleDownloadMarkdown() {
     // note下書きの土台として使う想定（機能④）。ファイル名に地点名をそのまま使うと
@@ -189,9 +220,24 @@ export function LocationRecords({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-1" role="group" aria-label="記録の並び順">
+          {ORDER_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={order === o.value}
+              onClick={() => setOrder(o.value)}
+              className={`text-xs rounded-full px-3 py-1 transition-colors ${
+                order === o.value ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
         <button type="button" onClick={handleDownloadMarkdown} className="text-xs text-kin underline">
-          この地点の記録をMarkdownで書き出す
+          Markdownで書き出す
         </button>
       </div>
       <ol>
