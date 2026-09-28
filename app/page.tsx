@@ -30,7 +30,8 @@ export default async function Home() {
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-8 w-full">
-      <GaifuHero subtitle={user ? '葛飾北斎・富嶽三十六景' : undefined} />
+      {/* Phase1は北斎のみ。人物を選べるようになったら（Phase2）、選んだ人物をここに渡す */}
+      <GaifuHero figure={user ? { slug: 'hokusai', name: '葛飾北斎', work: '富嶽三十六景' } : undefined} />
 
       {user ? (
         <DashboardHome

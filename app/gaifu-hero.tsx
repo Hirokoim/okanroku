@@ -4,8 +4,15 @@
 // 絵はSVGで描いた装飾なので読み上げ対象から外し、見出しの文字はh1として
 // 別に持つ（画像の中の文字にしない）。
 // 人物が増えたら（Phase2）、この絵と配色を人物ごとに差し替える想定。
+//
+// ロゴの下には、いまたどっている人物の札（丸い肖像＋名前）を置く。押すと人物を選ぶ画面へ。
 
-export function GaifuHero({ subtitle }: { subtitle?: string }) {
+import Link from 'next/link'
+import { FigureAvatar } from './figure-avatar'
+
+export type HeroFigure = { slug: string; name: string; work: string }
+
+export function GaifuHero({ figure }: { figure?: HeroFigure }) {
   return (
     <header className="relative -mx-6 -mt-6">
       <svg viewBox="0 0 200 90" className="block w-full h-auto" aria-hidden="true">
@@ -26,7 +33,21 @@ export function GaifuHero({ subtitle }: { subtitle?: string }) {
       </svg>
       <div className="absolute left-6 top-5">
         <h1 className="font-logo text-3xl font-bold tracking-[0.2em] text-nami">往還録</h1>
-        {subtitle && <p className="text-xs text-nami mt-1">{subtitle}</p>}
+        {figure && (
+          <Link
+            href="/figures"
+            className="mt-2 inline-flex items-center gap-2 rounded-full bg-washi/90 pl-1 pr-3 py-1 text-xs text-nami hover:bg-washi transition-colors"
+          >
+            <FigureAvatar slug={figure.slug} name="" className="w-7 h-7 border" />
+            <span>
+              {figure.name}・{figure.work}
+            </span>
+            <span className="text-hi" aria-hidden="true">
+              ›
+            </span>
+            <span className="sr-only">（人物を選ぶ）</span>
+          </Link>
+        )}
       </div>
     </header>
   )
