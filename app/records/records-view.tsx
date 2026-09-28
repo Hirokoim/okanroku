@@ -5,7 +5,7 @@
 // （/records/page.tsxはサーバー側でデータを取るだけの薄いページのまま保つ）。
 
 import { useMemo, useState } from 'react'
-import { RecordList, type RecordRow } from '../record-list'
+import { RecordList, type RecordListItem, type RecordRow } from '../record-list'
 import { RecordOrderToggle, useRecordOrder } from '../record-timeline'
 import { RecordCalendar } from './record-calendar'
 import { dateKey } from '@/lib/format'
@@ -46,7 +46,7 @@ export function RecordsView({
   records,
   importPanel,
 }: {
-  records: RecordRow[]
+  records: RecordListItem[]
   /** 数字の下・カレンダーの上に置く「写真からまとめて記録する」 */
   importPanel?: React.ReactNode
 }) {
