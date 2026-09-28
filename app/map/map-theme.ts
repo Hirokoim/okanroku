@@ -24,7 +24,7 @@ const TILES = {
 } as const
 
 // 使う地図タイル。見比べるときはここを 'osm' / 'gsiPale' で切り替える
-export const MAP_TILE = TILES.osm
+export const MAP_TILE = TILES.gsiPale
 
 export const MAP_THEME = {
   // 地図の外枠とツールバー
