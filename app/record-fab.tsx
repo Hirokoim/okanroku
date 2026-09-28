@@ -3,7 +3,7 @@
 // どの画面からでも記録を始められる、右下の丸い「記録する」ボタン。
 // 記録タブの一番下にある入口は見落としやすいため、常に同じ場所に置く。
 //
-//   地点詳細（/locations/[id]）… その地点の記録フォームを開いて移動する
+//   地点詳細（/locations/[id]）… その地点の記録フォームをポップアップで開く
 //   それ以外                    … 写真からまとめて記録する画面（/records/new）へ
 //
 // ボトムナビの「記録」タブ（一覧）と区別するため、ラベルは動詞の「記録する」にし、
@@ -12,7 +12,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export const RECORD_FORM_HASH = 'record-form'
+// 地点詳細の記録フォーム（app/locations/[id]/record-form.tsx）を開く合図。
+// ページ内リンク（#...）はNext.jsの画面遷移ではhashchangeが発生せず、同じページに
+// いるときに押しても開けないため、ボタンからイベントを送る方式にしている。
+export const OPEN_RECORD_FORM_EVENT = 'okanroku:open-record-form'
 
 function BrushIcon() {
   return (
@@ -25,6 +28,9 @@ function BrushIcon() {
     </svg>
   )
 }
+
+const FAB_CLASS =
+  'pointer-events-auto flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-full bg-hi hover:bg-hi-hover text-nami border-2 border-kin shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-colors'
 
 export function RecordFab() {
   const pathname = usePathname()
@@ -41,13 +47,21 @@ export function RecordFab() {
       style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + ${lifted ? 128 : 80}px)` }}
     >
       <div className="max-w-[430px] mx-auto flex justify-end px-4">
-        <Link
-          href={onLocationPage ? `#${RECORD_FORM_HASH}` : '/records/new'}
-          className="pointer-events-auto flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-full bg-hi hover:bg-hi-hover text-nami border-2 border-kin shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-colors"
-        >
-          <BrushIcon />
-          <span className="text-[0.6875rem] font-semibold leading-none">記録する</span>
-        </Link>
+        {onLocationPage ? (
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event(OPEN_RECORD_FORM_EVENT))}
+            className={FAB_CLASS}
+          >
+            <BrushIcon />
+            <span className="text-[0.6875rem] font-semibold leading-none">記録する</span>
+          </button>
+        ) : (
+          <Link href="/records/new" className={FAB_CLASS}>
+            <BrushIcon />
+            <span className="text-[0.6875rem] font-semibold leading-none">記録する</span>
+          </Link>
+        )}
       </div>
     </div>
   )
