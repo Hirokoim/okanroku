@@ -164,7 +164,7 @@ export function LocationRecordForm({
       onClick={(e) => {
         if (e.target === e.currentTarget) e.currentTarget.close()
       }}
-      className="mt-auto mb-0 mx-auto w-full max-w-[430px] max-h-[90dvh] overflow-y-auto rounded-t-2xl border border-line bg-sumi-2 text-nami p-0 pb-[env(safe-area-inset-bottom)] backdrop:bg-black/60"
+      className="m-auto w-[calc(100%-2rem)] max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-line bg-sumi-2 text-nami p-0 shadow-[0_10px_40px_rgba(0,0,0,0.6)] backdrop:bg-black/60"
     >
       <div className="sticky top-0 z-10 flex items-start justify-between gap-3 px-4 py-3 bg-sumi-2 border-b border-line">
         <div>
