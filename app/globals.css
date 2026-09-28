@@ -116,9 +116,12 @@ html[data-font-scale="xlarge"] {
   }
 }
 
-/* 地図タイル（国土地理院の淡色地図）の色を強めて、海を見出しの空色に近づける。
-   そのままだと灰色がちで、赤富士の見出しと並べると渋く見えるため。
-   指定元は app/map/map-theme.ts の MAP_TILE.className。 */
-.okr-map-tiles {
+/* 地図タイルの色味の調整。指定元は app/map/map-theme.ts の TILES。
+   OpenStreetMap：色数が多いので彩度を少し落とし、明るくしてやわらかく見せる。
+   国土地理院の淡色地図：灰色がちで渋く見えるので、色を強めて海を見出しの空色に近づける。 */
+.okr-map-tiles-osm {
+  filter: saturate(0.85) brightness(1.05) contrast(0.95);
+}
+.okr-map-tiles-gsi {
   filter: saturate(1.8) brightness(1.03);
 }

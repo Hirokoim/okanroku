@@ -4,15 +4,27 @@
 //
 // 以前の茶＋金の配色の出典: MulmoClaude(fugaku-36コレクション)の地図ビュー
 
-// 地図タイル。国土地理院の淡色地図（日本国内のみ・出典表示が必要）。
-// OpenStreetMapの標準タイルは色数が多く、クラスタの円やピンが埋もれやすいため。
-export const MAP_TILE = {
-  url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
-  attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">国土地理院</a>',
-  maxZoom: 18,
-  // 淡色地図の色を少し強めて、海を見出しの空色に近づける
-  className: 'okr-map-tiles',
+// 地図タイルの候補。どちらもクラスタの円・ピンがD案の配色で乗るように、
+// globals.css の className 側で色味を調整している。
+const TILES = {
+  // OpenStreetMap。山の緑や街の色があり、にぎやかでかわいい。少しだけ彩度を落とす
+  osm: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+    className: 'okr-map-tiles-osm',
+  },
+  // 国土地理院の淡色地図（日本国内のみ）。白い陸と空色の海ですっきり見える
+  gsiPale: {
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+    attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">国土地理院</a>',
+    maxZoom: 18,
+    className: 'okr-map-tiles-gsi',
+  },
 } as const
+
+// 使う地図タイル。見比べるときはここを 'osm' / 'gsiPale' で切り替える
+export const MAP_TILE = TILES.osm
 
 export const MAP_THEME = {
   // 地図の外枠とツールバー
