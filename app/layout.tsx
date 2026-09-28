@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
+import { RecordFab } from "./record-fab";
 
 export const metadata: Metadata = {
   title: "往還録",
@@ -45,6 +46,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         {children}
+        {user && <RecordFab />}
         {user && <BottomNav />}
       </body>
     </html>
