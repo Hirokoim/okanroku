@@ -16,6 +16,7 @@ import { datePeriodToIso, TIME_PERIOD_OPTIONS } from '@/lib/time-period'
 import { PhotoPicker } from '../../photos/photo-picker'
 import { MAX_PHOTOS, usePhotoEntries } from '../../photos/use-photo-entries'
 import { saveRecordPhotos } from '../../photos/save-record-photos'
+import { RECORD_FORM_HASH } from '../../record-fab'
 import { clearDraft, emptyDraft, loadDraft, saveDraft, type RecordDraft } from './record-draft'
 
 export function LocationRecordForm({
@@ -68,6 +69,16 @@ export function LocationRecordForm({
       setOpen(true)
     }
   }, [locationId, setPendingLocation])
+
+  // 右下の「記録する」ボタン（app/record-fab.tsx）で #record-form に来たら、フォームを開く
+  useEffect(() => {
+    function openIfTargeted() {
+      if (window.location.hash === `#${RECORD_FORM_HASH}`) setOpen(true)
+    }
+    openIfTargeted()
+    window.addEventListener('hashchange', openIfTargeted)
+    return () => window.removeEventListener('hashchange', openIfTargeted)
+  }, [])
 
   // 選んだ地点は写真側（usePhotoEntries）が持っているので、保存するときに合わせて書く
   useEffect(() => {
@@ -141,7 +152,8 @@ export function LocationRecordForm({
 
   return (
     <details
-      className="border border-line rounded-lg overflow-hidden mt-6"
+      id={RECORD_FORM_HASH}
+      className="border border-line rounded-lg overflow-hidden mt-6 scroll-mt-6"
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
