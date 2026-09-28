@@ -147,7 +147,8 @@ function LegendRow({ bg, border, children }: { bg: string; border: string; child
 
 /** 開拓マップ（クラスタ円）を出しているときの凡例。円の濃さと金枠の意味を示す */
 export function ClusterLegend() {
-  const { indigo, gold } = MAP_THEME.cluster
+  const { fill, stroke, gold } = MAP_THEME.cluster
+  // 見本の塗りの濃さは map-clusters.tsx の fillOpacityFor（0 / 途中 / 100%）に合わせてある
   return (
     <div
       className="absolute bottom-6 left-3 z-[1000] rounded-lg px-4 py-3 text-sm space-y-2"
@@ -157,14 +158,14 @@ export function ClusterLegend() {
         color: MAP_THEME.panel.text,
       }}
     >
-      <LegendRow bg="rgba(30,77,120,.1)" border={indigo}>
+      <LegendRow bg={`${fill}1a`} border={stroke}>
         未踏
       </LegendRow>
-      <LegendRow bg="rgba(30,77,120,.48)" border={indigo}>
+      <LegendRow bg={`${fill}7a`} border={stroke}>
         開拓中
       </LegendRow>
-      <LegendRow bg="rgba(30,77,120,.7)" border={gold}>
-        制覇（金枠）
+      <LegendRow bg={`${fill}b3`} border={gold}>
+        制覇（黄土の枠）
       </LegendRow>
     </div>
   )

@@ -1,66 +1,77 @@
-// 地図パネルの配色（茶＋金の和風パレット）。
-// 以前は #e8c87a などの色コードが map-view.tsx の style に40か所以上直接
-// 書かれていたため、色を1つ変えるだけで全体を探し回る必要があった。
+// 地図パネルの配色：D案「凱風快晴」（app/globals.css）に合わせた明るい配色。
+// 地図まわりはLeafletにstyle文字列で色を渡す箇所が多く、Tailwindの色変数を
+// そのまま使えないため、ここで色コードとして持つ。値はglobals.cssの同名の役割と揃えること。
 //
-// 出典: MulmoClaude(fugaku-36コレクション)の地図ビューの配色
-//       ~/mulmoclaude/data/skills/fugaku-36/views/map.html
+// 以前の茶＋金の配色の出典: MulmoClaude(fugaku-36コレクション)の地図ビュー
+
+// 地図タイル。国土地理院の淡色地図（日本国内のみ・出典表示が必要）。
+// OpenStreetMapの標準タイルは色数が多く、クラスタの円やピンが埋もれやすいため。
+export const MAP_TILE = {
+  url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+  attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">国土地理院</a>',
+  maxZoom: 18,
+  // 淡色地図の灰色を、生成りのパネルになじむよう少しだけ温かく寄せる
+  className: 'okr-map-tiles',
+} as const
 
 export const MAP_THEME = {
-  // 地図の外枠とツールバー（暗い背景の上）
+  // 地図の外枠とツールバー
   panel: {
-    bg: '#1a1008',
-    divider: '#3a2a10',
-    title: '#e8c87a',
-    text: '#c8a060',
-    muted: '#8a6a30',
-    line: '#5a3a10',
-    activeBg: '#a07040',
-    activeText: '#fff',
+    bg: '#f4efe6',
+    divider: 'rgba(43,29,23,.14)',
+    title: '#2b1d17',
+    text: '#6b5548',
+    muted: '#6b5548',
+    line: 'rgba(43,29,23,.28)',
+    activeBg: '#a8432b',
+    activeText: '#f4efe6',
   },
 
   // 地図に重ねる箱（検索ボックス・凡例）
   overlay: {
-    bg: 'rgba(26,16,8,.95)',
-    bgOpaque: 'rgba(26,16,8,.97)',
-    bgLegend: 'rgba(26,16,8,.92)',
-    border: '1.5px solid #5a3a10',
-    inputText: '#f5e8d0',
-    rowDivider: '#2a1a08',
+    bg: 'rgba(244,239,230,.95)',
+    bgOpaque: 'rgba(244,239,230,.98)',
+    bgLegend: 'rgba(244,239,230,.94)',
+    border: '1px solid rgba(43,29,23,.22)',
+    inputText: '#2b1d17',
+    rowDivider: 'rgba(43,29,23,.1)',
   },
 
   // ポップアップ（Leafletが描く白い吹き出しの上に乗るので、暗い文字色を使う）
   popup: {
-    text: '#2a1a0a',
-    sub: '#6b4a28',
-    meta: '#5a3d20',
-    link: '#8a4a00',
-    seriesBg: '#3a2a60',
-    seriesText: '#a090e0',
-    visitedBg: '#1f7a55',
-    visitedText: '#ffffff',
-    unvisitedBg: '#3a2a10',
-    unvisitedText: '#8a6a30',
+    text: '#2b1d17',
+    sub: '#6b5548',
+    meta: '#6b5548',
+    link: '#8a5a14',
+    seriesBg: '#2f5f80',
+    seriesText: '#f4efe6',
+    visitedBg: '#3d5a3a',
+    visitedText: '#f4efe6',
+    unvisitedBg: '#ebe3d4',
+    unvisitedText: '#6b5548',
   },
 
   // 開拓マップ（クラスタ単位の進捗を円で重ねるモード）。
-  // マーカーの茶＋金とは別に、進捗の濃淡が読めるよう藍色を1色だけ足している。
-  // 制覇したクラスタだけ縁を金にして「特別感」を出す。
+  // 進むほど円が赤茶に染まっていく（地図がだんだん赤富士の色になる）。
+  // 制覇したクラスタだけ縁を黄土の太枠にして「特別感」を出す。
   cluster: {
-    indigo: '#1e4d78',
-    gold: '#e8c87a',
-    route: '#c8a060',
+    fill: '#a8432b',
+    stroke: '#8d3622',
+    gold: '#d9a441',
+    route: '#2b1d17',
   },
 
   // マーカー
   marker: {
-    // 訪問済みは暗い青みの緑。明るい黄緑は金（未訪問）と似て見えるため（東京都CUDガイドライン）
-    visited: { bg: '#1f7a55', border: '#0f3d2a', text: '#fff' },
-    unvisited: { bg: '#e8c87a', border: '#8a4a00', text: '#3a1a00' },
-    visit: { bg: '#3a8ac8', border: '#1a4a70' },
-    fuji: { body: '#2a1a06', snow: '#e8c87a' },
-    // 現在地。地図アプリ共通の「白縁の青い点」に寄せてある。茶＋金の
-    // パレットからは外れるが、歩きながら一瞬見て「自分だ」と分かることを
-    // 優先した。📷の訪問地点（過去の記録）とは、形と明るさで区別する。
+    // 訪問済みは松緑、未訪問は黄土。明るさの差でも見分けられ、✓バッジも付く
+    visited: { bg: '#3d5a3a', border: '#22331f', text: '#f4efe6' },
+    unvisited: { bg: '#e3b35a', border: '#8a5a14', text: '#2b1d17' },
+    visit: { bg: '#9cc3dc', border: '#2f5f80' },
+    // 富士山のマーカーそのものを赤富士にする
+    fuji: { body: '#a8432b', snow: '#f4efe6' },
+    // 現在地。地図アプリ共通の「白縁の青い点」に寄せてある。パレットからは
+    // 外れるが、歩きながら一瞬見て「自分だ」と分かることを優先した。
+    // 📷の訪問地点（過去の記録）とは、形と明るさで区別する。
     here: { dot: '#2f7fed', ring: '#ffffff' },
   },
 } as const

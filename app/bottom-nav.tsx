@@ -67,7 +67,7 @@ export function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-line bg-sumi-2">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-nami">
       <ul className="max-w-[430px] mx-auto grid grid-cols-4">
         {ITEMS.map((item) => {
           // "/"だけは完全一致、それ以外は配下のページ（/locations/[id]など）でも
@@ -78,7 +78,7 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={`flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors ${
-                  active ? 'text-kin' : 'text-nami-dim'
+                  active ? 'text-odo' : 'text-washi-dim'
                 }`}
               >
                 <item.icon active={active} />

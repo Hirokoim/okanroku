@@ -26,7 +26,7 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, useMapEvents 
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
-import { MAP_THEME } from './map-theme'
+import { MAP_THEME, MAP_TILE } from './map-theme'
 import { fujiIcon, markerSizeFor, numberIcon, visitIcon } from './map-icons'
 import { MapToolbar } from './map-toolbar'
 import { LocateButton, MapLegend, MapSearch } from './map-overlays'
@@ -254,8 +254,10 @@ export function MapView({
           style={{ height: '70dvh', width: '100%' }}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
+            url={MAP_TILE.url}
+            attribution={MAP_TILE.attribution}
+            maxZoom={MAP_TILE.maxZoom}
+            className={MAP_TILE.className}
           />
           <ZoomWatcher onZoom={setZoom} />
           <FlyTo target={flyTarget} />

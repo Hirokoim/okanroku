@@ -50,7 +50,7 @@ export function FontSizeSetting() {
           <label
             key={s.value}
             className={`flex-1 text-center text-sm font-body font-medium px-3 py-2 rounded-full border cursor-pointer transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-kin has-[:focus-visible]:outline-offset-2 ${
-              scale === s.value ? 'bg-hi text-nami border-hi' : 'border-line text-nami-dim'
+              scale === s.value ? 'bg-hi text-washi border-hi' : 'border-line text-nami-dim'
             }`}
           >
             <input

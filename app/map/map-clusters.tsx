@@ -4,7 +4,7 @@
 // 地図の上に円で重ねるモード。46個のピンを1つずつ見るのではなく、
 // 「どのあたりがどれだけ進んだか」を一目で見るための層。
 //
-// 円の濃さ＝そのクラスタの訪問率。制覇（100%）したものだけ縁を金にする。
+// 円の濃さ＝そのクラスタの訪問率（進むほど赤茶に染まる）。制覇（100%）したものだけ縁を黄土の太枠にする。
 // 進捗の計算そのものはlib/clusters.tsが持ち、ここは見せ方だけを持つ。
 
 import { CircleMarker, Polyline, Popup } from 'react-leaflet'
@@ -59,7 +59,7 @@ export function ClusterLayer({
         pathOptions={{
           color: MAP_THEME.cluster.route,
           weight: 1.2,
-          opacity: 0.25,
+          opacity: 0.35,
           dashArray: '4 5',
         }}
       />
@@ -73,9 +73,9 @@ export function ClusterLayer({
             center={[c.centroid.latitude, c.centroid.longitude]}
             radius={radiusPixelsFor(c.total)}
             pathOptions={{
-              color: complete ? MAP_THEME.cluster.gold : MAP_THEME.cluster.indigo,
-              weight: complete ? 2.5 : 1.5,
-              fillColor: MAP_THEME.cluster.indigo,
+              color: complete ? MAP_THEME.cluster.gold : MAP_THEME.cluster.stroke,
+              weight: complete ? 3.5 : 1.5,
+              fillColor: MAP_THEME.cluster.fill,
               fillOpacity: fillOpacityFor(rate),
             }}
           >

@@ -176,7 +176,7 @@ export function EditRecordForm({
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 bg-hi hover:bg-hi-hover text-nami rounded-full px-3 py-2.5 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
+            className="flex-1 bg-hi hover:bg-hi-hover text-washi rounded-full px-3 py-2.5 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
           >
             {submitting ? '保存中...' : '保存する'}
           </button>

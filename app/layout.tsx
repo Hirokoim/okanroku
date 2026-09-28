@@ -34,6 +34,12 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
           rel="stylesheet"
         />
+        {/* ロゴ「往還録」だけに使う明朝体。text=で3文字分だけに絞って配信させ、
+            CJKフォント全体を読み込まないようにしている。 */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&text=%E5%BE%80%E9%82%84%E9%8C%B2&display=swap"
+          rel="stylesheet"
+        />
         {/* 文字サイズ設定（設定画面）の復元。ページが表示される前に同期実行し、
             標準→大 のような一瞬の切り替わり（ちらつき）を防ぐ。
             キー名はapp/settings/font-size-setting.tsxと合わせること。

@@ -16,7 +16,7 @@ import { MapContainer, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 
 import type { ClusterStatus, ClusterSummary } from '@/lib/clusters'
-import { MAP_THEME } from './map-theme'
+import { MAP_THEME, MAP_TILE } from './map-theme'
 import { ClusterLayer } from './map-clusters'
 import { ClusterLegend } from './map-overlays'
 import { PillButton } from './map-toolbar'
@@ -103,8 +103,10 @@ export function ClusterMap({
           style={{ height: '70dvh', width: '100%' }}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
+            url={MAP_TILE.url}
+            attribution={MAP_TILE.attribution}
+            maxZoom={MAP_TILE.maxZoom}
+            className={MAP_TILE.className}
           />
           <ClusterLayer clusters={clusters} visibleStatuses={visibleStatuses} onSelect={onSelectCluster} />
         </MapContainer>

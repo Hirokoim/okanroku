@@ -39,7 +39,7 @@ export function MapScreen({
             aria-pressed={view === v.value}
             onClick={() => setView(v.value)}
             className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
-              view === v.value ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
+              view === v.value ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
             }`}
           >
             {v.label}

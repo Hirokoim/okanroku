@@ -244,7 +244,7 @@ export function ImportForm({
         type="button"
         onClick={handleImport}
         disabled={photos.length === 0 || submitting || convertingPhotos}
-        className="bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-2 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
+        className="bg-hi hover:bg-hi-hover text-washi rounded-full px-4 py-2 text-sm font-body font-semibold disabled:opacity-50 transition-colors"
       >
         {submitting
           ? '取り込んでいます...'

@@ -1,29 +1,32 @@
 @import "tailwindcss";
 
-/* 全画面をダークテーマに固定する（UXプロトタイプの配色に合わせたもの）。
-   「ダークな和風パレットに統一する」方針のため、bg-white / text-gray-*
-   など明るい背景を前提にした指定は書かないこと。
-   地図パネル（app/map/map-theme.ts）だけは別の由来（茶＋金の和風パレット）を
-   持つ既存のダークテーマのため、今回はあえて揃えず現状のまま残している。 */
+/* 配色：D案「凱風快晴」（富嶽三十六景「凱風快晴」＝赤富士の配色を借りた明るいテーマ）。
+   変数名は以前のダークテーマ（墨＝背景、生成り＝文字）の役割名をそのまま使い、
+   値だけを差し替えている。名前と実際の色がずれているので、新しく書くときは
+   下の「役割」の注記を見て選ぶこと。
+   地図パネル（app/map/map-theme.ts）はまだ別の配色（茶＋金）のまま。 */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --sumi: #10161d; /* 墨・背景 */
-  --sumi-2: #161f29; /* 墨・カード背景 */
-  --sumi-3: #1c2733; /* 墨・カード背景（強調） */
-  --sumi-4: #263344; /* 墨・編集中など、カードよりさらに手前に浮かせたい面 */
-  --ai: #1d3a5f; /* 藍 */
-  --ai-deep: #0d2033;
-  --ai-bright: #2c5580;
-  --nami: #eee3cf; /* 生成り・本文文字 */
-  --nami-dim: #a99a80; /* 生成り・控えめな文字 */
-  --hi: #b23c27; /* 緋・主要ボタン（生成り文字との対比 4.63:1） */
-  --hi-hover: #96331f; /* 緋・ホバー時（明るくすると文字が読めなくなるため、あえて暗くする） */
-  --hi-bright: #e2643f; /* 緋・エラー文字／アイコン用（背景には使わない） */
-  --kin: #c9a24b; /* 金・リンク／アクセント */
-  --kin-dim: #a68d4f; /* 金-dim・控えめラベル文字（墨との対比 5.67:1） */
-  --matsu: #5f8a75; /* 松・緑系アクセント（墨との対比 4.66:1） */
-  --line: rgba(238, 227, 207, 0.16); /* 枠線 */
+  --sumi: #dce9f0; /* 役割：ページ背景（空色の薄め） */
+  --sumi-2: #f4efe6; /* 役割：カード背景（雲・生成り） */
+  --sumi-3: #ebe3d4; /* 役割：カード背景（強調・ホバー） */
+  --sumi-4: #fffdf8; /* 役割：編集中など、カードよりさらに手前に浮かせたい面 */
+  --ai: #9cc3dc; /* 空色 */
+  --ai-deep: #2f5f80; /* 深い空色（生成り文字を載せられる濃さ） */
+  --ai-bright: #5d95bd;
+  --nami: #2b1d17; /* 役割：本文文字（焦茶） */
+  --nami-dim: #6b5548; /* 役割：控えめな文字（雲背景との対比 約6:1） */
+  --washi: #f4efe6; /* 役割：濃い色の面に載せる文字（赤茶ボタン・松緑バッジ・ナビ） */
+  --washi-dim: #c9b8a8; /* 役割：濃い色の面に載せる控えめな文字（ナビの非選択） */
+  --hi: #a8432b; /* 赤富士の赤茶・主要ボタン（生成り文字との対比 約5.8:1） */
+  --hi-hover: #8d3622; /* 赤茶・ホバー時 */
+  --hi-bright: #9a3a24; /* 役割：エラー文字／アイコン（明るい背景の上で読める濃さ） */
+  --kin: #8a5a14; /* 役割：リンク／アクセント文字（黄土を文字用に濃くしたもの） */
+  --kin-dim: #7d5f33; /* 役割：控えめラベル文字 */
+  --odo: #e3b35a; /* 黄土・面として塗る用（「一部記録」バッジなど。文字は焦茶を載せる） */
+  --matsu: #3d5a3a; /* 松緑・「踏破済み」など（生成り文字を載せる） */
+  --line: rgba(43, 29, 23, 0.18); /* 枠線 */
 
   --background: var(--sumi);
   --foreground: var(--nami);
@@ -42,16 +45,20 @@
   --color-ai-bright: var(--ai-bright);
   --color-nami: var(--nami);
   --color-nami-dim: var(--nami-dim);
+  --color-washi: var(--washi);
+  --color-washi-dim: var(--washi-dim);
   --color-hi: var(--hi);
   --color-hi-hover: var(--hi-hover);
   --color-hi-bright: var(--hi-bright);
   --color-kin: var(--kin);
   --color-kin-dim: var(--kin-dim);
+  --color-odo: var(--odo);
   --color-matsu: var(--matsu);
   --color-line: var(--line);
 
   /* 見出しも本文と同じゴシック体に統一する（アクセシビリティ改善）。
-     font-display（Shippori Mincho）は使わない。 */
+     明朝（Shippori Mincho）はロゴ「往還録」の3文字だけに使う（app/gaifu-hero.tsx）。 */
+  --font-logo: 'Shippori Mincho', serif;
   --font-body: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
 }
 
@@ -107,4 +114,10 @@ html[data-font-scale="xlarge"] {
     animation: none;
     opacity: 1;
   }
+}
+
+/* 地図タイル（国土地理院の淡色地図）の灰色を、生成りのパネルになじむよう少し温かくする。
+   指定元は app/map/map-theme.ts の MAP_TILE.className。 */
+.okr-map-tiles {
+  filter: sepia(0.18) saturate(0.95);
 }

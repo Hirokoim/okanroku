@@ -263,7 +263,7 @@ export function LocationRecordForm({
         <button
           type="submit"
           disabled={submitting || convertingPhotos}
-          className="w-full bg-hi hover:bg-hi-hover text-nami rounded-full px-4 py-3 text-base font-body font-semibold disabled:opacity-50 transition-colors"
+          className="w-full bg-hi hover:bg-hi-hover text-washi rounded-full px-4 py-3 text-base font-body font-semibold disabled:opacity-50 transition-colors"
         >
           {submitting
             ? '書きとめています...'

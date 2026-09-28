@@ -6,9 +6,9 @@ import { useClusterJourney } from './cluster-journey'
 // 3状態のバッジ。色は機能③「クラスタ別の進捗内訳」の見せ方で、
 // 富士の見え方バッジ（lib/labels.ts）とは別の意味の色分けなので独自に持つ。
 const STATUS_STYLE: Record<ClusterSummary['status'], { label: string; className: string }> = {
-  complete: { label: '踏破済み', className: 'bg-matsu text-sumi' },
-  partial: { label: '一部記録', className: 'bg-kin-dim text-sumi' },
-  none: { label: '未踏', className: 'border border-hi-bright text-hi-bright' },
+  complete: { label: '踏破済み', className: 'bg-matsu text-washi' },
+  partial: { label: '一部記録', className: 'bg-odo text-nami' },
+  none: { label: '未踏', className: 'border border-nami text-nami' },
 }
 
 export function ClusterList({ summaries }: { summaries: ClusterSummary[] }) {

@@ -89,9 +89,9 @@ export function RecordCalendar({
               onClick={() => onSelectDate(isSelected ? null : key)}
               className={`aspect-square rounded-md flex items-center justify-center text-xs font-bold transition-colors ${
                 isSelected
-                  ? 'bg-hi text-nami'
+                  ? 'bg-hi text-washi'
                   : hasRecord
-                    ? 'bg-kin text-sumi hover:bg-kin-dim'
+                    ? 'bg-odo text-nami hover:brightness-95'
                     : 'text-nami-dim/60'
               } ${isToday && !isSelected ? 'ring-2 ring-kin' : ''}`}
             >

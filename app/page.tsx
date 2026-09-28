@@ -6,6 +6,7 @@ import { ClusterList } from './cluster-list'
 import { ClusterMapPanel } from './map/cluster-map-panel'
 import { DashboardHome } from './dashboard-home'
 import { AuthButton } from './auth-button'
+import { GaifuHero } from './gaifu-hero'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -29,7 +30,7 @@ export default async function Home() {
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-8 w-full">
-      <h1 className="text-xl font-body font-semibold tracking-wide">往還録</h1>
+      <GaifuHero subtitle={user ? '葛飾北斎・富嶽三十六景' : undefined} />
 
       {user ? (
         <DashboardHome

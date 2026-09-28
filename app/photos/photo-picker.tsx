@@ -15,7 +15,7 @@ function ExifBadge({ photo }: { photo: PhotoEntry }) {
   }
   if (photo.fromExif) {
     return (
-      <span className="inline-block bg-ai-deep text-kin text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+      <span className="inline-block bg-ai-deep text-washi text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
         EXIF自動取得
       </span>
     )

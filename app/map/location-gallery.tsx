@@ -40,7 +40,7 @@ export function LocationGallery({
             aria-pressed={filter === f.value}
             onClick={() => setFilter(f.value)}
             className={`text-sm rounded-full px-4 py-2 font-body font-semibold transition-colors ${
-              filter === f.value ? 'bg-hi text-nami' : 'border border-line text-nami-dim'
+              filter === f.value ? 'bg-hi text-washi' : 'border border-line text-nami-dim'
             }`}
           >
             {f.label}
@@ -72,7 +72,7 @@ export function LocationGallery({
                     )}
                     <span
                       className={`absolute top-2 right-2 text-xs font-semibold rounded-full px-2 py-0.5 ${
-                        isVisited ? 'bg-matsu text-sumi' : 'bg-sumi/90 border border-line text-nami-dim'
+                        isVisited ? 'bg-matsu text-washi' : 'bg-sumi/90 border border-line text-nami-dim'
                       }`}
                     >
                       {isVisited ? '✓ 訪問済み' : '未訪問'}
