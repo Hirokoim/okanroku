@@ -28,6 +28,9 @@ export function MapScreen({
   initialCluster: string | null
 }) {
   const [view, setView] = useState<View>('map')
+  // クラスタの絞り込みは地図と作品一覧で共有する（地図で絞った状態のまま一覧に切り替えられるように）
+  const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
+  const galleryLocations = clusterFilter ? locations.filter((l) => l.cluster === clusterFilter) : locations
 
   return (
     <div className="space-y-4">
@@ -52,10 +55,16 @@ export function MapScreen({
           locations={locations}
           visitedLocationIds={visitedLocationIds}
           visitPoints={visitPoints}
-          initialCluster={initialCluster}
+          clusterFilter={clusterFilter}
+          onClusterFilterChange={setClusterFilter}
         />
       ) : (
-        <LocationGallery locations={locations} visitedLocationIds={visitedLocationIds} />
+        <LocationGallery
+          locations={galleryLocations}
+          visitedLocationIds={visitedLocationIds}
+          clusterFilter={clusterFilter}
+          onClearClusterFilter={() => setClusterFilter(null)}
+        />
       )}
     </div>
   )

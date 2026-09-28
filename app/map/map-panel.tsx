@@ -22,19 +22,22 @@ export function MapPanel({
   locations,
   visitedLocationIds,
   visitPoints,
-  initialCluster,
+  clusterFilter,
+  onClusterFilterChange,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
   visitPoints: VisitPoint[]
-  initialCluster: string | null
+  clusterFilter: string | null
+  onClusterFilterChange: (cluster: string | null) => void
 }) {
   return (
     <MapView
       locations={locations}
       visitedLocationIds={visitedLocationIds}
       visitPoints={visitPoints}
-      initialCluster={initialCluster}
+      clusterFilter={clusterFilter}
+      onClusterFilterChange={onClusterFilterChange}
     />
   )
 }

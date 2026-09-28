@@ -118,9 +118,7 @@ export function LocationRecordForm({
           // location_id が設定されているため location_name/work_label は使わない（5-E⑦）
           location_name: '',
           photographed_at: photographedAt,
-          access_note: draft.access_note || null,
           voice_transcript: draft.voice_transcript || null,
-          edit_intent: draft.edit_intent || null,
           is_public: draft.is_public,
         })
         .select('id')
@@ -259,26 +257,6 @@ export function LocationRecordForm({
           <p className="text-xs text-nami-dim mt-1">あとから直せます。いまは一行で十分です。</p>
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm">
-            編集意図（1行）
-            <input
-              name="edit_intent"
-              value={draft.edit_intent}
-              onChange={(e) => setDraft((d) => ({ ...d, edit_intent: e.target.value }))}
-              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-            />
-          </label>
-          <label className="block text-sm">
-            アクセス情報
-            <input
-              name="access_note"
-              value={draft.access_note}
-              onChange={(e) => setDraft((d) => ({ ...d, access_note: e.target.value }))}
-              className="w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-            />
-          </label>
-        </div>
 
         <label className="flex items-center gap-2 text-sm">
           <input

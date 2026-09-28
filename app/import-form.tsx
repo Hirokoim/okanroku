@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { fetchAndApplyWeather } from '@/lib/weather'
 import { findNearestLocations, type MatchableLocation } from '@/lib/location-match'
-import { datePeriodToIso, timePeriodFromDatetime } from '@/lib/time-period'
+import { TIME_PERIOD_OPTIONS, datePeriodToIso, timePeriodFromDatetime, type TimePeriodKey } from '@/lib/time-period'
 import { dateKey } from '@/lib/format'
 import { PhotoPicker } from './photos/photo-picker'
 import { MAX_IMPORT_PHOTOS, usePhotoEntries, type PhotoEntry } from './photos/use-photo-entries'
@@ -23,6 +23,14 @@ type GroupResult = {
   count: number
   status: 'ok' | 'error'
   message: string
+}
+
+// 地点ごとに入力する項目。periodが未定義のあいだは、写真のEXIF時刻から出した時間帯を使う
+type GroupInput = { period?: TimePeriodKey | ''; memo: string }
+
+function earliestTakenAt(photos: PhotoEntry[]): string | null {
+  const takenAts = photos.map((p) => p.takenAt).filter((v): v is string => v !== '')
+  return takenAts.length > 0 ? [...takenAts].sort()[0] : null
 }
 
 function photoCoords(photo: PhotoEntry): { latitude: number; longitude: number } | null {
@@ -49,6 +57,11 @@ export function ImportForm({
   // 「この写真をどの地点にするか」のユーザーによる明示的な選択。
   // 未選択の写真は、GPSから出した自動候補（1位）を既定値として使う。
   const [manualAssignments, setManualAssignments] = useState<Record<string, string>>({})
+
+  // 訪問日は全記録で共通（同じ日の写真をまとめて取り込む前提）。nullのあいだはEXIFの撮影日を使う
+  const [visitDate, setVisitDate] = useState<string | null>(null)
+  // 地点（グループ）ごとの時間帯・気づきメモ。キーは地点id（未設定はUNSET）
+  const [groupInputs, setGroupInputs] = useState<Record<string, GroupInput>>({})
 
   const convertingPhotos = photos.some((p) => p.convertingHeic)
 
@@ -80,6 +93,19 @@ export function ImportForm({
     groups.set(key, list)
   }
 
+  const photoDates = [...new Set(photos.map((p) => dateKey(p.takenAt)).filter((d): d is string => d !== null))].sort()
+  const effectiveDate = visitDate ?? photoDates[0] ?? ''
+
+  function periodFor(locationId: string, groupPhotos: PhotoEntry[]): TimePeriodKey | '' {
+    const chosen = groupInputs[locationId]?.period
+    if (chosen !== undefined) return chosen
+    return timePeriodFromDatetime(earliestTakenAt(groupPhotos)) ?? ''
+  }
+
+  function updateGroupInput(locationId: string, patch: Partial<GroupInput>) {
+    setGroupInputs((prev) => ({ ...prev, [locationId]: { ...prev[locationId], memo: prev[locationId]?.memo ?? '', ...patch } }))
+  }
+
   function groupLabel(locationId: string): string {
     if (locationId === UNSET) return '地点未設定'
     const loc = locations.find((l) => l.id === locationId)
@@ -97,13 +123,10 @@ export function ImportForm({
       for (const [locationId, groupPhotos] of groups) {
         const label = groupLabel(locationId)
         try {
-          const takenAts = groupPhotos.map((p) => p.takenAt).filter((v): v is string => v !== '')
-          const earliest = takenAts.length > 0 ? takenAts.sort()[0] : null
           // EXIFの正確な撮影時刻は使わず、往還録の他の入力経路と揃えて時間帯ラベルへ丸め込む
-          const earliestDate = earliest ? dateKey(earliest) : null
-          const earliestPeriod = timePeriodFromDatetime(earliest)
-          const photographedAt =
-            earliestDate && earliestPeriod ? datePeriodToIso(earliestDate, earliestPeriod) : null
+          const period = periodFor(locationId, groupPhotos)
+          const photographedAt = effectiveDate && period ? datePeriodToIso(effectiveDate, period) : null
+          const memo = groupInputs[locationId]?.memo.trim() ?? ''
 
           const { data: record, error: insertError } = await supabase
             .from('records')
@@ -113,6 +136,7 @@ export function ImportForm({
               location_id: locationId === UNSET ? null : locationId,
               location_name: '',
               photographed_at: photographedAt,
+              voice_transcript: memo || null,
               is_public: isPublic,
             })
             .select('id')
@@ -141,6 +165,8 @@ export function ImportForm({
       if (outcomes.every((o) => o.status === 'ok')) {
         clearPhotos()
         setManualAssignments({})
+        setVisitDate(null)
+        setGroupInputs({})
       }
     } finally {
       setSubmitting(false)
@@ -220,15 +246,68 @@ export function ImportForm({
             })}
           </ul>
 
-          <div className="border border-line rounded-lg p-3 bg-sumi-2 text-sm">
-            <p className="font-body font-semibold mb-1">
-              {photos.length}枚の写真は{groups.size}地点ぶんのようです
+          <label className="block text-sm">
+            <span className="font-body font-semibold">訪問日</span>
+            <input
+              type="date"
+              value={effectiveDate}
+              onChange={(e) => setVisitDate(e.target.value)}
+              className="block w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+            />
+            <span className="block text-xs text-nami-dim mt-1">
+              同じ日の写真をまとめて取り込んでください。写真の撮影日から自動で入れています。
+            </span>
+          </label>
+          {photoDates.length > 1 && (
+            <p className="text-hi-bright text-xs">
+              <span aria-hidden="true">⚠ </span>
+              撮影日が異なる写真が含まれています（{photoDates.join('・')}）。訪問日はすべての記録で共通になるため、日ごとに分けて取り込んでください。
             </p>
-            <p className="text-nami-dim text-xs">
-              {[...groups.entries()].map(([locationId, ps]) => `${groupLabel(locationId)}(${ps.length}枚)`).join('／')}
-              　で記録を作りますか？
+          )}
+
+          <div>
+            <p className="text-sm font-body font-semibold">
+              地点ごとの記録（{groups.size}件・写真{photos.length}枚）
             </p>
+            <p className="text-xs text-nami-dim">地点ごとに1件ずつ記録を作ります。時間帯は撮影時刻から自動で選んでいます。</p>
           </div>
+          <ul className="space-y-3">
+            {[...groups.entries()].map(([locationId, groupPhotos]) => {
+              const input = groupInputs[locationId]
+              return (
+                <li key={locationId} className="border border-line rounded-lg p-3 bg-sumi-2 space-y-2 text-sm">
+                  <p className="font-body font-semibold">
+                    {groupLabel(locationId)}
+                    <span className="text-nami-dim text-xs font-normal ml-2">写真{groupPhotos.length}枚</span>
+                  </p>
+                  <label className="block">
+                    時間帯
+                    <select
+                      value={periodFor(locationId, groupPhotos)}
+                      onChange={(e) => updateGroupInput(locationId, { period: e.target.value as TimePeriodKey | '' })}
+                      className="block w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
+                    >
+                      <option value="">選択なし</option>
+                      {TIME_PERIOD_OPTIONS.map((p) => (
+                        <option key={p.key} value={p.key}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    気づきメモ
+                    <textarea
+                      value={input?.memo ?? ''}
+                      onChange={(e) => updateGroupInput(locationId, { memo: e.target.value })}
+                      placeholder="絵と違ったところ、同じだったところ"
+                      className="block w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami placeholder:text-nami-dim"
+                    />
+                  </label>
+                </li>
+              )
+            })}
+          </ul>
 
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
