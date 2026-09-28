@@ -9,7 +9,8 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { fetchAndApplyWeather } from '@/lib/weather'
 import { findNearestLocations, type MatchableLocation } from '@/lib/location-match'
-import { TIME_PERIOD_OPTIONS, datePeriodToIso, timePeriodFromDatetime, type TimePeriodKey } from '@/lib/time-period'
+import { datePeriodToIso, timePeriodFromDatetime, type TimePeriodKey } from '@/lib/time-period'
+import { TimePeriodSelect } from './time-period-select'
 import { dateKey } from '@/lib/format'
 import { PhotoPicker } from './photos/photo-picker'
 import { MAX_IMPORT_PHOTOS, usePhotoEntries, type PhotoEntry } from './photos/use-photo-entries'
@@ -282,18 +283,11 @@ export function ImportForm({
                   </p>
                   <label className="block">
                     時間帯
-                    <select
+                    <TimePeriodSelect
                       value={periodFor(locationId, groupPhotos)}
-                      onChange={(e) => updateGroupInput(locationId, { period: e.target.value as TimePeriodKey | '' })}
+                      onChange={(period) => updateGroupInput(locationId, { period })}
                       className="block w-full border border-line rounded p-2 mt-1 bg-sumi-3 text-nami"
-                    >
-                      <option value="">選択なし</option>
-                      {TIME_PERIOD_OPTIONS.map((p) => (
-                        <option key={p.key} value={p.key}>
-                          {p.label}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </label>
                   <label className="block">
                     気づきメモ
