@@ -22,14 +22,15 @@ export function LocationSearchField({
   const [error, setError] = useState<string | null>(null)
   const requestIdRef = useRef(0)
 
+  // 短すぎる入力（1文字だけ等）のあいだは、前回の検索結果・エラー・検索中表示を出さない。
+  // stateを消すのではなく表示側で隠す（effect内で同期的にsetStateしないため）。
+  const tooShort = query.trim().length < MIN_QUERY_LENGTH
+
   useEffect(() => {
     const q = query.trim()
     if (q.length < MIN_QUERY_LENGTH) {
-      // 短すぎる入力（1文字だけ等）で前回の検索結果を出しっぱなしにしないための
-      // 同期的なクリア。record-form.tsxのlocalStorage読み込みと同じ理由で抑止する。
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- 短すぎる入力で前回の結果を残さないための同期的なクリア
-      setResults([])
-      setError(null)
+      // 通信中の検索があれば、その結果を捨てる（あとから返ってきても反映しない）
+      requestIdRef.current++
       return
     }
 
@@ -68,10 +69,10 @@ export function LocationSearchField({
         className="w-full border border-line rounded p-1.5 text-sm bg-sumi-2 text-nami placeholder:text-nami-dim"
       />
 
-      {loading && <p className="text-xs text-nami-dim mt-1">検索中...</p>}
-      {error && <p className="text-xs text-hi-bright mt-1"><span aria-hidden="true">⚠ </span>{error}</p>}
+      {!tooShort && loading && <p className="text-xs text-nami-dim mt-1">検索中...</p>}
+      {!tooShort && error && <p className="text-xs text-hi-bright mt-1"><span aria-hidden="true">⚠ </span>{error}</p>}
 
-      {results.length > 0 && (
+      {!tooShort && results.length > 0 && (
         <ul className="mt-1 border border-line rounded-lg overflow-hidden divide-y divide-line">
           {results.map((r, i) => (
             <li key={i}>
