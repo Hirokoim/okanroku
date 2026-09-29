@@ -20,6 +20,7 @@ import { MAP_THEME, MAP_TILE } from './map-theme'
 import { ClusterLayer } from './map-clusters'
 import { ClusterLegend } from './map-overlays'
 import { PillButton } from './map-toolbar'
+import { useFigureMeta } from '../figure-context'
 
 // 46図がほぼ収まる範囲。/map の初期表示と揃えてある
 const INITIAL_CENTER: [number, number] = [35.4, 138.9]
@@ -39,6 +40,7 @@ export function ClusterMap({
   /** 円をタップしたとき。確認画面は地図の外（呼び出し側）で出す */
   onSelectCluster: (cluster: ClusterSummary) => void
 }) {
+  const { unit } = useFigureMeta()
   const visited = clusters.reduce((sum, c) => sum + c.visited, 0)
   const total = clusters.reduce((sum, c) => sum + c.total, 0)
 
@@ -71,7 +73,8 @@ export function ClusterMap({
       >
         <span style={{ letterSpacing: '0.1em' }}>開拓マップ</span>
         <span className="text-xs tabular-nums" style={{ color: MAP_THEME.panel.muted }}>
-          開拓 {visited}/{total}景
+          開拓 {visited}/{total}
+          {unit}
         </span>
       </div>
 

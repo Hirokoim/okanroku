@@ -7,23 +7,28 @@
 
 import { useState } from 'react'
 import { DashboardTabs } from './dashboard-tabs'
+import { useFigureMeta } from './figure-context'
 
 export function DashboardHome({
   hasRecords,
+  locationCount,
   clusterView,
   mapView,
 }: {
   hasRecords: boolean
+  /** いま選んでいる人物の地点（作品）の数。オープニングの「◯図ぶん」に使う */
+  locationCount: number
   clusterView: React.ReactNode
   mapView: React.ReactNode
 }) {
+  const figure = useFigureMeta()
   const [started, setStarted] = useState(hasRecords)
 
   if (!started) {
     return (
       <div className="border border-line rounded-lg p-6 text-center space-y-3 bg-sumi-2">
-        <p className="font-body font-semibold">北斎はどこに立っていたのか</p>
-        <p className="text-nami-dim text-sm">46図ぶんの答え合わせが、まるごと残っています。</p>
+        <p className="font-body font-semibold">{figure.short}はどこに立っていたのか</p>
+        <p className="text-nami-dim text-sm">{locationCount}図ぶんの答え合わせが、まるごと残っています。</p>
         <button
           type="button"
           onClick={() => setStarted(true)}

@@ -7,6 +7,7 @@ import { accessibilityStyle } from '@/lib/labels'
 import { formatDate } from '@/lib/format'
 import type { ClusterSummary } from '@/lib/clusters'
 import { MAP_THEME } from './map-theme'
+import { useFigureMeta } from '../figure-context'
 import type { LocationPin, VisitPoint } from './map-types'
 
 function Badge({ bg, color, children }: { bg: string; color: string; children: React.ReactNode }) {
@@ -19,6 +20,7 @@ function Badge({ bg, color, children }: { bg: string; color: string; children: R
 
 /** 比定地（locations）のマーカー用 */
 export function LocationPopupBody({ location, visited }: { location: LocationPin; visited: boolean }) {
+  const { unit } = useFigureMeta()
   const accessibility = accessibilityStyle(location.accessibility_class)
 
   return (
@@ -33,7 +35,8 @@ export function LocationPopupBody({ location, visited }: { location: LocationPin
       )}
 
       <div className="text-xs" style={{ color: MAP_THEME.popup.sub }}>
-        第{location.number}景
+        第{location.number}
+        {unit}
       </div>
       <div className="font-medium">{location.title_jp}</div>
       {location.title_en && (
@@ -103,13 +106,15 @@ export function ClusterPopupBody({
   /** 「ここへ行く」を押したとき（確認画面へ進む） */
   onGo: () => void
 }) {
+  const { unit } = useFigureMeta()
   const complete = cluster.total > 0 && cluster.visited >= cluster.total
 
   return (
     <div className="text-sm" style={{ color: MAP_THEME.popup.text }}>
       <div className="font-medium">{cluster.name}</div>
       <div className="text-xs mt-1" style={{ color: MAP_THEME.popup.sub }}>
-        開拓 {cluster.visited}/{cluster.total}景
+        開拓 {cluster.visited}/{cluster.total}
+        {unit}
         {complete && (
           <span className="ml-1 font-semibold" style={{ color: MAP_THEME.popup.link }}>
             （制覇！）
@@ -132,7 +137,11 @@ export function ClusterPopupBody({
         {cluster.locations.map((l) => (
           <li key={l.id} className="text-xs leading-relaxed">
             <Link href={`/locations/${l.id}`} className="underline" style={{ color: MAP_THEME.popup.link }}>
-              <span style={{ color: MAP_THEME.popup.meta }}>第{l.number}景</span> {l.title_jp}
+              <span style={{ color: MAP_THEME.popup.meta }}>
+                第{l.number}
+                {unit}
+              </span>{' '}
+              {l.title_jp}
               {l.visited && <span style={{ color: MAP_THEME.popup.sub }}>（記録あり）</span>}
             </Link>
           </li>
@@ -153,6 +162,7 @@ export function ClusterPopupBody({
 
 /** 実際に撮影した地点（record_photos）のマーカー用 */
 export function VisitPopupBody({ point }: { point: VisitPoint }) {
+  const { unit } = useFigureMeta()
   return (
     <div className="text-sm" style={{ color: MAP_THEME.popup.text }}>
       {/* その場所で実際に撮った写真。比定地の元絵ではなく現地の記録なので、
@@ -175,7 +185,8 @@ export function VisitPopupBody({ point }: { point: VisitPoint }) {
       ) : null}
 
       <div className="text-xs" style={{ color: MAP_THEME.popup.sub }}>
-        第{point.number}景・実際の訪問地点
+        第{point.number}
+        {unit}・実際の訪問地点
       </div>
       <div className="font-medium">{point.title_jp}</div>
       <div className="text-xs mt-1" style={{ color: MAP_THEME.popup.meta }}>

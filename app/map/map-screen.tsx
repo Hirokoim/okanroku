@@ -1,10 +1,11 @@
 'use client'
 
 // 地図タブの中身。「地図」と「作品一覧」を切り替える。
-// どちらも同じ46景のデータを別の見せ方で出すもので、ナビのタブを増やさずに済むよう
-// 地図タブの中に置いている。
+// どちらも同じ地点（いま選んでいる人物の作品）のデータを別の見せ方で出すもので、
+// ナビのタブを増やさずに済むよう地図タブの中に置いている。
 
 import { useState } from 'react'
+import { useFigureMeta } from '../figure-context'
 import { LocationGallery } from './location-gallery'
 import { MapPanel } from './map-panel'
 import type { LocationPin, VisitPoint } from './map-types'
@@ -27,6 +28,7 @@ export function MapScreen({
   visitPoints: VisitPoint[]
   initialCluster: string | null
 }) {
+  const figure = useFigureMeta()
   const [view, setView] = useState<View>('map')
   // クラスタの絞り込みは地図と作品一覧で共有する（地図で絞った状態のまま一覧に切り替えられるように）
   const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
@@ -41,17 +43,18 @@ export function MapScreen({
     <div className="space-y-4">
       <div className="rounded-xl bg-sumi-2 px-4 py-3">
         <div className="flex items-baseline justify-between">
-          <span className="text-xs text-nami-dim">富嶽三十六景</span>
+          <span className="text-xs text-nami-dim">{figure.work || figure.name}</span>
           <span className="text-xs text-nami-dim">
             <span className="text-xl font-bold text-hi tabular-nums">{visitedCount}</span>
             <span className="mx-0.5">/</span>
-            {locations.length}景
+            {locations.length}
+            {figure.unit}
           </span>
         </div>
         <div
           className="h-2 rounded-full bg-sumi-3 mt-2 overflow-hidden"
           role="progressbar"
-          aria-label="訪問した景の割合"
+          aria-label={`訪問した${figure.unit}の割合`}
           aria-valuenow={percent}
           aria-valuemin={0}
           aria-valuemax={100}
