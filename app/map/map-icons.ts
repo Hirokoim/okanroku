@@ -42,6 +42,21 @@ export const fujiIcon = L.divIcon({
   popupAnchor: [0, -34],
 })
 
+/** 東海道の宿場のマーカー。46景のピン（丸・番号入り）と取り違えないよう、
+ *  小さめの角丸の四角にする。中の文字は宿の番号（order）で、起点・終点だけ「起」「終」。
+ *  宿場は参考の層で、主役の46景より目立たせないため大きさはズームで変えない。 */
+export function tokaidoStationIcon(label: string) {
+  const { bg, text, border, shadow } = MAP_THEME.tokaido
+  const size = 20
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:${size}px;height:${size}px;border-radius:5px;background:${bg};border:2px solid ${border};color:${text};font-weight:bold;font-size:9px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px ${shadow}">${label}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  })
+}
+
 /**
  * 現在地マーカー。丸の中に進行方向の矢印を描く、地図アプリでおなじみの形。
  * headingはGeolocation APIが返す「進行方向」（北を0度とした時計回り）で、

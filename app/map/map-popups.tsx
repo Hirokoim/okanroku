@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { accessibilityStyle } from '@/lib/labels'
 import { formatDate } from '@/lib/format'
 import type { ClusterSummary } from '@/lib/clusters'
+import { TOKAIDO_FIRST_ORDER, TOKAIDO_LAST_ORDER, type TokaidoStation } from '@/lib/tokaido-stations'
 import { MAP_THEME } from './map-theme'
 import type { LocationPin, VisitPoint } from './map-types'
 
@@ -89,6 +90,28 @@ export function FujiPopupBody() {
       <div className="font-medium">富士山</div>
       <div className="text-xs" style={{ color: MAP_THEME.popup.meta }}>
         標高3,776m・静岡県／山梨県
+      </div>
+    </div>
+  )
+}
+
+/** 東海道の宿場マーカー用。宿場は作品ではないので、詳細画面へのリンクは付けない */
+export function TokaidoStationPopupBody({ station }: { station: TokaidoStation }) {
+  const heading =
+    station.order === TOKAIDO_FIRST_ORDER
+      ? '東海道の起点'
+      : station.order === TOKAIDO_LAST_ORDER
+        ? '東海道の終点'
+        : `東海道五十三次 第${station.order}宿`
+
+  return (
+    <div className="text-sm" style={{ color: MAP_THEME.popup.text }}>
+      <div className="text-xs" style={{ color: MAP_THEME.popup.sub }}>
+        {heading}
+      </div>
+      <div className="font-medium">{station.name}</div>
+      <div className="text-xs mt-1" style={{ color: MAP_THEME.popup.meta }}>
+        {station.prefecture}
       </div>
     </div>
   )
