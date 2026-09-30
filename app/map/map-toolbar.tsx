@@ -2,6 +2,7 @@
 // 状態は持たず、押されたことを map-view.tsx へ伝えるだけ。
 
 import { MAP_THEME } from './map-theme'
+import { useFigureMeta } from '../figure-context'
 
 // 選択中／未選択で色が入れ替わる丸ボタン。同じ配色の指定が3か所に
 // コピーされていたのでここに1つだけ置く。
@@ -53,6 +54,7 @@ export function MapToolbar({
   onToggleVisit: () => void
   shownCount: number
 }) {
+  const { unit } = useFigureMeta()
   return (
     <div
       className="flex items-center gap-2 px-4 py-2 flex-wrap"
@@ -67,7 +69,8 @@ export function MapToolbar({
 
       {/* 作品名と訪問済みの数は地図の上の進み具合（map-screen.tsx）に出しているので、ここは表示中の数だけ */}
       <span className="text-xs ml-auto" style={{ color: MAP_THEME.panel.muted }}>
-        表示 {shownCount}景
+        表示 {shownCount}
+        {unit}
       </span>
     </div>
   )

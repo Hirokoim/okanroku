@@ -27,9 +27,28 @@
   --odo: #e3b35a; /* 黄土・面として塗る用（「一部記録」バッジなど。文字は焦茶を載せる） */
   --matsu: #3d5a3a; /* 松緑・「踏破済み」など（生成り文字を載せる） */
   --line: rgba(43, 29, 23, 0.18); /* 枠線 */
+  --hashi: #7a5a3c; /* 役割：見出しの絵の橋の木肌（広重の図案 app/gaifu-hero.tsx。装飾専用で文字は載せない） */
 
   --background: var(--sumi);
   --foreground: var(--nami);
+}
+
+/* 人物ごとの配色の上書き。<html data-figure="…"> は app/layout.tsx が、
+   いま選んでいる人物（lib/current-figure.ts）から付ける。北斎（hokusai）は上の既定のまま。
+   主役の色（--hi：ボタン・進捗バー・番号の印）と、背景・空の色だけを差し替える。
+   状態の色（踏破＝松緑・一部＝黄土・未踏＝枠線）は人物をまたいで意味が同じなので、全人物で共通のまま。
+   コントラスト（WCAG、2026-09-29計算）：
+     生成り文字 on --hi 5.97:1／on --hi-hover 8.19:1（北斎は 5.23:1）
+     --hi の文字 on --sumi 5.72:1・on --sumi-2 5.97:1・on --sumi-3 5.37:1（北斎は on --sumi 4.84:1）
+     --hi-bright の文字 on --sumi 6.59:1
+     本文 --nami on --sumi 13.6:1、控えめ --nami-dim on --sumi 5.82:1（北斎は 5.62:1）
+     --kin・--kin-dim の文字 on --sumi 4.94:1 */
+[data-figure="hiroshige"] {
+  --hi: #2f5f80; /* 広重の藍（北斎の赤茶の代わり。生成り文字を載せる） */
+  --hi-hover: #244a64;
+  --hi-bright: #2a5577;
+  --sumi: #e4ecf0; /* ページ背景：雨の日の薄い空色 */
+  --ai: #cfe0e6; /* 見出しの絵の空 */
 }
 
 @theme inline {

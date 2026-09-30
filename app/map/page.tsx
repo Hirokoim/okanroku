@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { asRows } from '@/lib/supabase/rows'
 import { createPhotoUrls } from '@/lib/storage'
 import { fetchVisitedLocationIds } from '@/lib/visited-locations'
+import { getCurrentFigure } from '@/lib/current-figure'
 import { MapScreen } from './map-screen'
 import type { LocationPin, VisitPoint } from './map-types'
 
@@ -14,7 +15,10 @@ type PhotoRow = {
   latitude: number | null
   longitude: number | null
   taken_at: string | null
-  records: { location_id: string | null; locations: { number: number; title_jp: string } | null } | null
+  records: {
+    location_id: string | null
+    locations: { number: number; title_jp: string; figure_id: string } | null
+  } | null
 }
 
 export default async function MapPage({
@@ -34,14 +38,18 @@ export default async function MapPage({
   // （recordsとrecord_photosはさらに自分の行のみ）が前提のため、未ログインなら
   // 全て0件になる。地図だけ出て中身が空だと原因が分からないので、
   // ログインを促す表示に切り替える。
-  const { data: locations } = user
-    ? await supabase
-        .from('locations')
-        .select(
-          'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, latitude, longitude, accessibility_class, image_url'
-        )
-        .order('number')
-    : { data: null }
+  //
+  // 地点は、いま選んでいる人物（/figures で選ぶ）のものだけを出す。
+  // 人物マスタが読めず figure.id が無いときは、絞り込まずに全件を出す（従来どおり）。
+  const figure = await getCurrentFigure()
+  let locationQuery = supabase
+    .from('locations')
+    .select(
+      'id, number, title_jp, title_en, series, prefecture, modern_location, cluster, route_order, latitude, longitude, accessibility_class, image_url'
+    )
+    .order('number')
+  if (figure.id) locationQuery = locationQuery.eq('figure_id', figure.id)
+  const { data: locations } = user ? await locationQuery : { data: null }
 
   const visitedLocationIds = await fetchVisitedLocationIds(supabase, Boolean(user))
 
@@ -54,14 +62,20 @@ export default async function MapPage({
     ? await supabase
         .from('record_photos')
         .select(
-          'id, storage_path, latitude, longitude, taken_at, records!inner(location_id, locations(number, title_jp))'
+          'id, storage_path, latitude, longitude, taken_at, records!inner(location_id, locations(number, title_jp, figure_id))'
         )
         .not('latitude', 'is', null)
         .not('longitude', 'is', null)
     : { data: null }
 
+  // 訪問地点も、選んでいる人物の地点に紐づく写真だけにする（地点のピンと揃えるため）。
+  // 絞り込みは署名付きURLを発行する前に行い、出さない写真の分まで発行しないようにする。
   const placedPhotos = asRows<PhotoRow>(photoRows).filter(
-    (p) => p.latitude !== null && p.longitude !== null && p.records?.locations
+    (p) =>
+      p.latitude !== null &&
+      p.longitude !== null &&
+      p.records?.locations &&
+      (!figure.id || p.records.locations.figure_id === figure.id)
   )
 
   // photosバケットは非公開なので、パスをそのまま<img src>に渡しても表示できない。

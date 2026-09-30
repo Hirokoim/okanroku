@@ -1,21 +1,25 @@
 'use client'
 
-// 46景を、元の絵（浮世絵）のカードで2列に並べて見る画面。
+// いま選んでいる人物の作品（北斎46景・広重55図など）を、元の絵（浮世絵）のカードで2列に並べて見る画面。
 // 地図と同じ地点データを「空間ではなく絵で」見せるもので、地図タブの中の
 // 切り替え表示として置く（map-screen.tsx）。カードを押すと地点詳細へ進む。
 // 訪問済みかどうかは色だけでなく「✓ 訪問済み」の文字でも示す。
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useFigureMeta } from '../figure-context'
 import type { LocationPin } from './map-types'
 
 type Filter = 'all' | 'visited' | 'unvisited'
 
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: '全景' },
-  { value: 'visited', label: '訪問済み' },
-  { value: 'unvisited', label: '未訪問' },
-]
+// 「全景」の「景」は人物ごとの数え方に置き換える（広重なら「全図」）
+function filters(unit: string): { value: Filter; label: string }[] {
+  return [
+    { value: 'all', label: `全${unit}` },
+    { value: 'visited', label: '訪問済み' },
+    { value: 'unvisited', label: '未訪問' },
+  ]
+}
 
 export function LocationGallery({
   locations,
@@ -29,6 +33,7 @@ export function LocationGallery({
   clusterFilter: string | null
   onClearClusterFilter: () => void
 }) {
+  const { unit } = useFigureMeta()
   const [filter, setFilter] = useState<Filter>('all')
   const visited = new Set(visitedLocationIds)
   const shown = locations.filter((l) =>
@@ -46,13 +51,13 @@ export function LocationGallery({
             onClick={onClearClusterFilter}
             className="ml-auto text-xs px-3 py-1 rounded-full bg-sumi-4 border border-line text-nami"
           >
-            全景に戻る
+            全{unit}に戻る
           </button>
         </div>
       )}
 
       <div className="flex gap-2 flex-wrap">
-        {FILTERS.map((f) => (
+        {filters(unit).map((f) => (
           <button
             key={f.value}
             type="button"
@@ -71,8 +76,9 @@ export function LocationGallery({
           絞り込んだとき（そのクラスタの数）と、訪問済み／未訪問で絞ったときの件数だけ出す */}
       {(clusterFilter || filter !== 'all') && (
         <p className="text-sm text-nami-dim">
-          {clusterFilter && `${locations.length}景・訪問済み ${locations.filter((l) => visited.has(l.id)).length}景`}
-          {filter !== 'all' && `（${shown.length}景を表示中）`}
+          {clusterFilter &&
+            `${locations.length}${unit}・訪問済み ${locations.filter((l) => visited.has(l.id)).length}${unit}`}
+          {filter !== 'all' && `（${shown.length}${unit}を表示中）`}
         </p>
       )}
 
@@ -109,7 +115,10 @@ export function LocationGallery({
                     </span>
                   </div>
                   <div className="p-3 space-y-0.5">
-                    <div className="text-xs text-hi">第{l.number}景</div>
+                    <div className="text-xs text-hi">
+                      第{l.number}
+                      {unit}
+                    </div>
                     <div className="text-sm font-body font-semibold leading-snug">{l.title_jp}</div>
                     {l.prefecture && <div className="text-xs text-nami-dim">{l.prefecture}</div>}
                   </div>
