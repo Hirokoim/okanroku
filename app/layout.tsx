@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentFigure } from "@/lib/current-figure";
+import { FigureMetaProvider } from "./figure-context";
 import { BottomNav } from "./bottom-nav";
 import { RecordFab } from "./record-fab";
 
@@ -23,8 +25,12 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  // いま選んでいる人物。data-figure で配色（globals.css）を、
+  // FigureMetaProvider で「第◯景」などの文言（ブラウザ側の部品）を人物ごとに切り替える。
+  const { meta: figure } = await getCurrentFigure();
+
   return (
-    <html lang="ja" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="ja" className="h-full antialiased" data-figure={figure.theme} suppressHydrationWarning>
       <head>
         {/* 本文用（Zen Kaku Gothic New）。見出しも本文と同じ書体で統一している。
             CJKフォントはnext/fontでの自前ホストだとビルド時取得が重いため、
@@ -51,7 +57,7 @@ export default async function RootLayout({
         </Script>
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
+        <FigureMetaProvider meta={figure}>{children}</FigureMetaProvider>
         {user && <RecordFab />}
         {user && <BottomNav />}
       </body>

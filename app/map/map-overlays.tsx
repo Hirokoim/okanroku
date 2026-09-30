@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { MAP_THEME } from './map-theme'
+import { useFigureMeta } from '../figure-context'
 import type { LocationPin } from './map-types'
 
 export function MapSearch({
@@ -17,6 +18,7 @@ export function MapSearch({
   results: LocationPin[]
   onSelect: (location: LocationPin) => void
 }) {
+  const { unit } = useFigureMeta()
   return (
     <div className="absolute top-3 right-3 z-[1000] w-60">
       <input
@@ -49,7 +51,8 @@ export function MapSearch({
               }}
             >
               <span className="text-xs" style={{ color: MAP_THEME.panel.muted }}>
-                第{l.number}景
+                第{l.number}
+                {unit}
               </span>
               {l.title_jp}
               <span className="text-xs ml-auto" style={{ color: MAP_THEME.panel.muted }}>

@@ -35,6 +35,7 @@ import { CurrentPositionLayer } from './map-current-position'
 import { useCurrentPosition } from './use-current-position'
 import type { LocationPin, VisitPoint } from './map-types'
 import { TOKAIDO_FIRST_ORDER, TOKAIDO_LAST_ORDER, TOKAIDO_STATIONS } from '@/lib/tokaido-stations'
+import { useFigureMeta } from '../figure-context'
 
 const FUJI: [number, number] = [35.3606, 138.7274]
 const INITIAL_CENTER: [number, number] = [35.4, 138.9]
@@ -376,6 +377,7 @@ function RoutePanel({
   locations: LocationPin[]
   visited: Set<string>
 }) {
+  const { unit } = useFigureMeta()
   if (locations.length === 0) {
     return (
       <div className="px-4 py-4 text-xs" style={{ color: MAP_THEME.panel.muted }}>
@@ -413,7 +415,8 @@ function RoutePanel({
             </div>
             <Link href={`/locations/${l.id}`} className="pb-4 -mt-0.5 group">
               <div className="text-sm font-semibold group-hover:underline" style={{ color: MAP_THEME.panel.title }}>
-                第{l.number}景・{l.title_jp}
+                第{l.number}
+                {unit}・{l.title_jp}
               </div>
               <div className="text-xs mt-0.5" style={{ color: MAP_THEME.panel.muted }}>
                 {visited.has(l.id) ? '記録あり' : '未記録'}

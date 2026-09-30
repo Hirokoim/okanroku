@@ -8,6 +8,7 @@ import { LocationRecords } from './location-records'
 import type { LocationRecord, RecordPhoto } from './record-types'
 import { LocationRecordForm } from './record-form'
 import type { WeatherSnapshot } from '@/lib/weather'
+import { figureMeta } from '@/lib/figure-meta'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
 // schema.jsonから自動生成している詳細モーダルの見せ方を参考にした
@@ -106,6 +107,9 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 
   // figuresはlocationsから見て多対1の関係（詳しくは lib/supabase/rows.ts）
   const figureName = asRow<{ figures: { name: string } | null }>(location).figures?.name
+  // 「第◯景」「北斎はこの地に…」の文言は、この地点の人物に合わせる
+  // （選んでいる人物ではなく地点の持ち主で決める。記録タブから別の人物の地点に来ることがあるため）
+  const figure = figureName ? figureMeta(figureName) : null
 
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-6 w-full">
@@ -116,12 +120,16 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
       </div>
 
       <div>
-        <div className="text-sm text-kin-dim font-body font-medium">第{location.number}景{figureName ? `・${figureName}` : ''}</div>
+        <div className="text-sm text-kin-dim font-body font-medium">
+          第{location.number}
+          {figure?.unit ?? '景'}
+          {figureName ? `・${figureName}` : ''}
+        </div>
         <h1 className="text-2xl font-body font-semibold">{location.title_jp}</h1>
         {location.title_en && <p className="text-nami-dim">{location.title_en}</p>}
         <p className="text-sm leading-relaxed text-nami mt-3">
           {location.modern_location ? `${location.modern_location}。` : ''}
-          北斎はこの地に立ち、ひとつの景を選び取りました。何を見たかは、あなたが着いてから。
+          {figure?.short ?? '北斎'}はこの地に立ち、ひとつの景を選び取りました。何を見たかは、あなたが着いてから。
         </p>
       </div>
 
