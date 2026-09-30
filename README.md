@@ -12,7 +12,7 @@
 |---|---|
 | [`docs/requirements.md`](docs/requirements.md) | 要件定義書。機能要件・データモデルの設計判断（5-E）・開発フェーズ計画 |
 | [`docs/roadmap.md`](docs/roadmap.md) | Phase1〜3の残タスク一覧と、モックアップを作るタイミングの目安 |
-| [`docs/clusters.md`](docs/clusters.md) | 北斎46図のクラスタ一覧。1日で往還できる単位に分けた28クラスタと、国別の富士の見え方 |
+| [`docs/clusters.md`](docs/clusters.md) | 北斎46図のクラスタ一覧。1日で往還できる単位に分けた29クラスタと、国別の富士の見え方 |
 | [`docs/sql/`](docs/sql/) | Supabaseに適用するスキーマ変更SQL |
 | [`docs/supabase-schema-status.md`](docs/supabase-schema-status.md) | Supabase側のスキーマ・RLSの検証記録 |
 | [`docs/mulmoclaude-reference-notes.md`](docs/mulmoclaude-reference-notes.md) | MulmoClaude（`fugaku-36`コレクション）を参照しながら開発する際の注意点 |
@@ -26,7 +26,7 @@ Phase1のデータモデルが揃い、複数ユーザー対応のRLS上で動�
 - [x] 最小限の記録入力フォーム＋一覧表示
 - [x] 複数ユーザー前提のRLS（`records`は`auth.uid() = user_id`、Storageは本人のフォルダのみ）
 - [x] `figures`（人物マスタ・8名）／`locations`（北斎46図の地点マスタ）／`records`／`record_photos`
-- [x] 北斎46図のシードデータ投入と、28クラスタへの分類
+- [x] 北斎46図のシードデータ投入と、29クラスタへの分類
 - [ ] 記録フォームへの地点連携（`location_id`・写真ごとのGPS）
 - [ ] 地図表示（Leaflet）と進捗ダッシュボード
 
