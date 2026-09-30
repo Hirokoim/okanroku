@@ -27,19 +27,29 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
 import { MAP_THEME, MAP_TILE } from './map-theme'
-import { fujiIcon, markerSizeFor, numberIcon, visitIcon } from './map-icons'
+import { fujiIcon, markerSizeFor, numberIcon, tokaidoStationIcon, visitIcon } from './map-icons'
 import { MapToolbar } from './map-toolbar'
 import { LocateButton, MapLegend, MapSearch } from './map-overlays'
-import { FujiPopupBody, LocationPopupBody, VisitPopupBody } from './map-popups'
+import { FujiPopupBody, LocationPopupBody, TokaidoStationPopupBody, VisitPopupBody } from './map-popups'
 import { CurrentPositionLayer } from './map-current-position'
 import { useCurrentPosition } from './use-current-position'
 import type { LocationPin, VisitPoint } from './map-types'
+import { TOKAIDO_FIRST_ORDER, TOKAIDO_LAST_ORDER, TOKAIDO_STATIONS } from '@/lib/tokaido-stations'
 import { useFigureMeta } from '../figure-context'
 
 const FUJI: [number, number] = [35.3606, 138.7274]
 const INITIAL_CENTER: [number, number] = [35.4, 138.9]
 const INITIAL_ZOOM = 7
 const MAX_SEARCH_RESULTS = 8
+
+// 東海道の宿場の層。データは静的なので、アイコンと線の座標はモジュール読み込み時に一度だけ作る
+// （46景のピンのように訪問状態やズームで見た目が変わらないため、描画のたびに作り直す理由が無い）。
+const TOKAIDO_ROUTE: [number, number][] = TOKAIDO_STATIONS.map((s) => [s.latitude, s.longitude])
+const TOKAIDO_ICONS = TOKAIDO_STATIONS.map((s) =>
+  tokaidoStationIcon(
+    s.order === TOKAIDO_FIRST_ORDER ? '起' : s.order === TOKAIDO_LAST_ORDER ? '終' : String(s.order)
+  )
+)
 
 // ズームに応じてマーカーの大きさを変えるため、現在のズームを拾う
 function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
@@ -123,6 +133,7 @@ export function MapView({
 }) {
   const [showFuji, setShowFuji] = useState(false)
   const [showVisit, setShowVisit] = useState(false)
+  const [showTokaido, setShowTokaido] = useState(false)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [query, setQuery] = useState('')
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
@@ -199,6 +210,8 @@ export function MapView({
         onToggleFuji={() => setShowFuji((v) => !v)}
         showVisit={showVisit}
         onToggleVisit={() => setShowVisit((v) => !v)}
+        showTokaido={showTokaido}
+        onToggleTokaido={() => setShowTokaido((v) => !v)}
         shownCount={displayed.length}
       />
 
@@ -270,6 +283,30 @@ export function MapView({
             />
           )}
 
+          {/* 東海道の宿場（参考の層）。Leafletのマーカーは描いた順ではなく緯度で
+              重なり順が決まるため、zIndexOffsetで下げ、46景のピンと重なったときは
+              主役の46景が上に来るようにする */}
+          {showTokaido && (
+            <>
+              <Polyline
+                positions={TOKAIDO_ROUTE}
+                pathOptions={{ color: MAP_THEME.tokaido.route, weight: 2, opacity: 0.6, dashArray: '1 6', lineCap: 'round' }}
+              />
+              {TOKAIDO_STATIONS.map((s, i) => (
+                <Marker
+                  key={`tokaido-${s.order}`}
+                  position={[s.latitude, s.longitude]}
+                  icon={TOKAIDO_ICONS[i]}
+                  zIndexOffset={-1000}
+                >
+                  <Popup minWidth={160} maxWidth={220}>
+                    <TokaidoStationPopupBody station={s} />
+                  </Popup>
+                </Marker>
+              ))}
+            </>
+          )}
+
           {displayed.map((l) => (
             <Marker
               key={l.id}
@@ -302,7 +339,7 @@ export function MapView({
           {here && <CurrentPositionLayer position={here} />}
         </MapContainer>
 
-        <MapLegend />
+        <MapLegend showTokaido={showTokaido} />
       </div>
 
       {/* 地図上の情報をテキストでも確認できるようにする（視覚的に地図を見づらい

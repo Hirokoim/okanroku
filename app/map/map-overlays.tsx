@@ -142,12 +142,23 @@ export function LocateButton({ active, onClick }: { active: boolean; onClick: ()
   )
 }
 
-function LegendRow({ bg, border, children }: { bg: string; border: string; children: React.ReactNode }) {
+function LegendRow({
+  bg,
+  border,
+  square = false,
+  children,
+}: {
+  bg: string
+  border: string
+  /** 東海道の宿場のように、地図上で角丸の四角として描くもの */
+  square?: boolean
+  children: React.ReactNode
+}) {
   return (
     <div className="flex items-center gap-2">
       {/* 外側の細い影は、白いふち（開拓マップの円）が明るい凡例の地に溶けないようにするため */}
       <span
-        className="inline-block w-4 h-4 rounded-full"
+        className={`inline-block w-4 h-4 ${square ? 'rounded' : 'rounded-full'}`}
         style={{ background: bg, border: `2px solid ${border}`, boxShadow: '0 0 0 1px rgba(43,29,23,.25)' }}
       />
       {children}
@@ -180,8 +191,9 @@ export function ClusterLegend() {
   )
 }
 
-export function MapLegend() {
+export function MapLegend({ showTokaido = false }: { showTokaido?: boolean }) {
   const { visited, unvisited, visit } = MAP_THEME.marker
+  const tokaido = MAP_THEME.tokaido
   return (
     <div
       className="absolute bottom-6 left-3 z-[1000] rounded-lg px-4 py-3 text-sm space-y-2"
@@ -200,6 +212,12 @@ export function MapLegend() {
       <LegendRow bg={visit.bg} border={visit.border}>
         実際の訪問地点（📷）
       </LegendRow>
+      {/* 宿場の層は既定でオフ。出していないときに凡例だけあると何のことか分からないため、オンのときだけ足す */}
+      {showTokaido && (
+        <LegendRow bg={tokaido.bg} border={tokaido.border} square>
+          東海道の宿場
+        </LegendRow>
+      )}
     </div>
   )
 }

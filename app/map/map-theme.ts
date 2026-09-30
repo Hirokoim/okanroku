@@ -90,4 +90,14 @@ export const MAP_THEME = {
     // 📷の訪問地点（過去の記録）とは、形と明るさで区別する。
     here: { dot: '#2f7fed', ring: '#ffffff' },
   },
+
+  // 東海道の宿場（参考の層）。歌川広重の「広重ブルー」に寄せた藍。
+  // 46景のピン（丸・生成りや松緑）と色でも形（角丸の四角）でも見分けられるようにする。
+  tokaido: {
+    bg: '#2f5f80',
+    text: '#f4efe6',
+    border: '#ffffff',
+    shadow: 'rgba(43,29,23,.3)',
+    route: '#2f5f80',
+  },
 } as const

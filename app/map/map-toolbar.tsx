@@ -46,12 +46,16 @@ export function MapToolbar({
   onToggleFuji,
   showVisit,
   onToggleVisit,
+  showTokaido,
+  onToggleTokaido,
   shownCount,
 }: {
   showFuji: boolean
   onToggleFuji: () => void
   showVisit: boolean
   onToggleVisit: () => void
+  showTokaido: boolean
+  onToggleTokaido: () => void
   shownCount: number
 }) {
   const { unit } = useFigureMeta()
@@ -65,6 +69,9 @@ export function MapToolbar({
       </PillButton>
       <PillButton active={showVisit} onClick={onToggleVisit}>
         📷 訪問地点を表示
+      </PillButton>
+      <PillButton active={showTokaido} onClick={onToggleTokaido}>
+        東海道を表示
       </PillButton>
 
       {/* 作品名と訪問済みの数は地図の上の進み具合（map-screen.tsx）に出しているので、ここは表示中の数だけ */}
