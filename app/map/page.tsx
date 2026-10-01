@@ -4,6 +4,7 @@ import { createPhotoUrls } from '@/lib/storage'
 import { fetchVisitedLocationIds } from '@/lib/visited-locations'
 import { getCurrentFigure } from '@/lib/current-figure'
 import { MapScreen } from './map-screen'
+import { parseMapView } from './map-url'
 import type { LocationPin, VisitPoint } from './map-types'
 
 // record_photos を、地点名まで一緒に引いたときの行の形。
@@ -24,11 +25,11 @@ type PhotoRow = {
 export default async function MapPage({
   searchParams,
 }: {
-  // クラスタ一覧（app/cluster-list.tsx）から「このクラスタで見る」を選んだときに
-  // ?cluster=クラスタ名 で渡ってくる。地図側の絞り込み初期値として使う。
-  searchParams: Promise<{ cluster?: string }>
+  // ?cluster=クラスタ名 … クラスタ一覧から「ここへ行く」を選んだとき、または地点詳細から戻ったとき
+  // ?view=gallery    … 作品一覧を表示していた状態から戻ったとき（app/map/map-url.ts）
+  searchParams: Promise<{ cluster?: string; view?: string }>
 }) {
-  const { cluster: initialCluster } = await searchParams
+  const { cluster: initialCluster, view } = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -105,6 +106,7 @@ export default async function MapPage({
           visitedLocationIds={[...visitedLocationIds]}
           visitPoints={visitPoints}
           initialCluster={initialCluster ?? null}
+          initialView={parseMapView(view)}
         />
       ) : (
         <p className="text-nami-dim">地図を見るにはログインしてください。</p>

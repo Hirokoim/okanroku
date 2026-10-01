@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useFigureMeta } from '../figure-context'
+import { locationHref } from './map-url'
 import type { LocationPin } from './map-types'
 
 type Filter = 'all' | 'visited' | 'unvisited'
@@ -91,7 +92,7 @@ export function LocationGallery({
             return (
               <li key={l.id}>
                 <Link
-                  href={`/locations/${l.id}`}
+                  href={locationHref(l.id, clusterFilter, 'gallery')}
                   className="block h-full rounded-xl overflow-hidden bg-sumi-2 hover:bg-sumi-3 transition-colors"
                 >
                   <div className="relative aspect-[3/4] bg-sumi-3">
