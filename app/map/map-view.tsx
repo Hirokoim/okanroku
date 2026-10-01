@@ -35,6 +35,7 @@ import { CurrentPositionLayer } from './map-current-position'
 import { useCurrentPosition } from './use-current-position'
 import type { LocationPin, VisitPoint } from './map-types'
 import { TOKAIDO_FIRST_ORDER, TOKAIDO_LAST_ORDER, TOKAIDO_STATIONS } from '@/lib/tokaido-stations'
+import { locationHref } from './map-url'
 import { useFigureMeta } from '../figure-context'
 
 const FUJI: [number, number] = [35.3606, 138.7274]
@@ -314,7 +315,7 @@ export function MapView({
               icon={icons.get(l.id)}
             >
               <Popup minWidth={200} maxWidth={220}>
-                <LocationPopupBody location={l} visited={visited.has(l.id)} />
+                <LocationPopupBody location={l} visited={visited.has(l.id)} href={locationHref(l.id, clusterFilter, 'map')} />
               </Popup>
             </Marker>
           ))}
@@ -413,7 +414,7 @@ function RoutePanel({
                 />
               )}
             </div>
-            <Link href={`/locations/${l.id}`} className="pb-4 -mt-0.5 group">
+            <Link href={locationHref(l.id, clusterName, 'map')} className="pb-4 -mt-0.5 group">
               <div className="text-sm font-semibold group-hover:underline" style={{ color: MAP_THEME.panel.title }}>
                 第{l.number}
                 {unit}・{l.title_jp}

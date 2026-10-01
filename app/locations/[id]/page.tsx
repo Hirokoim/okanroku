@@ -8,6 +8,7 @@ import { LocationRecords } from './location-records'
 import type { LocationRecord, RecordPhoto } from './record-types'
 import { LocationRecordForm } from './record-form'
 import type { WeatherSnapshot } from '@/lib/weather'
+import { mapHref, parseMapView } from '../../map/map-url'
 import { figureMeta } from '@/lib/figure-meta'
 
 // 2カラムのラベル＋値レイアウトは、MulmoClaudeのfugaku-36コレクションが
@@ -26,8 +27,23 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   )
 }
 
-export default async function LocationDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function LocationDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  // 地図タブから来たときの表示状態（app/map/map-url.ts）。戻るリンクで同じ状態に戻すために使う
+  searchParams: Promise<{ cluster?: string; view?: string }>
+}) {
   const { id } = await params
+  const { cluster: fromCluster, view: fromView } = await searchParams
+  const backView = parseMapView(fromView)
+  const backHref = mapHref(fromCluster ?? null, backView)
+  const backLabel = fromCluster
+    ? `${fromCluster}に戻る`
+    : backView === 'gallery'
+      ? '作品一覧に戻る'
+      : '地図に戻る'
   const supabase = await createClient()
   const {
     data: { user },
@@ -114,8 +130,8 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
   return (
     <main className="max-w-[430px] mx-auto p-6 pb-24 space-y-6 w-full">
       <div className="flex items-center justify-between">
-        <Link href="/map" className="text-sm text-kin underline">
-          ← 地図に戻る
+        <Link href={backHref} className="text-sm text-kin underline">
+          ← {backLabel}
         </Link>
       </div>
 

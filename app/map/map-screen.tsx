@@ -9,10 +9,9 @@ import { useFigureMeta } from '../figure-context'
 import { LocationGallery } from './location-gallery'
 import { MapPanel } from './map-panel'
 import type { LocationPin, VisitPoint } from './map-types'
+import { mapHref, type MapViewMode } from './map-url'
 
-type View = 'map' | 'gallery'
-
-const VIEWS: { value: View; label: string }[] = [
+const VIEWS: { value: MapViewMode; label: string }[] = [
   { value: 'map', label: '地図' },
   { value: 'gallery', label: '作品一覧' },
 ]
@@ -22,16 +21,29 @@ export function MapScreen({
   visitedLocationIds,
   visitPoints,
   initialCluster,
+  initialView,
 }: {
   locations: LocationPin[]
   visitedLocationIds: string[]
   visitPoints: VisitPoint[]
   initialCluster: string | null
+  initialView: MapViewMode
 }) {
   const figure = useFigureMeta()
-  const [view, setView] = useState<View>('map')
+  const [view, setViewState] = useState<MapViewMode>(initialView)
   // クラスタの絞り込みは地図と作品一覧で共有する（地図で絞った状態のまま一覧に切り替えられるように）
-  const [clusterFilter, setClusterFilter] = useState<string | null>(initialCluster)
+  const [clusterFilter, setClusterFilterState] = useState<string | null>(initialCluster)
+
+  // 表示状態はURLにも書き写す。地点詳細から戻ったとき（リンク・ブラウザの戻る）に同じ状態で開けるように。
+  // replaceStateなので履歴は増えず、ページの再読み込み（サーバー側のデータ取得）も起きない
+  function setView(next: MapViewMode) {
+    setViewState(next)
+    window.history.replaceState(null, '', mapHref(clusterFilter, next))
+  }
+  function setClusterFilter(next: string | null) {
+    setClusterFilterState(next)
+    window.history.replaceState(null, '', mapHref(next, view))
+  }
   const galleryLocations = clusterFilter ? locations.filter((l) => l.cluster === clusterFilter) : locations
 
   // 進み具合。地図にも作品一覧にも共通なので、切り替えの上に1回だけ出す

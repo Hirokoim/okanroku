@@ -20,7 +20,16 @@ function Badge({ bg, color, children }: { bg: string; color: string; children: R
 }
 
 /** 比定地（locations）のマーカー用 */
-export function LocationPopupBody({ location, visited }: { location: LocationPin; visited: boolean }) {
+export function LocationPopupBody({
+  location,
+  visited,
+  href,
+}: {
+  location: LocationPin
+  visited: boolean
+  /** 地点詳細へのリンク。戻り先の表示状態を付けたもの（app/map/map-url.ts） */
+  href: string
+}) {
   const { unit } = useFigureMeta()
   const accessibility = accessibilityStyle(location.accessibility_class)
 
@@ -78,7 +87,7 @@ export function LocationPopupBody({ location, visited }: { location: LocationPin
       </div>
 
       <div className="mt-2">
-        <Link href={`/locations/${location.id}`} className="text-xs underline" style={{ color: MAP_THEME.popup.link }}>
+        <Link href={href} className="text-xs underline" style={{ color: MAP_THEME.popup.link }}>
           詳細を見る ↗
         </Link>
       </div>
