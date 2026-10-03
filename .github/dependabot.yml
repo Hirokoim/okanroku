@@ -5,9 +5,25 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # 更新が複数あっても、PRは1つにまとめる
+    groups:
+      github-actions:
+        patterns: ["*"]
 
   # npm依存パッケージの更新を検知する。
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+    # パッケージごとにPRが分かれると数が増えて追いきれないため、週1回の更新を1つのPRにまとめる
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+    ignore:
+      # TypeScriptのメジャー版は、lint（typescript-eslint）の対応を待ってから手動で上げる
+      # （2026-10、TS 7.0の提案はtypescript-eslint未対応でCIが失敗した）
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # 型定義のメジャー版は実行環境のNode.jsのバージョンに合わせる必要があるため、手動で上げる
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
